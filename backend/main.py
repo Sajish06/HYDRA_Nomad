@@ -2,7 +2,8 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import RedirectResponse
 
 from backend.config import settings
 from backend.logging import logger
@@ -40,8 +41,16 @@ from backend.api.routes import api_router
 app.include_router(api_router)
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
+
+
 @app.get("/")
-async def root():
+async def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return RedirectResponse(url="/demo")
     return {
         "app": settings.APP_NAME,
         "status": "online",
