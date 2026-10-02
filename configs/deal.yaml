@@ -1,0 +1,24 @@
+target_name: "Northwind Analytics"
+target_codename: "Project Falcon"
+buyer_name: "Acme Capital"
+
+known_people:
+  - "Priya Sharma"
+  - "David Vance"
+  - "Sarah Chen"
+  - "Marcus Brody"
+  - "Zephyrine Quillfeather"  # Canary entity for leak detection
+
+known_orgs:
+  - "Northwind Analytics"
+  - "Acme Capital"
+  - "Apex Partners"
+  - "Zenith Bank"
+  - "CloudScale Systems"
+
+known_roles:
+  "Sarah Chen": "Chief Financial Officer"
+  "Priya Sharma": "Head of Product & Operations"
+  "David Vance": "Managing Director"
+  "Marcus Brody": "Lead External Counsel"
+  "Zephyrine Quillfeather": "Special Advisor"

@@ -1,0 +1,80 @@
+profiles:
+  deal_team:
+    name: "deal_team"
+    description: "Internal deal team with full unmasked access to all figures, identities, and details."
+    actions:
+      PERSON: keep
+      ORGANIZATION: keep
+      EMAIL: keep
+      PHONE: keep
+      CARD: redact
+      API_KEY: redact
+      NATIONAL_ID: redact
+      AMOUNT: keep
+      PERCENT: keep
+      DATE: keep
+      TARGET_NAME: keep
+
+  outside_counsel:
+    name: "outside_counsel"
+    description: "External legal counsel: legal terms and figures preserved; personal identities and contact information masked."
+    actions:
+      PERSON: token
+      ORGANIZATION: keep
+      EMAIL: redact
+      PHONE: redact
+      CARD: redact
+      API_KEY: redact
+      NATIONAL_ID: redact
+      AMOUNT: keep
+      PERCENT: keep
+      DATE: keep
+      TARGET_NAME: keep
+
+  lender:
+    name: "lender"
+    description: "Lending syndicate: financial figures kept; target entity replaced by code name Project Falcon; personal identities masked."
+    actions:
+      PERSON: token
+      ORGANIZATION: keep
+      EMAIL: redact
+      PHONE: redact
+      CARD: redact
+      API_KEY: redact
+      NATIONAL_ID: redact
+      AMOUNT: keep
+      PERCENT: keep
+      DATE: keep
+      TARGET_NAME: codename
+
+  board:
+    name: "board"
+    description: "Board of Directors: strategic overview; people converted to corporate roles; financial figures converted to normalized ranges."
+    actions:
+      PERSON: role
+      ORGANIZATION: keep
+      EMAIL: redact
+      PHONE: redact
+      CARD: redact
+      API_KEY: redact
+      NATIONAL_ID: redact
+      AMOUNT: range
+      PERCENT: keep
+      DATE: keep
+      TARGET_NAME: keep
+
+  cloud_llm:
+    name: "cloud_llm"
+    description: "External AI gateway boundary: fully tokenized and pseudonymized text with irreversible tokens."
+    actions:
+      PERSON: token
+      ORGANIZATION: token
+      EMAIL: redact
+      PHONE: redact
+      CARD: redact
+      API_KEY: redact
+      NATIONAL_ID: redact
+      AMOUNT: keep
+      PERCENT: keep
+      DATE: keep
+      TARGET_NAME: token

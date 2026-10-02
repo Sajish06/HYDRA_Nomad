@@ -1,0 +1,173 @@
+"""SQLAlchemy 2.x ORM models for Meetily Clean Room."""
+
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
+
+
+class MeetingModel(Base):
+    """Stores meeting metadata and references."""
+
+    __tablename__ = "meetings"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    meetily_id = Column(String(128), unique=True, nullable=False, index=True)
+    title = Column(String(256), nullable=False, default="Untitled Meeting")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    duration_seconds = Column(Float, nullable=True)
+    status = Column(String(64), default="created")  # created, processing, completed, failed
+    transcript_sha256 = Column(String(64), nullable=True)
+    raw_transcript = Column(Text, nullable=True)  # Populated only if ENABLE_RAW_STORAGE=true
+    raw_summary = Column(Text, nullable=True)
+
+    runs = relationship("ProcessingRunModel", back_populates="meeting", cascade="all, delete-orphan")
+    ledger_entries = relationship("LedgerEntryModel", back_populates="meeting", cascade="all, delete-orphan")
+
+
+class ProcessingRunModel(Base):
+    """Tracks an end-to-end processing pipeline execution."""
+
+    __tablename__ = "processing_runs"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    meeting_id = Column(String(36), ForeignKey("meetings.id"), nullable=False, index=True)
+    status = Column(String(64), default="pending")  # pending, running, completed, hold, failed
+    current_stage = Column(String(64), default="init")
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime, nullable=True)
+    timings_json = Column(Text, nullable=True)  # JSON dict of stage timings
+
+    meeting = relationship("MeetingModel", back_populates="runs")
+
+
+class VerificationResultRowModel(Base):
+    """Stores verification results for a processing run."""
+
+    __tablename__ = "verification_results"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    run_id = Column(String(36), ForeignKey("processing_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    overall_status = Column(String(64), nullable=False)
+    result_json = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class IntelligenceRowModel(Base):
+    """Stores extracted business intelligence data."""
+
+    __tablename__ = "intelligence_results"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    run_id = Column(String(36), ForeignKey("processing_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    data_json = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ReleaseDecisionModel(Base):
+    """Stores gate release decisions."""
+
+    __tablename__ = "release_decisions"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    run_id = Column(String(36), ForeignKey("processing_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    decision = Column(String(64), nullable=False)  # release, hold_for_review, block
+    reasons_json = Column(Text, default="[]")
+    flagged_claims_json = Column(Text, default="[]")
+    flagged_conflicts_json = Column(Text, default="[]")
+    approved_by = Column(String(128), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ReviewItemModel(Base):
+    """Items requiring human review before release."""
+
+    __tablename__ = "review_items"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    run_id = Column(String(36), ForeignKey("processing_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    item_type = Column(String(32), default="claim")  # claim or conflict
+    reference_id = Column(String(128), nullable=False)
+    original_text = Column(Text, nullable=False)
+    issue_type = Column(String(64), nullable=False)
+    suggested_fix = Column(Text, nullable=True)
+    status = Column(String(32), default="pending")  # pending, approved, corrected, rejected
+    corrected_text = Column(Text, nullable=True)
+    reviewer_notes = Column(Text, nullable=True)
+    resolved_at = Column(DateTime, nullable=True)
+
+
+class OutputArtifactModel(Base):
+    """Audience-specific output documents generated by the pipeline."""
+
+    __tablename__ = "output_artifacts"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    run_id = Column(String(36), ForeignKey("processing_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    audience = Column(String(64), nullable=False)
+    file_path = Column(String(512), nullable=False)
+    status = Column(String(32), default="clean")  # clean, quarantined
+    canary_present = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class WebhookEventModel(Base):
+    """Tracks received webhook events with deduplication."""
+
+    __tablename__ = "webhook_events"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    event_id = Column(String(128), unique=True, nullable=False, index=True)
+    event_type = Column(String(64), nullable=False)
+    resource_id = Column(String(128), nullable=False)
+    payload_json = Column(Text, nullable=False)
+    status = Column(String(32), default="received")  # received, processed, failed, duplicate
+    error_message = Column(Text, nullable=True)
+    received_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint("event_id", name="uq_webhook_event_id"),
+    )
+
+
+class LedgerEntryModel(Base):
+    """Cryptographic tamper-evident hash-chained audit record."""
+
+    __tablename__ = "ledger_entries"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    meeting_id = Column(String(36), ForeignKey("meetings.id"), nullable=False, index=True)
+    index = Column(Integer, nullable=False)
+    event_type = Column(String(64), nullable=False)
+    timestamp = Column(String(64), nullable=False)
+    payload_json = Column(Text, nullable=False)
+    transcript_sha256 = Column(String(64), nullable=False)
+    prev_hash = Column(String(64), nullable=False)
+    entry_hash = Column(String(64), nullable=False)
+
+    meeting = relationship("MeetingModel", back_populates="ledger_entries")
