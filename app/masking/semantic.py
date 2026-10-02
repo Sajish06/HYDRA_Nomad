@@ -20,6 +20,24 @@ import socket
 
 logger = logging.getLogger(__name__)
 
+def get_available_ollama_model(base_url: str, preferred_model: str) -> str:
+    """Checks Ollama /api/tags to find the best available installed model (e.g. qwen2.5:3b, qwen2.5:7b)."""
+    try:
+        req = urllib.request.Request(f"{base_url}/api/tags")
+        with urllib.request.urlopen(req, timeout=1.0) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            models = [m.get("name", "") for m in data.get("models", [])]
+            if not models:
+                return preferred_model
+            if preferred_model in models:
+                return preferred_model
+            for m in models:
+                if "qwen2.5" in m or "qwen" in m:
+                    return m
+            return models[0]
+    except Exception:
+        return preferred_model
+
 class SemanticDecomposer:
     """
     Layer 1: Semantic Classification, Minimization & Context Separation.
@@ -35,7 +53,8 @@ class SemanticDecomposer:
         use_cache: bool = True
     ):
         self.ollama_url = (ollama_url or os.getenv("OLLAMA_URL", settings.OLLAMA_URL)).rstrip("/")
-        self.model_name = model_name or os.getenv("OLLAMA_MODEL", settings.OLLAMA_MODEL)
+        raw_model = model_name or os.getenv("OLLAMA_MODEL", settings.OLLAMA_MODEL)
+        self.model_name = get_available_ollama_model(self.ollama_url, raw_model)
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.use_cache = use_cache
@@ -50,6 +69,7 @@ class SemanticDecomposer:
                 return True
         except Exception:
             return False
+
 
     def process_commitment(
         self,

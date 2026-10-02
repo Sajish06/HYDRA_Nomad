@@ -1,0 +1,40 @@
+{
+  "claims": [
+    {
+      "type": "COMMITMENT",
+      "text": "I'll implement the OAuth callback handling and update the authentication flow by October 15.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun",
+      "source_idx": [
+        1
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Rahul",
+      "source_idx": [
+        5
+      ]
+    },
+    {
+      "type": "DECISION",
+      "text": "Don't treat Redis as a decided implementation yet.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Maya",
+      "source_idx": [
+        7
+      ]
+    }
+  ]
+}

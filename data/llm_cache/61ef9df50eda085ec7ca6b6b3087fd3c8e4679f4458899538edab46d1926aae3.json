@@ -1,0 +1,26 @@
+{
+  "stances": [
+    {
+      "idx": 6,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": "Rahul, what about caching the API responses? We could potentially use Redis.",
+      "antecedent_idx": 5,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I'll look into whether Redis is suitable for the API caching requirements."
+    },
+    {
+      "idx": 7,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": "Rahul, what about caching the API responses? We could potentially use Redis.",
+      "antecedent_idx": 5,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Okay, but don't treat Redis as a decided implementation yet."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "claims": [
+    {
+      "type": "REQUIREMENT",
+      "text": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "source_idx": [
+        6
+      ]
+    },
+    {
+      "type": "DECISION",
+      "text": "don't treat Redis as a decided implementation yet.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "don't treat Redis as a decided implementation yet.",
+      "source_idx": [
+        7
+      ]
+    }
+  ]
+}

@@ -43,6 +43,33 @@ def save_to_cache(cache_key: str, data: Dict[str, Any]) -> None:
 
 _OLLAMA_ALIVE: Optional[bool] = None
 
+_RESOLVED_MODEL: Optional[str] = None
+
+def get_installed_ollama_model(base_url: str, preferred_model: str) -> str:
+    global _RESOLVED_MODEL
+    if _RESOLVED_MODEL:
+        return _RESOLVED_MODEL
+    try:
+        with httpx.Client(timeout=1.0) as client:
+            resp = client.get(f"{base_url}/api/tags")
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m.get("name", "") for m in data.get("models", [])]
+                if models:
+                    if preferred_model in models:
+                        _RESOLVED_MODEL = preferred_model
+                        return preferred_model
+                    for m in models:
+                        if "qwen2.5" in m or "qwen" in m:
+                            _RESOLVED_MODEL = m
+                            return m
+                    _RESOLVED_MODEL = models[0]
+                    return _RESOLVED_MODEL
+    except Exception:
+        pass
+    _RESOLVED_MODEL = preferred_model
+    return preferred_model
+
 def query_structured_llm(
     prompt_name: str,
     prompt_version: str,
@@ -54,8 +81,9 @@ def query_structured_llm(
 ) -> T:
     """Queries Ollama with JSON schema validation, retry loop, and disk cache."""
     global _OLLAMA_ALIVE
+    active_model = get_installed_ollama_model(settings.OLLAMA_URL.rstrip('/'), settings.OLLAMA_MODEL)
     cache_payload = input_context if input_context is not None else {"system": system_prompt, "user": user_prompt}
-    cache_key = compute_cache_key(settings.OLLAMA_MODEL, prompt_name, prompt_version, cache_payload)
+    cache_key = compute_cache_key(active_model, prompt_name, prompt_version, cache_payload)
 
     cached = get_from_cache(cache_key)
     if cached is not None:
@@ -80,7 +108,7 @@ def query_structured_llm(
     last_err = None
     for attempt in range(max_retries + 1):
         payload = {
-            "model": settings.OLLAMA_MODEL,
+            "model": active_model,
             "messages": messages,
             "stream": False,
             "format": schema,
