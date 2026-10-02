@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOMAD | Verification & Privacy Masking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-clay: #EDE8DF;
+      --card-clay: #F7F4EE;
+      --card-inset: #E5DFD5;
+      --text-main: #2D2824;
+      --text-muted: #736B63;
+      --terracotta: #B85B35;
+      --terracotta-hover: #9E4926;
+      --sage-green: #3B7A57;
+      --clay-red: #A33B3B;
+      --border-clay: #D9D2C5;
+      --radius: 12px;
+      --shadow-outer: 6px 6px 14px rgba(180, 170, 155, 0.4), -6px -6px 14px rgba(255, 255, 255, 0.8);
+      --shadow-inset: inset 3px 3px 6px rgba(180, 170, 155, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-clay);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header */
+    .header-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .header-card h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .header-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 680px) {
+      .upload-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .upload-box {
+      background: var(--card-inset);
+      box-shadow: var(--shadow-inset);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .upload-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .upload-dropzone {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: 8px;
+      padding: 26px 16px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .upload-dropzone:active {
+      transform: translateY(1px);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .upload-dropzone svg {
+      width: 28px;
+      height: 28px;
+      color: var(--terracotta);
+    }
+
+    .file-status {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-height: 18px;
+    }
+
+    .file-status.success {
+      color: var(--sage-green);
+    }
+
+    .file-status.error {
+      color: var(--clay-red);
+    }
+
+    /* Action Button */
+    .btn-run {
+      background: var(--terracotta);
+      color: #ffffff;
+      box-shadow: 4px 4px 10px rgba(184, 91, 53, 0.4), -3px -3px 8px rgba(255, 255, 255, 0.8);
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 14px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-run:hover:not(:disabled) {
+      background: var(--terracotta-hover);
+    }
+
+    .btn-run:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Error Message */
+    .error-box {
+      background: #fdf2f2;
+      border: 1px solid var(--clay-red);
+      color: var(--clay-red);
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    /* Output Card */
+    .output-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .output-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action:active {
+      box-shadow: var(--shadow-inset);
+    }
+
+    .json-display {
+      background: #1e1d1b;
+      color: #ede8df;
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      max-height: 550px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="header-card">
+      <h1>NOMAD Verification & Privacy Masking</h1>
+      <p>Upload meeting transcript and summary JSON files to verify commitments and generate a privacy-masked JSON payload.</p>
+    </header>
+
+    <!-- Upload Form -->
+    <section class="form-card">
+      <div class="upload-grid">
+        
+        <!-- Input 1: Transcript -->
+        <div class="upload-box">
+          <label class="upload-label" for="file-transcript">1. Meeting Transcript (.json)</label>
+          <div class="upload-dropzone" onclick="document.getElementById('file-transcript').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="font-size: 13px; font-weight: 700;">Select Transcript JSON</div>
+          </div>
+          <input type="file" id="file-transcript" accept=".json" style="display:none;" onchange="onFilePicked('transcript', this.files[0])">
+          <div class="file-status" id="status-transcript">No file selected</div>
+        </div>
+
+        <!-- Input 2: Summary -->
+        <div class="upload-box">
+          <label class="upload-label" for="file-summary">2. Meeting Summary / Claims (.json)</label>
+          <div class="upload-dropzone" onclick="document.getElementById('file-summary').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div style="font-size: 13px; font-weight: 700;">Select Summary JSON</div>
+          </div>
+          <input type="file" id="file-summary" accept=".json" style="display:none;" onchange="onFilePicked('summary', this.files[0])">
+          <div class="file-status" id="status-summary">No file selected</div>
+        </div>
+
+      </div>
+
+      <!-- Run Button -->
+      <button type="button" class="btn-run" id="btn-run" disabled onclick="runPipeline()">
+        Run Verification & Privacy Masking
+      </button>
+
+      <!-- Error Box -->
+      <div class="error-box" id="error-box"></div>
+    </section>
+
+    <!-- Output Section -->
+    <section class="output-card" id="output-card">
+      <div class="output-header">
+        <div class="output-title">Verified & Masked JSON Output</div>
+        <div class="btn-group">
+          <button type="button" class="btn-action" onclick="copyJSON()">📋 Copy JSON</button>
+          <button type="button" class="btn-action" onclick="downloadJSON()">📥 Download JSON</button>
+        </div>
+      </div>
+      <pre class="json-display" id="json-result"></pre>
+    </section>
+
+  </div>
+
+  <script>
+    let files = {
+      transcript: null,
+      summary: null
+    };
+    let lastResult = null;
+
+    function onFilePicked(type, file) {
+      if (!file) return;
+
+      const statusEl = document.getElementById(`status-${type}`);
+      const errBox = document.getElementById('error-box');
+      errBox.style.display = 'none';
+
+      if (!file.name.toLowerCase().endsWith('.json')) {
+        statusEl.className = 'file-status error';
+        statusEl.innerText = `Error: ${file.name} is not a .json file`;
+        files[type] = null;
+        updateButton();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          files[type] = file;
+          statusEl.className = 'file-status success';
+          statusEl.innerText = `✓ ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+          // Auto-detect summary if inside transcript
+          if (type === 'transcript' && !files.summary && (parsed.summary || parsed.decisions || parsed.claims)) {
+            const sumData = parsed.summary || { decisions: parsed.decisions || parsed.claims || [] };
+            const blob = new Blob([JSON.stringify(sumData, null, 2)], { type: 'application/json' });
+            files.summary = new File([blob], `summary_${file.name}`, { type: 'application/json' });
+            document.getElementById('status-summary').className = 'file-status success';
+            document.getElementById('status-summary').innerText = `✓ Auto-detected summary from ${file.name}`;
+          }
+        } catch (err) {
+          statusEl.className = 'file-status error';
+          statusEl.innerText = `Invalid JSON: ${err.message}`;
+          files[type] = null;
+        }
+        updateButton();
+      };
+      reader.readAsText(file);
+    }
+
+    function updateButton() {
+      const btn = document.getElementById('btn-run');
+      btn.disabled = !(files.transcript && files.summary);
+    }
+
+    async function runPipeline() {
+      if (!files.transcript || !files.summary) return;
+
+      const btn = document.getElementById('btn-run');
+      const errBox = document.getElementById('error-box');
+      const outCard = document.getElementById('output-card');
+      const jsonDisplay = document.getElementById('json-result');
+
+      errBox.style.display = 'none';
+      btn.disabled = true;
+      btn.innerText = 'Processing via Backend...';
+
+      const formData = new FormData();
+      formData.append('transcript_file', files.transcript);
+      formData.append('summary_file', files.summary);
+
+      try {
+        const resp = await fetch('/api/pipeline/verify-and-mask', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.detail ? (errData.detail.message || JSON.stringify(errData.detail)) : `Server returned HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        lastResult = data;
+
+        jsonDisplay.innerText = JSON.stringify(data, null, 2);
+        outCard.style.display = 'flex';
+        outCard.scrollIntoView({ behavior: 'smooth' });
+
+        btn.disabled = false;
+        btn.innerText = 'Run Verification & Privacy Masking';
+
+      } catch (err) {
+        errBox.innerText = `Error: ${err.message}`;
+        errBox.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'Run Verification & Privacy Masking';
+      }
+    }
+
+    function copyJSON() {
+      if (!lastResult) return;
+      navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2)).then(() => {
+        alert('Copied JSON to clipboard!');
+      });
+    }
+
+    function downloadJSON() {
+      if (!lastResult) return;
+      const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `verified_masked_${lastResult.meeting_id || 'output'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

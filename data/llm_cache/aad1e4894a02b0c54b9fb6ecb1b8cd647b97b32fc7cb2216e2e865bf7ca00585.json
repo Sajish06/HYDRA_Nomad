@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_2",
+    "intentions": [
+      "Ask the platform team whether the current cluster can support the expected dashboard workload"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Ask the platform team whether the current cluster can support the expected dashboard workload."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_2",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-2026-10-02-002"
+  }
+}

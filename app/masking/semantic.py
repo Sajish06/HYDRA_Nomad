@@ -14,6 +14,7 @@ from app.masking.models import (
     InternalAuditRecord,
     AuditEntry
 )
+from app.config import settings
 
 import socket
 
@@ -33,8 +34,8 @@ class SemanticDecomposer:
         cache_dir: str = "data/llm_cache",
         use_cache: bool = True
     ):
-        self.ollama_url = (ollama_url or os.getenv("OLLAMA_URL", "http://localhost:11434")).rstrip("/")
-        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+        self.ollama_url = (ollama_url or os.getenv("OLLAMA_URL", settings.OLLAMA_URL)).rstrip("/")
+        self.model_name = model_name or os.getenv("OLLAMA_MODEL", settings.OLLAMA_MODEL)
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.use_cache = use_cache
@@ -193,7 +194,7 @@ class SemanticDecomposer:
                 {"role": "user", "content": prompt}
             ],
             "format": schema,
-            "options": {"temperature": 0.0, "seed": 42, "num_ctx": 4096},
+            "options": {"temperature": 0.0, "seed": 42, "num_ctx": 2048},
             "stream": False
         }
 
@@ -203,7 +204,7 @@ class SemanticDecomposer:
             headers={"Content-Type": "application/json"}
         )
 
-        with urllib.request.urlopen(req, timeout=60.0) as response:
+        with urllib.request.urlopen(req, timeout=90.0) as response:
             result = json.loads(response.read().decode("utf-8"))
             content = json.loads(result.get("message", {}).get("content", "{}"))
             

@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_4",
+    "intentions": [
+      "The commercial sheet reports an annual contract value of approximately $480,000 and 37 active enterprise accounts; finance reconciliation is still pending"
+    ],
+    "things_to_implement": [
+      "ENGINEER: The commercial sheet reports an annual contract value of approximately $480,000 and 37 active enterprise accounts; finance reconciliation is still pending."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_4",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-2026-10-02-002"
+  }
+}

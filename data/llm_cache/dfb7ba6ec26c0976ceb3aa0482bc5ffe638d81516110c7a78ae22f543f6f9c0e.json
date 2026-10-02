@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_3",
+    "intentions": [
+      "The dashboard is targeted for the end of October, but real-time analytics has not been approved as a committed deliverable"
+    ],
+    "things_to_implement": [
+      "ENGINEER: The dashboard is targeted for the end of October, but real-time analytics has not been approved as a committed deliverable."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_3",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-2026-10-02-002"
+  }
+}

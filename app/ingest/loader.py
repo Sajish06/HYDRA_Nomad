@@ -27,11 +27,11 @@ def load_meeting_to_db(meeting: Meeting, source: str = "mock") -> Meeting:
         # Insert segments into both segments table and FTS5
         for s in meeting.segments:
             conn.execute(
-                "INSERT INTO segments (meeting_id, idx, speaker, time, t_seconds, text) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT OR REPLACE INTO segments (meeting_id, idx, speaker, time, t_seconds, text) VALUES (?, ?, ?, ?, ?, ?)",
                 (meeting.meeting_id, s.idx, s.speaker, s.time, s.t_seconds, s.text)
             )
             conn.execute(
-                "INSERT INTO segments_fts (text, meeting_id, idx) VALUES (?, ?, ?)",
+                "INSERT OR REPLACE INTO segments_fts (text, meeting_id, idx) VALUES (?, ?, ?)",
                 (s.text, meeting.meeting_id, str(s.idx))
             )
 

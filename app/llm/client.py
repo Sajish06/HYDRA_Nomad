@@ -48,7 +48,7 @@ def query_structured_llm(
     user_prompt: str,
     response_model: Type[T],
     input_context: Any = None,
-    max_retries: int = 2
+    max_retries: int = 1
 ) -> T:
     """Queries Ollama with JSON schema validation, retry loop, and disk cache."""
     cache_payload = input_context if input_context is not None else {"system": system_prompt, "user": user_prompt}
@@ -84,12 +84,12 @@ def query_structured_llm(
             "options": {
                 "temperature": 0.0,
                 "seed": 42,
-                "num_ctx": 8192
+                "num_ctx": 4096
             }
         }
 
         try:
-            with httpx.Client(timeout=httpx.Timeout(90.0, connect=5.0)) as client:
+            with httpx.Client(timeout=httpx.Timeout(45.0, connect=2.0)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -101,8 +101,8 @@ def query_structured_llm(
                 save_to_cache(cache_key, validated.model_dump(mode="json"))
                 return validated
 
-        except (httpx.ConnectError, httpx.ConnectTimeout) as e:
-            raise LLMUnavailable(f"Ollama server offline at {settings.OLLAMA_URL}: {str(e)}")
+        except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+            raise LLMUnavailable(f"Ollama server timeout or unavailable at {settings.OLLAMA_URL}: {str(e)}")
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             last_err = e
             break  # Ollama error
