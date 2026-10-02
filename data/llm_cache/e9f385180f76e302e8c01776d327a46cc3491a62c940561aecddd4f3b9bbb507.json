@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_7",
+    "intentions": [
+      "Priya will document SSO requirements and identify required authentication-service changes by October 10"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Priya committed to document SSO requirements and identify required authentication-service changes by October 10."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-2026-10-02-002_7",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-2026-10-02-002"
+  }
+}

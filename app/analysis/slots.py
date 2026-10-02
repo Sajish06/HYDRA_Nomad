@@ -23,13 +23,15 @@ def check_slots(claim: Claim, evidence_items: List[EvidenceItem]) -> List[SlotCh
 
         for e in evidence_items:
             spk_norm = normalize_slot_string(e.speaker)
-            # If speaker matches claim actor and has strong affirmative stance
-            if spk_norm == c_actor_norm and e.stance in (Stance.COMMIT, Stance.ACCEPT, Stance.DECIDE):
+            txt_norm = normalize_slot_string(f"{e.resolved_text or ''} {e.quote or ''} {e.text or ''}")
+            
+            # 1. Exact speaker match or actor mentioned in resolved text / quote
+            if (spk_norm == c_actor_norm or c_actor_norm in txt_norm) and e.stance in (Stance.COMMIT, Stance.ACCEPT, Stance.DECIDE, Stance.INFORM):
                 grounded_idx.append(e.idx)
-            elif e.speaker and spk_norm != c_actor_norm and e.stance == Stance.COMMIT:
+            elif c_actor_norm in txt_norm:
+                grounded_idx.append(e.idx)
+            elif e.speaker and spk_norm != c_actor_norm and not spk_norm.startswith("speaker") and e.stance == Stance.COMMIT:
                 conflict_idx.append(e.idx)
-            elif c_actor_norm in normalize_slot_string(e.resolved_text or ""):
-                grounded_idx.append(e.idx)
 
         if grounded_idx:
             status = "GROUNDED"

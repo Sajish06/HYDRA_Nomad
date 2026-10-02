@@ -36,9 +36,11 @@ def parse_bullet_heuristic(bullet: str, is_action: bool = False) -> ClaimDraft:
     action = None
     obj = None
     
-    m_actor = re.match(r"^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:will|to|should|must|agreed to|committed to|plans to|will be responsible for)\s+([a-z]+)\s+(.*)$", text_without_deadline, re.IGNORECASE)
+    m_actor = re.match(r"^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:will|to|should|must|agreed to|committed to|agreed|committed|plans to|will be responsible for)\s+(?:to\s+)?([a-z]+)\s+(.*)$", text_without_deadline, re.IGNORECASE)
     if m_actor:
-        actor = m_actor.group(1).strip()
+        raw_actor = m_actor.group(1).strip()
+        # Clean trailing helper words from actor name
+        actor = re.sub(r"\s+(?:committed|agreed|plans|responsible)$", "", raw_actor, flags=re.IGNORECASE).strip()
         action = m_actor.group(2).strip()
         obj = m_actor.group(3).strip()
     else:

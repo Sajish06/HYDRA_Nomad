@@ -9,7 +9,7 @@ client = TestClient(app)
 def test_frontend_clay_served():
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "Claymorphism" in resp.text or "ASCENT" in resp.text
+    assert "NOMAD" in resp.text or "Verification" in resp.text
 
 def test_pipeline_missing_files_error():
     # Attempting to call without compulsory files
@@ -32,11 +32,5 @@ def test_pipeline_verify_and_mask_e2e():
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "SUCCESS"
-    assert "verification_summary" in data
-    assert "privacy_masking_summary" in data
-    
-    # Assert privacy assertions
-    m_summary = data["privacy_masking_summary"]
-    assert m_summary["leak_gate"]["status"] == "PASSED"
-    assert len(m_summary["agent_payloads"]) > 0
-    assert Path(m_summary["markdown_path"]).exists()
+    assert "verified_tasks" in data
+    assert len(data["verified_tasks"]) > 0

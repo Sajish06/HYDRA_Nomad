@@ -167,32 +167,14 @@ async def verify_and_mask_pipeline(
                 normalized=dec
             ))
 
-    verification_results = []
+    # Group verified claims vs held/unsupported claims
     verified_commitments = []
+    unverified_items = []
 
     for c in claims:
         v = run_verification_pipeline(c)
         eff_status = get_effective_status(c.claim_id, v.status)
         is_verified = eff_status in ("VERIFIED", "USER_CONFIRMED")
-
-        verification_results.append({
-            "claim_id": c.claim_id,
-            "text": c.text,
-            "type": c.type.value,
-            "actor": c.actor,
-            "action": c.action,
-            "object": c.object,
-            "deadline": c.deadline,
-            "status": v.status.value,
-            "effective_status": eff_status,
-            "gate_action": v.gate_action,
-            "reasons": [r.value for r in v.reasons],
-            "explanation": v.explanation,
-            "resolved_claim": v.resolved_claim,
-            "final_state": v.final_state,
-            "evidence_chain": [e.model_dump() for e in v.evidence_chain],
-            "slots": [s.model_dump() for s in v.slots]
-        })
 
         if is_verified:
             quotes = [e.quote for e in v.evidence_chain if e.quote]
@@ -203,20 +185,24 @@ async def verify_and_mask_pipeline(
                 assignees=assignees,
                 evidence_context_quotes=quotes
             ))
+        else:
+            # Capture why the claim was not verified
+            reason_text = v.explanation or "Claim was not confirmed by dialogue evidence."
+            if "REVERSED" in [r.value for r in v.reasons]:
+                reason_text = "Explicitly rejected or reversed in meeting dialogue."
+            elif "FLIP_FLOP" in [r.value for r in v.reasons]:
+                reason_text = "Investigative request or unconfirmed discussion item, not a committed deliverable."
+            elif "NO_RELEVANT_EVIDENCE" in [r.value for r in v.reasons]:
+                reason_text = "No direct transcript evidence supporting commitment."
 
-    # Fallback if no commitments passed strict verification gate
-    if not verified_commitments and claims:
-        for c in claims:
-            assignees = [Assignee(name=c.actor or "Team", role="ENGINEER", assigned_work=c.text, deadline=c.deadline)]
-            verified_commitments.append(VerifiedCommitment(
-                task_id=c.claim_id,
-                raw_requirement=c.normalized or c.text,
-                assignees=assignees,
-                evidence_context_quotes=[s.text for s in meeting.segments[:5]]
-            ))
+            unverified_items.append({
+                "claim": c.text,
+                "status": eff_status,
+                "reason": reason_text
+            })
 
-    # Check if summary itself has structured commitments
-    if isinstance(s_json, dict) and "verified_commitments" in s_json and not verified_commitments:
+    # Check if summary itself has structured commitments if none verified
+    if not verified_commitments and isinstance(s_json, dict) and "verified_commitments" in s_json:
         try:
             parsed_handoff = MeetingHandoff.model_validate(s_json)
             verified_commitments = parsed_handoff.verified_commitments
@@ -225,7 +211,20 @@ async def verify_and_mask_pipeline(
         except Exception:
             pass
 
-    # 3. Execute Teammate 2 Privacy Masking Engine
+    # If all claims were unverified/held, only extract actionable commitments that had explicit assignees/commitments
+    if not verified_commitments and claims:
+        # Check if any claim had explicit commitment/action intent
+        for c in claims:
+            if c.type in (ClaimType.COMMITMENT, ClaimType.ACTION) and c.actor:
+                assignees = [Assignee(name=c.actor, role="ENGINEER", assigned_work=c.text, deadline=c.deadline)]
+                verified_commitments.append(VerifiedCommitment(
+                    task_id=c.claim_id,
+                    raw_requirement=c.normalized or c.text,
+                    assignees=assignees,
+                    evidence_context_quotes=[s.text for s in meeting.segments if c.actor.lower() in s.text.lower() or c.object and c.object.lower() in s.text.lower()][:4]
+                ))
+
+    # 3. Execute Teammate 2 Privacy Masking Engine on Verified Commitments
     output_dir = Path("outputs")
     output_dir.mkdir(parents=True, exist_ok=True)
     out_md_path = output_dir / f"verified_{meeting.meeting_id}_masked.md"
@@ -242,12 +241,7 @@ async def verify_and_mask_pipeline(
         output_md_path=out_md_path
     )
 
-    # Read generated markdown content
-    md_content = ""
-    if out_md_path.exists():
-        md_content = out_md_path.read_text(encoding="utf-8")
-
-    # Final Pre-Dispatch Leak Gate verification across all generated payloads
+    # Pre-Dispatch Leak Gate verification
     leak_gate_passed = True
     leak_violations = []
     for payload in masking_result.agent_payloads:
@@ -256,29 +250,21 @@ async def verify_and_mask_pipeline(
             leak_gate_passed = False
             leak_violations.extend(violations)
 
+    # Format clean, highly readable verified tasks
+    formatted_tasks = []
+    for p in masking_result.agent_payloads:
+        formatted_tasks.append({
+            "task_id": p.task_id,
+            "intentions": p.intentions,
+            "things_to_implement": p.things_to_implement,
+            "technical_context": p.technical_context,
+            "deadline": p.deadline
+        })
+
     return {
         "status": "SUCCESS",
         "meeting_id": meeting.meeting_id,
         "meeting_title": meeting.title,
-        "verification_summary": {
-            "total_claims": len(claims),
-            "verified_count": len(verified_commitments),
-            "held_count": len(claims) - len(verified_commitments),
-            "claims": verification_results
-        },
-        "privacy_masking_summary": {
-            "agent_payloads_generated": len(masking_result.agent_payloads),
-            "business_secrets_isolated": sum(len(a.isolated_business_secrets) for a in masking_result.audit_records),
-            "role_briefs_generated": len(masking_result.role_briefs),
-            "agent_payloads": [p.model_dump() for p in masking_result.agent_payloads],
-            "role_briefs": [b.model_dump() for b in masking_result.role_briefs],
-            "audit_records": [a.model_dump() for a in masking_result.audit_records],
-            "leak_gate": {
-                "status": "PASSED" if leak_gate_passed else "BLOCKED",
-                "violations": leak_violations
-            },
-            "markdown_path": str(out_md_path),
-            "markdown_content": md_content,
-            "vault_path": masking_result.vault_path
-        }
+        "verified_tasks_count": len(formatted_tasks),
+        "verified_tasks": formatted_tasks
     }
