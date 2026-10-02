@@ -77,6 +77,26 @@ async def run_demo_pipeline(repo: Repository = Depends(get_repo)):
                 except Exception:
                     pass
 
+    # 8. Format preview audience outputs and compute diffs
+    policy = orchestrator.policy
+    audience_outputs = {}
+    masking_diffs = {}
+    preview_paths = {}
+    out_dir = Path(f"./data/outputs/{meeting.id}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    for aud in ["deal_team", "outside_counsel", "lender", "board", "cloud_llm"]:
+        m_sum = policy.apply_to_summary(summary, aud, orchestrator.vault)
+        m_cls = policy.apply_to_claims(v_res.claims, aud, orchestrator.vault)
+        md_text = orchestrator.distributor.format_audience_markdown(aud, m_sum, m_cls)
+        audience_outputs[aud] = md_text
+        masking_diffs[aud] = policy.diff(summary.summary_text, aud, orchestrator.vault).model_dump(mode="json")
+        fpath = out_dir / f"{aud}.md"
+        fpath.write_text(md_text, encoding="utf-8")
+        preview_paths[aud] = str(fpath)
+
+    preview_scan = orchestrator.scanner.scan_output_artifacts(meeting.id, "preview_scan", preview_paths)
+
     return {
         "status": "success",
         "meeting_id": meeting.id,
@@ -98,16 +118,41 @@ async def run_demo_pipeline(repo: Repository = Depends(get_repo)):
         ],
         "ledger": {
             "chain_valid": is_valid,
+            "verification_error": err,
             "entries_count": len(ledger_entries),
+            "entries": [
+                {
+                    "index": e.index,
+                    "event_type": e.event_type,
+                    "timestamp": e.timestamp,
+                    "payload": json.loads(e.payload_json) if e.payload_json else {},
+                    "prev_hash": e.prev_hash,
+                    "entry_hash": e.entry_hash,
+                }
+                for e in ledger_entries
+            ],
         },
         "egress_logs": egress_lines,
+        "transcript": transcript.model_dump(mode="json"),
+        "summary": summary.model_dump(mode="json"),
+        "audience_outputs": audience_outputs,
+        "masking_diffs": masking_diffs,
+        "leak_report": (leak_rep or preview_scan).model_dump(mode="json"),
+        "deal": {
+            "target": "Northwind Analytics",
+            "codename": "Project Falcon",
+            "canary": "Zephyrine Quillfeather",
+        },
     }
 
 
 @router.get("/demo", response_class=HTMLResponse)
 async def serve_demo_ui():
     """Serve the static Clean Room compliance dashboard."""
+    index_file = Path("./backend/static/index.html")
+    if index_file.exists():
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
     demo_file = Path("./backend/static/demo.html")
-    if not demo_file.exists():
-        return HTMLResponse("<h1>Demo UI is being compiled</h1>", status_code=200)
-    return HTMLResponse(content=demo_file.read_text(encoding="utf-8"))
+    if demo_file.exists():
+        return HTMLResponse(content=demo_file.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>Demo UI is being initialized</h1>", status_code=200)

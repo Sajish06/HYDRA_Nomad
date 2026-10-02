@@ -81,3 +81,43 @@ async def test_masking_diff_endpoint(api_test_meeting):
     assert data["audience"] == "outside_counsel"
     assert "diff_spans" in data
     assert "masked_text" in data
+
+
+@pytest.mark.asyncio
+async def test_ask_endpoint(api_test_meeting):
+    meeting_uuid, _ = api_test_meeting
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        resp = await ac.post(
+            f"/api/meetings/{meeting_uuid}/ask",
+            json={"question": "What was the EBITDA?", "audience": "lender"},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "answer" in data
+    assert "citation" in data
+    assert data["audience"] == "lender"
+
+
+@pytest.mark.asyncio
+async def test_tamper_ledger_endpoint(api_test_meeting):
+    meeting_uuid, _ = api_test_meeting
+    # Add a ledger entry to tamper
+    db = SessionLocal()
+    repo = Repository(db)
+    from backend.processors.ledger import AuditLedger
+
+    AuditLedger.record_event(
+        repo=repo,
+        meeting_id=meeting_uuid,
+        event_type="test_event",
+        payload={"data": "original"},
+        transcript_sha256="testsha",
+    )
+    db.close()
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        resp = await ac.post(f"/api/meetings/{meeting_uuid}/tamper-ledger?index=0")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "tampered"
+    assert data["chain_valid"] is False

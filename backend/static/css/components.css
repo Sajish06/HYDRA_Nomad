@@ -1,0 +1,624 @@
+/**
+ * Meetily Clean Room - Component Styling
+ * Forensic Evidence Room & Compliance Airlock
+ */
+
+/* -------------------------------------------------------------
+   1. AIRLOCK GATE (Right Rail Physical Metaphor)
+   ------------------------------------------------------------- */
+.airlock-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.airlock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.airlock-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.airlock-valve {
+  height: 64px;
+  background: var(--bg-void);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+.airlock-piston-left, .airlock-piston-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-card),
+    var(--bg-card) 10px,
+    var(--bg-card-hover) 10px,
+    var(--bg-card-hover) 20px
+  );
+  transition: transform var(--duration-gate) var(--ease-in-out-cubic);
+  z-index: 2;
+  border: 1px solid var(--border-subtle);
+}
+.airlock-piston-left { left: 0; transform: translateX(0); border-right: 2px solid var(--border-bold); }
+.airlock-piston-right { right: 0; transform: translateX(0); border-left: 2px solid var(--border-bold); }
+
+/* Gate Opened State */
+.airlock-valve.open .airlock-piston-left {
+  transform: translateX(-95%);
+}
+.airlock-valve.open .airlock-piston-right {
+  transform: translateX(95%);
+}
+
+.airlock-core {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.airlock-status-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gate-held .airlock-status-text { color: var(--status-blocked); }
+.gate-open .airlock-status-text { color: var(--status-verified); }
+
+.airlock-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.airlock-reason-item {
+  background: var(--bg-void);
+  border: 1px solid var(--status-blocked-bg);
+  border-left: 3px solid var(--status-blocked);
+  padding: var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.airlock-reason-item:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--status-blocked);
+}
+
+/* -------------------------------------------------------------
+   2. CLAIM-TO-EVIDENCE LINKER (Mode A)
+   ------------------------------------------------------------- */
+.linker-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.linker-column {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.linker-col-header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.linker-col-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.linker-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Transcript Dialogue Segment */
+.transcript-bubble {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  transition: all var(--duration-fast);
+  position: relative;
+}
+.transcript-bubble:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bold);
+}
+.transcript-bubble.highlighted {
+  border-color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
+}
+.transcript-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+.transcript-speaker {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.transcript-time {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.transcript-text {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.transcript-text mark {
+  background: rgba(245, 158, 11, 0.25);
+  color: var(--text-primary);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Summary Claim Card */
+.claim-card {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--border-bold);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.claim-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bold);
+}
+.claim-card.selected {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
+}
+
+/* Claim Status Variations */
+.claim-card.status-supported {
+  border-left-color: var(--status-verified);
+}
+.claim-card.status-contradicted {
+  border-left-color: var(--status-blocked);
+  background: rgba(239, 68, 68, 0.04);
+}
+.claim-card.status-unverifiable {
+  border-left-color: var(--text-muted);
+}
+.claim-card.status-partial {
+  border-left-color: var(--status-review);
+}
+
+.claim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+.claim-text {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+/* Value Mismatch Comparison Strip */
+.value-mismatch-box {
+  background: var(--status-blocked-bg);
+  border: 1px solid var(--status-blocked);
+  border-radius: var(--radius-xs);
+  padding: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+}
+.mismatch-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+}
+.mismatch-claimed { color: var(--status-blocked-text); }
+.mismatch-actual { color: var(--status-verified-text); }
+
+/* SVG Connector Overlay Canvas */
+#connector-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-connector);
+}
+
+/* Filter Controls Toolbar */
+.filter-toolbar {
+  display: flex;
+  gap: var(--space-1);
+}
+.btn-filter {
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+.btn-filter.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--accent-cyan);
+}
+
+/* -------------------------------------------------------------
+   3. MASKING REVEAL & SCRUB (Mode B)
+   ------------------------------------------------------------- */
+.masking-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.masking-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+}
+
+.masking-split-canvas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.masking-pane {
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+  font-family: var(--font-serif);
+  border: 1px solid var(--paper-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  font-size: var(--text-body);
+  line-height: 1.7;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.masking-pane-header {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--paper-muted);
+  border-bottom: 1px solid var(--paper-border);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+}
+
+.token-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-card);
+  color: var(--accent-cyan);
+  border: 1px solid var(--border-subtle);
+  display: inline-block;
+  cursor: help;
+  position: relative;
+}
+
+/* -------------------------------------------------------------
+   4. AUDIENCE MORPH DOSSIER (Mode C)
+   ------------------------------------------------------------- */
+.dossier-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-3);
+}
+
+.audience-tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-2);
+}
+
+.btn-aud-tab {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast);
+}
+.btn-aud-tab:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.btn-aud-tab.active {
+  background: var(--accent-cyan);
+  color: var(--bg-void);
+  border-color: var(--accent-cyan);
+}
+
+.dossier-paper {
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+  font-family: var(--font-serif);
+  border: 1px solid var(--paper-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-6);
+  flex: 1;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  line-height: 1.8;
+  font-size: var(--text-body);
+}
+
+.dossier-header-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+.dossier-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--paper-muted);
+  border-bottom: 1px solid var(--paper-border);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+/* In-place morph transformed span highlights */
+.morph-span {
+  transition: all var(--duration-base);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+.morph-span.changed {
+  background-color: var(--paper-highlight);
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------
+   5. CROSS-SOURCE RECONCILIATION CARD
+   ------------------------------------------------------------- */
+.crosscheck-card {
+  background: var(--bg-card);
+  border: 1px solid var(--status-review);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.crosscheck-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.crosscheck-source-box {
+  background: var(--bg-void);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.crosscheck-source-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+  display: flex;
+  justify-content: space-between;
+}
+
+.crosscheck-source-val {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* -------------------------------------------------------------
+   6. REVIEW QUEUE
+   ------------------------------------------------------------- */
+.review-item-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.review-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.btn-approve {
+  background: var(--status-verified-bg);
+  border-color: var(--status-verified);
+  color: var(--status-verified-text);
+}
+.btn-correct {
+  background: var(--status-review-bg);
+  border-color: var(--status-review);
+  color: var(--status-review-text);
+}
+.btn-reject {
+  background: var(--status-blocked-bg);
+  border-color: var(--status-blocked);
+  color: var(--status-blocked-text);
+}
+
+/* -------------------------------------------------------------
+   7. LEAK SCANNER & CANARY
+   ------------------------------------------------------------- */
+.leak-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+.leak-table th, .leak-table td {
+  padding: var(--space-2);
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.leak-table th {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: var(--text-2xs);
+}
+
+/* -------------------------------------------------------------
+   8. LEDGER CHAIN VISUALIZER
+   ------------------------------------------------------------- */
+.ledger-chain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ledger-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--duration-fast);
+}
+.ledger-block.verified {
+  border-left: 3px solid var(--status-verified);
+}
+.ledger-block.tampered {
+  border-left: 3px solid var(--status-blocked);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* -------------------------------------------------------------
+   9. COMMAND PALETTE (Ctrl+K Spotlight)
+   ------------------------------------------------------------- */
+.palette-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(7, 10, 15, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-palette);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+.palette-backdrop.active {
+  display: flex;
+}
+
+.palette-box {
+  width: 580px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-bold);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.palette-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  outline: none;
+}
+
+.palette-results {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-2);
+}

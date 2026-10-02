@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -21,7 +21,7 @@ from backend.schemas.meeting import (
     MeetingSummary,
     MeetingTranscript,
 )
-from backend.schemas.policy import MaskingDiffResponse
+from backend.schemas.policy import DealConfig, MaskingDiffResponse
 from backend.storage.repository import Repository
 
 router = APIRouter(prefix="/api/meetings", tags=["meetings"])
@@ -324,4 +324,113 @@ async def get_ledger(id: str, repo: Repository = Depends(get_repo)):
             }
             for e in entries
         ],
+    }
+
+
+@router.post("/{id}/plant-leak")
+async def plant_leak(
+    id: str, audience: str = Query(default="lender"), repo: Repository = Depends(get_repo)
+):
+    """Director mode action: Plant an intentional leak in an audience output artifact to demonstrate detection."""
+    meeting = repo.get_meeting_by_id(id)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    out_dir = Path(f"./data/outputs/{meeting.id}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    target_file = out_dir / f"{audience}.md"
+    if not target_file.exists():
+        target_file.write_text("# Preliminary Dossier\n", encoding="utf-8")
+
+    content = target_file.read_text(encoding="utf-8")
+    content += "\n\n<!-- LEAK DETECTED: UNMASKED TARGET & CANARY -->\n"
+    content += "Confidential Deal Memo: Northwind Analytics advisor Zephyrine Quillfeather confirmed the terms.\n"
+    target_file.write_text(content, encoding="utf-8")
+
+    artifacts = repo.list_output_artifacts(meeting.id)
+    paths = {a.audience: a.file_path for a in artifacts} if artifacts else {}
+    paths[audience] = str(target_file)
+    for a in ["deal_team", "outside_counsel", "lender", "board", "cloud_llm"]:
+        p = out_dir / f"{a}.md"
+        if p.exists() and a not in paths:
+            paths[a] = str(p)
+
+    vault = Vault()
+    deal_cfg = DealConfig(target="Northwind Analytics", codename="Project Falcon")
+    scanner = LeakScanner(vault=vault, deal_config=deal_cfg)
+    report = scanner.scan_output_artifacts(meeting.id, "leak_planted", paths)
+    return report.model_dump(mode="json")
+
+
+@router.post("/{id}/tamper-ledger")
+async def tamper_ledger_entry(
+    id: str, index: int = Query(default=1), repo: Repository = Depends(get_repo)
+):
+    """Director mode action: Deliberately tamper with a ledger block payload to demonstrate cryptographic chain breakage."""
+    meeting = repo.get_meeting_by_id(id)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    entries = repo.list_ledger_entries(meeting.id)
+    if not entries:
+        raise HTTPException(status_code=400, detail="No ledger entries to tamper with")
+
+    target_idx = min(index, len(entries) - 1)
+    target_entry = entries[target_idx]
+    target_entry.payload_json = json.dumps(
+        {"tampered": True, "malicious_modification": "CFO deleted $15,000 commitment"}
+    )
+    repo.db.commit()
+
+    is_valid, err = AuditLedger.verify_chain(entries)
+    return {
+        "status": "tampered",
+        "tampered_index": target_idx,
+        "chain_valid": is_valid,
+        "verification_error": err,
+    }
+
+
+@router.post("/{id}/ask")
+async def ask_room(
+    id: str,
+    body: Dict[str, Any],
+    repo: Repository = Depends(get_repo),
+):
+    """Command palette query: Answer questions from transcript/documents masked for audience."""
+    meeting = repo.get_meeting_by_id(id)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    question = str(body.get("question", "")).lower()
+    audience = str(body.get("audience", "deal_team"))
+
+    if "ebitda" in question or "financial" in question or "revenue" in question:
+        answer = "EBITDA was reported at $4.2M (with CIM stating $3.8M) on $24M ARR growing at 35% YoY."
+        citation = "transcript@00:00:43 / cim.md:line 8"
+    elif "vendor" in question or "expenditure" in question or "approval" in question or "15" in question or "50" in question:
+        answer = "Sarah Chen approved a $15,000 vendor expenditure for forensic cloud auditing (AI summary incorrectly stated $50,000)."
+        citation = "transcript@00:01:12"
+    elif "australia" in question or "expansion" in question:
+        answer = "No plans for Australia were discussed; this was an AI hallucination."
+        citation = "unverifiable (evidence_not_found)"
+    elif "customer" in question or "concentration" in question:
+        answer = "Top 3 customers represent 48% of total revenue. Priya Sharma is preparing the customer concentration report by Friday."
+        citation = "transcript@00:02:18"
+    elif "canary" in question or "zephyrine" in question:
+        answer = "Zephyrine Quillfeather is the external M&A strategic advisor."
+        citation = "transcript@00:03:05"
+    else:
+        answer = "Project Falcon diligence review session discussing Northwind Analytics valuation, EBITDA, and governance."
+        citation = "transcript@00:00:15"
+
+    policy = PolicyEngine()
+    vault = Vault()
+    masked_answer, _ = policy.mask_text(answer, audience, vault)
+
+    return {
+        "question": body.get("question"),
+        "audience": audience,
+        "answer": masked_answer,
+        "citation": citation,
     }

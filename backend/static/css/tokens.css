@@ -1,0 +1,108 @@
+/**
+ * Meetily Clean Room - Design Tokens
+ * Forensic Evidence Room & Compliance Airlock
+ */
+
+:root {
+  /* Color Palette: Core Workspace (Deep Industrial Ink) */
+  --bg-void: #070a0f;
+  --bg-surface: #0d131d;
+  --bg-surface-elevated: #111824;
+  --bg-card: #141d2b;
+  --bg-card-hover: #1b273a;
+  --bg-card-active: #22324a;
+  
+  --border-subtle: #212e42;
+  --border-muted: #172030;
+  --border-bold: #334661;
+  --border-focus: #38bdf8;
+
+  /* Color Palette: Archival Document Paper Surfaces */
+  --paper-bg: #f7f4ed;
+  --paper-surface: #efeae0;
+  --paper-card: #e8e2d5;
+  --paper-border: #d6cebe;
+  --paper-ink: #12161f;
+  --paper-muted: #555d6e;
+  --paper-redacted: #161a22;
+  --paper-highlight: #fef08a;
+
+  /* Semantic Signal Colors (Status only, WCAG AA compliant) */
+  --status-verified: #10b981;
+  --status-verified-glow: rgba(16, 185, 129, 0.25);
+  --status-verified-bg: #064e3b;
+  --status-verified-text: #6ee7b7;
+
+  --status-review: #f59e0b;
+  --status-review-glow: rgba(245, 158, 11, 0.25);
+  --status-review-bg: #78350f;
+  --status-review-text: #fcd34d;
+
+  --status-blocked: #ef4444;
+  --status-blocked-glow: rgba(239, 68, 68, 0.25);
+  --status-blocked-bg: #7f1d1d;
+  --status-blocked-text: #fca5a5;
+
+  --accent-cyan: #38bdf8;
+  --accent-cyan-glow: rgba(56, 189, 248, 0.2);
+
+  /* Typography Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-dim: #475569;
+
+  /* Typography Stacks */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Charter", "Newsreader", "Georgia", "Cambria", "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", Menlo, monospace;
+
+  /* Type Scale */
+  --text-2xs: 0.625rem;   /* 10px */
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.9375rem; /* 15px */
+  --text-body: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px */
+  --text-3xl: 2.25rem;    /* 36px */
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+
+  /* Layout Dimensions */
+  --topbar-height: 56px;
+  --caption-height: 40px;
+  --left-rail-width: 250px;
+  --right-rail-width: 360px;
+
+  /* Border Radii (Restrained architectural corners) */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Motion & Easing */
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-medium: 400ms;
+  --duration-gate: 1100ms;
+
+  /* Z-Index Layers */
+  --z-base: 1;
+  --z-connector: 10;
+  --z-overlay: 20;
+  --z-modal: 50;
+  --z-palette: 100;
+  --z-tooltip: 150;
+}

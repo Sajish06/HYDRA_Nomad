@@ -1,9 +1,11 @@
 """Meetily Clean Room - Main FastAPI application entrypoint."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.config import settings
 from backend.logging import logger
@@ -41,9 +43,20 @@ from backend.api.routes import api_router
 app.include_router(api_router)
 
 
+# Mount static assets
+static_path = Path("./backend/static")
+static_path.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return Response(status_code=204)
+
+
+@app.get("/demo.html", include_in_schema=False)
+async def redirect_old_demo():
+    return RedirectResponse(url="/demo")
 
 
 @app.get("/")
