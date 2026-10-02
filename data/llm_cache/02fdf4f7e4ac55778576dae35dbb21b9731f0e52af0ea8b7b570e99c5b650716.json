@@ -1,8 +1,0 @@
-{
-  "type": "DECISION",
-  "actor": "Bob",
-  "action": "will investigate",
-  "object": "Redis for rate limiting",
-  "deadline": null,
-  "normalized": "Bob will investigate Redis for rate limiting."
-}

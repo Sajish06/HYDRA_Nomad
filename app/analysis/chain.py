@@ -34,6 +34,8 @@ def build_evidence_chain(
             stance=item["stance"],
             relation=item["relation"],
             resolved_text=item.get("resolved_text"),
+            actor_mentioned=item.get("actor_mentioned"),
+            deadline_mentioned=item.get("deadline_mentioned"),
             source=item.get("source", "LLM")
         )
         evidence_chain.append(e_item)

@@ -1,8 +1,0 @@
-{
-  "type": "DECISION",
-  "actor": "Bob",
-  "action": "rebuild",
-  "object": "the website",
-  "deadline": "Friday",
-  "normalized": "Bob will rebuild the website by Friday."
-}

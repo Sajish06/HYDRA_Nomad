@@ -9,33 +9,41 @@
 ## Task: TASK-001
 
 ### 1. Intentions (Technical Objective)
-- Customer revenue, average order value, and monthly customer value should not be visible to ordinary support staff, only to admins and finance managers.
+- Restrict revenue metrics to ADMIN and FINANCE roles
 
 ### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization.
-- FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states.
+- BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization
+- FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
 - QA: Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.
 
 ### 3. Technical Context (Prerequisites & Constraints)
-- Existing RBAC supports ADMIN, FINANCE, SUPPORT, and SALES roles.
+- Support 10,000 concurrent users
+- Audit records retained for 180 days
+- Use RBAC for role-based access control
 
 **Deadline**: Friday
 
 ### 4. Role-Specific Briefs
 #### BACKEND — Assignee: Ravi (Deadline: Friday)
-- Deliverable: BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization.
-- Context: Existing RBAC supports ADMIN, FINANCE, SUPPORT, and SALES roles.
+- Deliverable: BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization
+- Context: Support 10,000 concurrent users
+- Context: Audit records retained for 180 days
+- Context: Use RBAC for role-based access control
 
 #### FRONTEND — Assignee: Neha (Deadline: Friday)
-- Deliverable: FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states.
-- Context: Existing RBAC supports ADMIN, FINANCE, SUPPORT, and SALES roles.
+- Deliverable: FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
+- Context: Support 10,000 concurrent users
+- Context: Audit records retained for 180 days
+- Context: Use RBAC for role-based access control
 
 #### QA — Assignee: QA_Team (Deadline: Friday)
 - Deliverable: QA: Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.
-- Context: Existing RBAC supports ADMIN, FINANCE, SUPPORT, and SALES roles.
+- Context: Support 10,000 concurrent users
+- Context: Audit records retained for 180 days
+- Context: Use RBAC for role-based access control
 
 ---
 
 ### Privacy Engine Audit
-- Total Business Secrets Isolated & Dropped: **1**
+- Total Business Secrets Isolated & Dropped: **2**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

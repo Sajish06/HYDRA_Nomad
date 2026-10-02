@@ -41,6 +41,8 @@ def save_to_cache(cache_key: str, data: Dict[str, Any]) -> None:
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
+_OLLAMA_ALIVE: Optional[bool] = None
+
 def query_structured_llm(
     prompt_name: str,
     prompt_version: str,
@@ -51,6 +53,7 @@ def query_structured_llm(
     max_retries: int = 1
 ) -> T:
     """Queries Ollama with JSON schema validation, retry loop, and disk cache."""
+    global _OLLAMA_ALIVE
     cache_payload = input_context if input_context is not None else {"system": system_prompt, "user": user_prompt}
     cache_key = compute_cache_key(settings.OLLAMA_MODEL, prompt_name, prompt_version, cache_payload)
 
@@ -61,10 +64,10 @@ def query_structured_llm(
         except ValidationError:
             pass
 
-    if settings.MOCK_LLM:
+    if settings.MOCK_LLM or _OLLAMA_ALIVE is False:
         if cached is not None:
             return response_model.model_validate(cached)
-        raise LLMCacheMiss(f"MOCK_LLM=1 is active but cache key was not found: {cache_key} (prompt: {prompt_name})")
+        raise LLMUnavailable(f"LLM unavailable (MOCK_LLM={settings.MOCK_LLM}, _OLLAMA_ALIVE={_OLLAMA_ALIVE})")
 
     url = f"{settings.OLLAMA_URL.rstrip('/')}/api/chat"
     schema = response_model.model_json_schema()
@@ -89,7 +92,7 @@ def query_structured_llm(
         }
 
         try:
-            with httpx.Client(timeout=httpx.Timeout(45.0, connect=2.0)) as client:
+            with httpx.Client(timeout=httpx.Timeout(45.0, connect=0.3)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -102,6 +105,7 @@ def query_structured_llm(
                 return validated
 
         except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+            _OLLAMA_ALIVE = False
             raise LLMUnavailable(f"Ollama server timeout or unavailable at {settings.OLLAMA_URL}: {str(e)}")
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             last_err = e

@@ -1,0 +1,64 @@
+{
+  "claims": [
+    {
+      "type": "ACTION",
+      "text": "I'll add an audit-event endpoint and store the events in the existing backend database by November 8.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "add an audit-event endpoint and store the events in the existing backend database by November 8",
+      "source_idx": [
+        11
+      ]
+    },
+    {
+      "type": "DEADLINE",
+      "text": "by November 8",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "November 8",
+      "source_idx": [
+        11
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "That's part of the committed launch scope.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "committed launch scope",
+      "source_idx": [
+        12
+      ]
+    },
+    {
+      "type": "DEADLINE",
+      "text": "December 12",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "December 12",
+      "source_idx": [
+        16
+      ]
+    },
+    {
+      "type": "DEADLINE",
+      "text": "December 3",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "December 3",
+      "source_idx": [
+        16
+      ]
+    }
+  ]
+}

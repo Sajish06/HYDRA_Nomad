@@ -1,8 +1,0 @@
-{
-  "type": "DECISION",
-  "actor": null,
-  "action": null,
-  "object": null,
-  "deadline": null,
-  "normalized": "Request the billing export and ARR reconciliation from the finance contact."
-}

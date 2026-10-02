@@ -1,0 +1,52 @@
+{
+  "claims": [
+    {
+      "type": "DECISION",
+      "text": "The client wants SSO support added before the November release.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "client wants SSO support added before the November release",
+      "source_idx": [
+        0
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "I'll document the SSO requirements and update the authentication service before November 5.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "will document the SSO requirements and update the authentication service before November 5",
+      "source_idx": [
+        1
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "I'll ask the platform team to run a capacity check.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "will ask the platform team to run a capacity check",
+      "source_idx": [
+        6
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "Add an audit-event endpoint and store the events in the existing backend database by November 8.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "add an audit-event endpoint and store the events in the existing backend database by November 8",
+      "source_idx": [
+        11
+      ]
+    }
+  ]
+}

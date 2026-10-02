@@ -19,8 +19,13 @@ def run_verification_pipeline(claim: Claim) -> Verification:
     """Executes the full ReqCopilot Proof verification pipeline on a claim."""
     meeting_id = claim.meeting_id
 
-    # 1. Load meeting details and participants
+    # 1. Load meeting details and participants, and ensure claim exists in DB
     with get_db() as conn:
+        conn.execute(
+            """INSERT OR REPLACE INTO claims (id, meeting_id, text, normalized, source, type, actor, action, object, deadline)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (claim.claim_id, claim.meeting_id, claim.text, claim.normalized, claim.source, claim.type.value, claim.actor, claim.action, claim.object, claim.deadline)
+        )
         p_rows = conn.execute(
             "SELECT name, role, has_authority FROM participants WHERE meeting_id = ?",
             (meeting_id,)

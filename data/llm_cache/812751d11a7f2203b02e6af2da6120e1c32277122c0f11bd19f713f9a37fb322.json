@@ -1,0 +1,33 @@
+{
+  "agent_payload": {
+    "task_id": "claim_MEET-20261001-01_1",
+    "intentions": [
+      "Restrict revenue, average order value, and monthly customer value figures to ADMIN and FINANCE roles"
+    ],
+    "things_to_implement": [
+      "BACKEND: Enforce API-level authorization for revenue-related metrics",
+      "FRONTEND: Hide revenue cards for unauthorized users",
+      "ENGINEER: Arjun agrees to: Specifically revenue, average order value, and the monthly customer value figures."
+    ],
+    "technical_context": [
+      "RBAC system with ADMIN and FINANCE roles",
+      "API-level enforcement required",
+      "QA verification needed"
+    ],
+    "deadline": "the next release"
+  },
+  "audit_record": {
+    "task_id": "claim_MEET-20261001-01_1",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "BUSINESS_STRATEGY / UNRELEASED_INFORMATION",
+        "reason": "Expansion into new markets and ongoing negotiations",
+        "source": "semantic_model",
+        "value": "Expanding into two new markets next month, negotiating with another company right now"
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEET-20261001-01"
+  }
+}

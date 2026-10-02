@@ -175,13 +175,8 @@ class MockAdapter(MeetingAdapter):
                         text=txt
                     ))
                 elif isinstance(s, dict):
-                    raw_idx = s.get("idx") if s.get("idx") is not None else (s.get("segment_id") or s.get("id"))
-                    if raw_idx is not None:
-                        try:
-                            idx_val = int(raw_idx)
-                        except (ValueError, TypeError):
-                            digits = re.findall(r"\d+", str(raw_idx))
-                            idx_val = int(digits[0]) if digits else i
+                    if s.get("idx") is not None and isinstance(s.get("idx"), int):
+                        idx_val = s["idx"]
                     else:
                         idx_val = i
 

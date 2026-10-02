@@ -1,0 +1,158 @@
+{
+  "stances": [
+    {
+      "idx": 0,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Let's go through the launch requirements. The client wants SSO support added before the November release."
+    },
+    {
+      "idx": 1,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I can take that. I'll document the SSO requirements and update the authentication service before November 5."
+    },
+    {
+      "idx": 2,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "The customer currently has 84 enterprise accounts and the annual contract is worth about $720,000."
+    },
+    {
+      "idx": 3,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Those numbers came from the commercial sheet, right?"
+    },
+    {
+      "idx": 4,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Yes, but finance has not reconciled the latest numbers yet. Don't use the account count or contract value for engineering decisions."
+    },
+    {
+      "idx": 9,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Do we have verified customer-level data for that?"
+    },
+    {
+      "idx": 10,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "No. That percentage is from an old account-manager report, so treat it as unconfirmed."
+    },
+    {
+      "idx": 11,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "For the audit logging requirement, I'll add an audit-event endpoint and store the events in the existing backend database by November 8."
+    },
+    {
+      "idx": 12,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Yes, that's part of the committed launch scope."
+    },
+    {
+      "idx": 13,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "For implementation we might use Redis for caching the dashboard data."
+    },
+    {
+      "idx": 14,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I haven't decided on Redis yet. I'll evaluate Redis against the existing database before choosing."
+    },
+    {
+      "idx": 15,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Fine. Don't treat Redis as a required technology until that evaluation is complete."
+    },
+    {
+      "idx": 16,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Also, the customer's renewal is December 12 and our internal security review is December 3."
+    },
+    {
+      "idx": 17,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Those dates are operational context only. They don't change the engineering requirements."
+    }
+  ]
+}

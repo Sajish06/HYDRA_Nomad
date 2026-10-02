@@ -1,0 +1,16 @@
+{
+  "claims": [
+    {
+      "type": "COMMITMENT",
+      "text": "the customer's renewal is December 12 and our internal security review is December 3",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "customer renewal and internal security review dates",
+      "source_idx": [
+        16
+      ]
+    }
+  ]
+}

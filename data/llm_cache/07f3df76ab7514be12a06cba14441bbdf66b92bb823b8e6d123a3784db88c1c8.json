@@ -1,8 +1,0 @@
-{
-  "type": "DECISION",
-  "actor": null,
-  "action": "circulates",
-  "object": "revised purchase agreement",
-  "deadline": "Wednesday",
-  "normalized": "Acme Capital circulates revised purchase agreement by Wednesday."
-}

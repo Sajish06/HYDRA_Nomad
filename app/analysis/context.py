@@ -71,16 +71,15 @@ def validate_and_resolve_context(
 
                 effective_actor = addressed_actor or (speaker if (speaker and not speaker.lower().startswith("speaker")) else "The owner")
 
-                if not resolved_text or resolved_text.strip() == text or resolved_text.strip() == "":
-                    # Check first person commitment in text
-                    m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", text, re.IGNORECASE)
-                    if m_commit:
-                        resolved_text = f"{effective_actor} will {m_commit.group(1).strip().rstrip('.')}."
+                if not resolved_text or resolved_text.strip() == text or resolved_text.strip() == "" or re.search(r"\b(look into it|on it|take care of it)\b", resolved_text, re.IGNORECASE):
+                    m_action = re.search(r"(?:can you|could you|should we|will you|please)\s+(.*?)[\?\.]?$", a_text, re.IGNORECASE)
+                    if m_action:
+                        act_content = m_action.group(1).strip()
+                        resolved_text = f"{effective_actor} will {act_content}."
                     else:
-                        m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", a_text, re.IGNORECASE)
-                        if m_action:
-                            act_content = m_action.group(1).strip()
-                            resolved_text = f"{effective_actor} will {act_content}."
+                        m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", text, re.IGNORECASE)
+                        if m_commit:
+                            resolved_text = f"{effective_actor} will {m_commit.group(1).strip().rstrip('.')}."
                         else:
                             resolved_text = f"{effective_actor} agreed: {a_text}"
                     
@@ -116,13 +115,13 @@ def validate_and_resolve_context(
                     addressed = m_addr.group(1).strip()
                 eff_spk = addressed or s_speaker
 
-                m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", s_text, re.IGNORECASE)
-                if m_commit:
-                    resolved_claim = f"{eff_spk} will {m_commit.group(1).strip().rstrip('.')}."
+                m_action = re.search(r"(?:can you|could you|should we|will you|please)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
+                if m_action:
+                    resolved_claim = f"{eff_spk} will {m_action.group(1).strip()}."
                 else:
-                    m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
-                    if m_action:
-                        resolved_claim = f"{eff_spk} will {m_action.group(1).strip()}."
+                    m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", s_text, re.IGNORECASE)
+                    if m_commit:
+                        resolved_claim = f"{eff_spk} will {m_commit.group(1).strip().rstrip('.')}."
                     elif prev_txt:
                         resolved_claim = f"{eff_spk} will handle: {prev_txt}"
                 break

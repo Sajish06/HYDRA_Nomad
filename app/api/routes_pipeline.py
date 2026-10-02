@@ -77,7 +77,11 @@ async def verify_and_mask_pipeline(
         # Parse summary items into decisions/action items
         s_items = []
         if isinstance(s_json, dict):
+            raw_v_comms = s_json.get("verified_commitments", [])
+            comm_items = [c.get("raw_requirement") for c in raw_v_comms if isinstance(c, dict) and c.get("raw_requirement")]
             s_items = (
+                s_json.get("commitments", []) +
+                comm_items +
                 s_json.get("decisions", []) + 
                 s_json.get("action_items", []) + 
                 s_json.get("claims", []) + 

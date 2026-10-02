@@ -127,6 +127,8 @@ class EvidenceItem(BaseModel):
     stance: Stance
     relation: Literal["SUPPORTS", "CONTRADICTS", "CONTEXT"]
     resolved_text: Optional[str] = None
+    actor_mentioned: Optional[str] = None
+    deadline_mentioned: Optional[str] = None
     source: Literal["LLM", "RULES", "BOTH"] = "LLM"
 
 class SlotCheck(BaseModel):

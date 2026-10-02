@@ -6,39 +6,32 @@
 
 ---
 
-## Task: TASK-001
+## Task: claim_MEET-20261001-01_1
 
 ### 1. Intentions (Technical Objective)
-- Restrict revenue metrics to ADMIN and FINANCE roles
+- Restrict revenue, average order value, and monthly customer value figures to ADMIN and FINANCE roles
 
 ### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Add authorization middleware to financial endpoints
-- FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
+- BACKEND: Enforce API-level authorization for revenue-related metrics
+- FRONTEND: Hide revenue cards for unauthorized users
+- ENGINEER: Arjun agrees to: Specifically revenue, average order value, and the monthly customer value figures.
 
 ### 3. Technical Context (Prerequisites & Constraints)
-- Support 10,000 concurrent users
-- Use PostgreSQL and FastAPI
+- RBAC system with ADMIN and FINANCE roles
+- API-level enforcement required
+- QA verification needed
 
-**Deadline**: Friday
+**Deadline**: the next release
 
 ### 4. Role-Specific Briefs
-#### BACKEND — Assignee: Ravi (Deadline: Friday)
-- Deliverable: BACKEND: Add authorization middleware to financial endpoints
-- Context: Support 10,000 concurrent users
-- Context: Use PostgreSQL and FastAPI
-
-#### FRONTEND — Assignee: Neha (Deadline: Friday)
-- Deliverable: FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
-- Context: Support 10,000 concurrent users
-- Context: Use PostgreSQL and FastAPI
-
-#### QA — Assignee: QA_Team (Deadline: Friday)
-- Deliverable: QA: Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.
-- Context: Support 10,000 concurrent users
-- Context: Use PostgreSQL and FastAPI
+#### ENGINEER — Assignee: Maya (Deadline: the next release)
+- Deliverable: ENGINEER: Arjun agrees to: Specifically revenue, average order value, and the monthly customer value figures.
+- Context: RBAC system with ADMIN and FINANCE roles
+- Context: API-level enforcement required
+- Context: QA verification needed
 
 ---
 
 ### Privacy Engine Audit
-- Total Business Secrets Isolated & Dropped: **2**
+- Total Business Secrets Isolated & Dropped: **1**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

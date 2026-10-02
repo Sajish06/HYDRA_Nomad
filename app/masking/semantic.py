@@ -62,9 +62,10 @@ class SemanticDecomposer:
         2. InternalAuditRecord: Internal record of detected business secrets and audit trail.
         """
         cache_key = self._compute_cache_key(commitment)
-        cached_result = self._read_cache(cache_key)
-        if cached_result:
-            return cached_result
+        if self.use_cache:
+            cached_result = self._read_cache(cache_key)
+            if cached_result:
+                return cached_result
 
         # Try Ollama structured inference if online
         if self._is_ollama_online():
@@ -211,10 +212,18 @@ class SemanticDecomposer:
             deadlines = [a.deadline for a in commitment.assignees if a.deadline]
             deadline_val = deadlines[0] if deadlines else content.get("deadline")
 
+            things = content.get("things_to_implement", [])
+            existing_roles = {t.split(":")[0].strip().upper() for t in things if ":" in t}
+            for a in commitment.assignees:
+                if a.role.upper() not in existing_roles:
+                    work = a.assigned_work.strip()
+                    work = re.sub(r'^(?:I\'ll |We need to |Please |Make sure to )', '', work, flags=re.IGNORECASE)
+                    things.append(f"{a.role.upper()}: {work}")
+
             agent_payload = AgentTaskPayload(
                 task_id=commitment.task_id,
                 intentions=content.get("intentions", [commitment.raw_requirement]),
-                things_to_implement=content.get("things_to_implement", []),
+                things_to_implement=things,
                 technical_context=content.get("technical_context", []),
                 deadline=deadline_val
             )

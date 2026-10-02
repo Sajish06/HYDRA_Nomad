@@ -27,6 +27,19 @@ def validate_quote(raw_quote: str, segment_text: str) -> Tuple[str, bool]:
 
 from app.analysis.slots import ACTION_SYNONYMS
 
+GENERIC_VERBS = {
+    "use", "used", "using", "make", "create", "build", "have", "has", "select", "selected",
+    "take", "keep", "stay", "stays", "include", "included", "continue", "work", "support",
+    "document", "handle", "prepare", "decide", "agreed", "look", "require", "required",
+    "needs", "need", "mandatory"
+}
+
+TOPIC_STOPWORDS = {
+    "requirement", "requirements", "technical", "session", "database", "store",
+    "prototype", "pipeline", "framework", "required", "mandatory", "decided",
+    "finalized", "approved", "payment", "payments", "field", "fields", "system"
+}
+
 def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Optional[Dict[str, Any]] = None) -> SegmentStance:
     """Heuristic fallback for stance analysis when LLM is unavailable."""
     text = seg.get("text", "")
@@ -39,7 +52,9 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     # Check relevance to claim
     claim_stopwords = {
         "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "is", "are", "was",
-        "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "has", "been", "had", "should", "must"
+        "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "has", "been", "had",
+        "should", "must", "not", "no", "never", "can", "cannot", "could", "would", "do", "does",
+        "did", "am", "also", "only", "we", "i", "you", "they", "our", "all", "so", "just"
     }
     raw_claim_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.text} {claim.object or ''} {claim.action or ''} {claim.normalized or ''}".lower())) - claim_stopwords
     
@@ -51,65 +66,146 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
             if act_lower in syns or root in act_lower:
                 claim_words.update(syns)
 
+    key_claim_words = {w for w in claim_words if w not in GENERIC_VERBS}
+    primary_subject_words = {w for w in key_claim_words if w not in TOPIC_STOPWORDS}
+
     seg_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", text.lower())) - claim_stopwords
+    
+    # Anaphora only applies if segment refers to an antecedent and does NOT introduce its own distinct topic noun
+    has_pronoun = bool(re.search(r"\b(that|this|it|so|them|these|those)\b", text, re.IGNORECASE)) or len(text.split()) <= 4
+    has_own_topic = bool(re.search(r"\b(database|field|fields|provider|card|payment|tokens|mfa|fastapi|sqlite|redis|aws|framework|biometric|infrastructure)\b", text, re.IGNORECASE))
+    is_anaphoric = has_pronoun and not has_own_topic
+
+    prev_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", prev_seg.get("text", "").lower())) - claim_stopwords if (prev_seg and is_anaphoric) else set()
+    all_context_words = seg_words | prev_words
+
+    def _words_overlap(set1, set2):
+        if not set1 or not set2:
+            return False
+        for w1 in set1:
+            for w2 in set2:
+                if (
+                    w1 == w2 
+                    or w1.rstrip('s') == w2.rstrip('s') 
+                    or w1.rstrip('ed') == w2.rstrip('ed') 
+                    or w1.rstrip('ing') == w2.rstrip('ing')
+                    or (min(len(w1), len(w2)) >= 6 and (w1.startswith(w2[:6]) or w2.startswith(w1[:6])))
+                ):
+                    return True
+        return False
+
+    has_claim_overlap = _words_overlap(claim_words, seg_words)
+    has_context_claim_overlap = _words_overlap(claim_words, all_context_words)
+    has_key_overlap = _words_overlap(key_claim_words, seg_words)
+    has_context_key_overlap = _words_overlap(key_claim_words, all_context_words)
+    has_primary_overlap = _words_overlap(primary_subject_words, seg_words) or (is_anaphoric and _words_overlap(primary_subject_words, all_context_words))
+
     overlap = len(claim_words.intersection(seg_words))
+    context_overlap = len(claim_words.intersection(all_context_words))
+
     relevance = 0.20
     toward = "NEUTRAL"
 
-    if overlap >= 1 or (claim.actor and claim.actor.lower() in text.lower()):
-        relevance = min(0.95, 0.45 + overlap * 0.15)
+    # Check if claim is asserting a negative constraint (e.g. "must not", "never", "should not", "not be disclosed")
+    claim_is_negative = bool(re.search(r"\b(must not|never|should not|cannot|not be disclosed|don'?t)\b", claim.text, re.IGNORECASE))
+
+    if (has_claim_overlap and (has_key_overlap or not key_claim_words)) or (has_context_claim_overlap and has_context_key_overlap) or (claim.actor and claim.actor.lower() in text.lower()):
+        relevance = min(0.95, 0.45 + max(overlap, context_overlap, 1) * 0.15)
         
         # 1. COMMITMENT / ACTION CLAIMS
         if claim.type in (ClaimType.COMMITMENT, ClaimType.ACTION):
-            act_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.actor or ''} {claim.action or ''}".lower())) - claim_stopwords
-            if claim.action:
-                for root, syns in ACTION_SYNONYMS.items():
-                    if claim.action.lower() in syns or root in claim.action.lower():
-                        act_words.update(syns)
-            act_overlap = len(act_words.intersection(seg_words))
+            speaker_matches = (
+                not claim.actor 
+                or not speaker 
+                or speaker.lower().startswith("speaker") 
+                or speaker.lower().startswith("user")
+                or (claim.actor.lower() in speaker.lower() or speaker.lower() in claim.actor.lower())
+                or (claim.actor.lower() in text.lower())
+                or (prev_seg and claim.actor.lower() in prev_seg.get("text", "").lower())
+            )
 
-            # Explicit first-person commitment or confirmation -> SUPPORTS
-            if stance in (Stance.COMMIT, Stance.ACCEPT):
-                if (
-                    not claim.actor 
-                    or not speaker 
-                    or speaker.lower().startswith("speaker") 
-                    or speaker.lower().startswith("user")
-                    or (claim.actor.lower() in speaker.lower() or speaker.lower() in claim.actor.lower())
-                    or (claim.actor.lower() in text.lower())
-                    or (prev_seg and claim.actor.lower() in prev_seg.get("text", "").lower())
-                    or (overlap >= 1)
-                ):
+            # Check if speaker states "only agreed to [different task]" vs [this task]
+            if "only agreed to" in text.lower():
+                # E.g. "No, I only agreed to handle the embedding pipeline."
+                if claim.object and any(w in text.lower() for w in claim.object.lower().split() if len(w) > 3):
+                    toward = "SUPPORTS"
+                    relevance = 0.95
+                else:
+                    toward = "CONTRADICTS"
+                    relevance = 0.90
+            elif stance in (Stance.COMMIT, Stance.ACCEPT):
+                # Must match claim action/object or addressed in conversation
+                if speaker_matches and ((overlap >= 1 and (has_key_overlap or not key_claim_words)) or (has_context_key_overlap and prev_seg)):
                     toward = "SUPPORTS"
                     relevance = 0.95
                 else:
                     toward = "NEUTRAL"
             elif stance in (Stance.CANCEL, Stance.REVERSE):
-                toward = "CONTRADICTS"
-                relevance = 0.85
-            elif stance in (Stance.REJECT, Stance.DEFER):
-                if re.search(r"\b(don'?t (?:request|send|do|ask|reach|prepare)|cancel|drop|won'?t (?:request|send|do|ask)|let'?s not)\b", text, re.IGNORECASE):
+                if speaker_matches and (overlap >= 2 or has_key_overlap):
+                    toward = "CONTRADICTS"
+                    relevance = 0.90
+                else:
+                    toward = "NEUTRAL"
+            elif stance == Stance.REJECT:
+                if speaker_matches and (overlap >= 1 or has_context_key_overlap):
+                    toward = "CONTRADICTS"
+                    relevance = 0.90
+                else:
+                    toward = "NEUTRAL"
+            elif stance == Stance.DEFER:
+                if has_primary_overlap or (not primary_subject_words and (has_key_overlap or overlap >= 1)):
                     toward = "CONTRADICTS"
                     relevance = 0.85
                 else:
                     toward = "NEUTRAL"
-            else:
-                # Do NOT infer commitments from suggestions, possibilities, questions, or informational statements
-                toward = "NEUTRAL"
-
-        # 2. DECISION / FACTUAL CLAIMS
-        else:
-            if stance in (Stance.DEFER, Stance.REJECT, Stance.REVERSE, Stance.CANCEL):
-                toward = "CONTRADICTS"
-                relevance = max(relevance, 0.85)
-            elif stance in (Stance.DECIDE, Stance.ACCEPT, Stance.COMMIT):
-                toward = "SUPPORTS"
-                relevance = max(relevance, 0.85)
             elif stance in (Stance.PROPOSE, Stance.SUGGEST, Stance.QUESTION):
                 toward = "NEUTRAL"
-            elif stance == Stance.INFORM and overlap >= 2:
-                toward = "SUPPORTS"
-                relevance = max(relevance, 0.80)
+            else:
+                toward = "NEUTRAL"
+
+        # 2. DECISION / FACTUAL / REQUIREMENT CLAIMS
+        else:
+            if claim_is_negative:
+                # Segment expressing the negative rule supports the negative claim
+                if stance in (Stance.REJECT, Stance.DECIDE, Stance.ACCEPT) and (has_key_overlap or overlap >= 1):
+                    toward = "SUPPORTS"
+                    relevance = max(relevance, 0.90)
+                elif stance in (Stance.DEFER, Stance.CANCEL) and (has_primary_overlap or (not primary_subject_words and has_key_overlap)):
+                    toward = "CONTRADICTS"
+                    relevance = max(relevance, 0.85)
+            else:
+                # If speaker states "only agreed to <X>", only contradict topics NOT in <X>
+                if "only agreed to" in text.lower():
+                    m_ag = re.search(r"only agreed to\s+(.*)", text, re.IGNORECASE)
+                    agreed_str = m_ag.group(1).lower() if m_ag else ""
+                    if primary_subject_words and any(_words_overlap({w}, primary_subject_words) for w in agreed_str.split()):
+                        toward = "NEUTRAL"
+                    else:
+                        toward = "CONTRADICTS"
+                        relevance = 0.85
+                # A contradiction requires topic overlap
+                elif stance in (Stance.DEFER, Stance.REJECT, Stance.REVERSE, Stance.CANCEL):
+                    if (has_primary_overlap or (not primary_subject_words and has_context_key_overlap)):
+                        toward = "CONTRADICTS"
+                        relevance = max(relevance, 0.85)
+                    else:
+                        toward = "NEUTRAL"
+                elif stance in (Stance.DECIDE, Stance.ACCEPT):
+                    # Must match primary subject if primary subjects exist
+                    if (has_primary_overlap or (not primary_subject_words and has_key_overlap)):
+                        toward = "SUPPORTS"
+                        relevance = max(relevance, 0.85)
+                    else:
+                        toward = "NEUTRAL"
+                elif stance == Stance.COMMIT:
+                    # A commitment to investigate is not a final decision affirmation
+                    if (has_primary_overlap or (not primary_subject_words and has_key_overlap)) and not re.search(r"\b(investigate|look into|check|review)\b", text, re.IGNORECASE):
+                        toward = "SUPPORTS"
+                        relevance = max(relevance, 0.85)
+                    else:
+                        toward = "NEUTRAL"
+                else:
+                    toward = "NEUTRAL"
 
     antecedent_idx = None
     resolved_text = None
@@ -124,13 +220,24 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     if stance in (Stance.ACCEPT, Stance.COMMIT) and prev_seg:
         antecedent_idx = prev_seg.get("idx")
         prev_txt = prev_seg.get("text", "")
-        m_act = re.search(r"(?:can you|could you|should we|let's)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
+        
+        eff_actor = speaker or "Speaker"
+        m_addr = re.search(r"\b([A-Z][a-z]+),\s*(?:can you|could you|will you|please)\b", prev_txt)
+        if m_addr:
+            eff_actor = m_addr.group(1).strip()
+            
+        m_act = re.search(r"(?:can you|could you|should we|will you|please|let's)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
+        m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", text, re.IGNORECASE)
+        
         if m_act:
-            resolved_text = f"{speaker or 'Speaker'} will {m_act.group(1).strip()}."
-            actor_mentioned = speaker
+            resolved_text = f"{eff_actor} will {m_act.group(1).strip()}."
+            actor_mentioned = eff_actor
+        elif m_commit and not re.search(r"\b(it|that|this)\b", m_commit.group(1), re.IGNORECASE):
+            resolved_text = f"{eff_actor} will {m_commit.group(1).strip().rstrip('.')}."
+            actor_mentioned = eff_actor
         else:
-            resolved_text = f"{speaker or 'Speaker'} agrees to: {prev_txt}"
-            actor_mentioned = speaker
+            resolved_text = f"{eff_actor} agrees to: {prev_txt}"
+            actor_mentioned = eff_actor
 
     return SegmentStance(
         idx=idx,
@@ -181,6 +288,7 @@ def analyze_stances(
     llm_stance_map = {s.idx: s for s in llm_stances}
     merged_results = []
     disagreement_flags = []
+    claim_is_neg = bool(re.search(r"\b(must not|never|should not|cannot|not be disclosed|don'?t)\b", claim.text, re.IGNORECASE))
 
     for c in candidates:
         idx = c["idx"]
@@ -202,31 +310,26 @@ def analyze_stances(
         final_toward = s_obj.toward_claim
         final_rel = s_obj.relevance
 
+        prev = cand_map.get(idx - 1)
+        h_obj = heuristic_classify_segment(c, claim, prev)
+
         if cue:
             cue_stance = cue["stance"]
-            # If cue detects explicit reversal, honor it when relevant
-            if cue_stance == Stance.REVERSE and final_toward != "NEUTRAL":
-                final_stance = Stance.REVERSE
-                final_toward = "CONTRADICTS"
-                final_rel = max(final_rel, 0.9)
+            final_stance = cue_stance
+            if h_obj.toward_claim != "NEUTRAL":
+                final_toward = h_obj.toward_claim
+                final_rel = max(final_rel, h_obj.relevance)
                 source = "BOTH"
-            # If cue says NEGATE and LLM didn't assign a negation stance
-            elif cue_stance in NEGATE and final_toward not in ("NEUTRAL", "CONTRADICTS"):
-                if claim.type not in (ClaimType.COMMITMENT, ClaimType.ACTION):
-                    final_stance = cue_stance
+            elif final_stance in NEGATE and not claim_is_neg:
+                if h_obj.toward_claim == "CONTRADICTS":
                     final_toward = "CONTRADICTS"
-                    final_rel = max(final_rel, 0.8)
+                    final_rel = max(final_rel, 0.85)
                     source = "BOTH"
-                    if Reason.LLM_RULE_DISAGREEMENT not in disagreement_flags:
-                        disagreement_flags.append(Reason.LLM_RULE_DISAGREEMENT)
-            elif cue_stance in AFFIRM_STRONG and final_stance in NEGATE:
-                source = "BOTH"
-                if Reason.LLM_RULE_DISAGREEMENT not in disagreement_flags:
-                    disagreement_flags.append(Reason.LLM_RULE_DISAGREEMENT)
-            elif cue_stance == final_stance:
-                source = "BOTH"
-            elif final_stance in (Stance.INFORM, Stance.OTHER):
-                final_stance = cue_stance
+        elif final_stance in (Stance.INFORM, Stance.OTHER):
+            if h_obj.stance not in (Stance.INFORM, Stance.OTHER):
+                final_stance = h_obj.stance
+                final_toward = h_obj.toward_claim
+                final_rel = max(final_rel, h_obj.relevance)
                 source = "BOTH"
 
         # Determine relation

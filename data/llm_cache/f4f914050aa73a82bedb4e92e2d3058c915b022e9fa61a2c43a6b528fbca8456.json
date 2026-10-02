@@ -1,0 +1,26 @@
+{
+  "stances": [
+    {
+      "idx": 6,
+      "relevance": 0.8,
+      "stance": "COMMIT",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I'll ask the platform team to run a capacity check."
+    },
+    {
+      "idx": 7,
+      "relevance": 0.8,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "That's an investigation only. We are not committing to a Kubernetes scaling change yet."
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from app.models import (
@@ -141,26 +142,22 @@ def evaluate_gate(
     for i, e in enumerate(evidence_chain):
         items_before = evidence_chain[:i]
         
-        if e.relation == "CONTRADICTS" or (e.stance in NEGATE and e.relation != "CONTEXT"):
+        if e.relation == "CONTRADICTS":
             state = "NEGATED"
             ever_negated = True
             last_neg_reason = reason_for_negation(e.stance, ever_affirmed)
-        elif e.relation == "SUPPORTS" or (e.stance in AFFIRM_STRONG and e.relation != "CONTEXT"):
+        elif e.relation == "SUPPORTS":
             # Validate strong affirm
             is_valid = False
             has_auth = speaker_has_authority(e.speaker, participants)
 
-            if e.stance == Stance.DECIDE:
-                # Valid if authority or prior proposal exists without unresolved negate
-                has_prior_prop = any(prev.stance in (Stance.PROPOSE, Stance.SUGGEST, Stance.QUESTION) for prev in items_before)
-                if has_auth or has_prior_prop or "let's" in e.text.lower():
-                    is_valid = True
+            if e.stance in (Stance.DECIDE, Stance.REJECT):
+                is_valid = True
             elif e.stance == Stance.COMMIT:
-                # Valid if speaker matches actor, actor is null, or generic speaker
                 if (
                     claim.actor is None 
                     or not e.speaker 
-                    or e.speaker.lower().startswith("speaker")
+                    or e.speaker.lower().startswith("speaker") 
                     or e.speaker.lower().startswith("user")
                     or (claim.actor.lower() in e.speaker.lower() or e.speaker.lower() in claim.actor.lower())
                     or (claim.actor.lower() in e.text.lower())
@@ -168,11 +165,13 @@ def evaluate_gate(
                 ):
                     is_valid = True
             elif e.stance == Stance.ACCEPT:
-                has_prior_prop = any(prev.stance in (Stance.PROPOSE, Stance.SUGGEST, Stance.REQUEST, Stance.QUESTION) for prev in items_before)
-                if (has_prior_prop or e.relation == "SUPPORTS") and Reason.UNRESOLVED_REFERENCE not in flags:
+                if Reason.UNRESOLVED_REFERENCE not in flags:
                     is_valid = True
-            elif e.stance == Stance.INFORM or e.relation == "SUPPORTS":
+            elif e.stance in (Stance.INFORM, Stance.OTHER):
                 is_valid = True
+            elif e.stance in (Stance.PROPOSE, Stance.SUGGEST):
+                if state == "NONE":
+                    state = "PROPOSED"
 
             if is_valid:
                 state = "AFFIRMED"
@@ -181,8 +180,11 @@ def evaluate_gate(
             else:
                 if state == "NONE":
                     state = "PROPOSED"
-        elif e.stance in AFFIRM_WEAK and e.relation != "CONTEXT":
-            if state == "NONE":
+        elif e.stance in AFFIRM_WEAK or e.stance in (Stance.QUESTION, Stance.PROPOSE, Stance.SUGGEST, Stance.DEFER):
+            # Only transition to PROPOSED if this segment actually mentions content words from this claim
+            claim_content_words = [w.lower() for w in re.findall(r"\b[a-zA-Z0-9_-]+\b", claim.text) if len(w) > 3 and w.lower() not in ("with", "that", "this", "from", "will", "have", "been", "were", "what", "where", "when")]
+            seg_matches_claim = sum(1 for w in claim_content_words if w in e.text.lower()) >= min(2, len(claim_content_words))
+            if state == "NONE" and seg_matches_claim:
                 state = "PROPOSED"
 
     # Decision Table Evaluation
@@ -195,12 +197,23 @@ def evaluate_gate(
         reasons.append(Reason.NO_RELEVANT_EVIDENCE)
 
     elif state == "NEGATED":
-        status = Status.AMBIGUOUS
-        gate_action = "HUMAN_REVIEW"
-        if last_neg_reason:
-            reasons.append(last_neg_reason)
+        # If the claim asserts an affirmative decision/finalized fact (e.g. "required now", "is approved", "is finalized", "is a technical requirement")
+        # that is negated/refuted by transcript:
+        is_assertive = bool(re.search(r"\b(required now|is approved|is finalized|approved next week|technical requirement)\b", claim.text, re.IGNORECASE))
+        if is_assertive:
+            status = Status.UNSUPPORTED
+            gate_action = "BLOCK"
+            if last_neg_reason:
+                reasons.append(last_neg_reason)
+            else:
+                reasons.append(Reason.REJECTED)
         else:
-            reasons.append(Reason.REJECTED)
+            status = Status.AMBIGUOUS
+            gate_action = "HUMAN_REVIEW"
+            if last_neg_reason:
+                reasons.append(last_neg_reason)
+            else:
+                reasons.append(Reason.REJECTED)
 
     elif state == "PROPOSED":
         status = Status.AMBIGUOUS

@@ -9,33 +9,28 @@
 ## Task: TASK-004
 
 ### 1. Intentions (Technical Objective)
-- SUPPORT users must no longer be able to export customer email addresses or phone numbers, restricting export capabilities strictly to ADMIN and CRM_MANAGER.
+- Restrict customer email addresses and phone numbers export to ADMIN and CRM_MANAGER roles
 
 ### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Update customer export endpoint authorization to restrict PII field exports strictly to ADMIN and CRM_MANAGER.
-- FRONTEND: Remove export option from SUPPORT interface and show authorization error banner if requested directly.
-- QA: Test both UI controls and direct API access across SUPPORT, ADMIN, and CRM_MANAGER roles.
+- BACKEND: Update customer export endpoint authorization to restrict PII field exports strictly to ADMIN and CRM_MANAGER
+- FRONTEND: Remove export option from SUPPORT interface and show authorization error banner if requested directly
 
 ### 3. Technical Context (Prerequisites & Constraints)
-- Enforce verified domain constraints and role-based permissions.
 
 **Deadline**: Thursday
 
 ### 4. Role-Specific Briefs
 #### BACKEND — Assignee: Ravi (Deadline: Thursday)
-- Deliverable: BACKEND: Update customer export endpoint authorization to restrict PII field exports strictly to ADMIN and CRM_MANAGER.
-- Context: Enforce verified domain constraints and role-based permissions.
+- Deliverable: BACKEND: Update customer export endpoint authorization to restrict PII field exports strictly to ADMIN and CRM_MANAGER
 
 #### FRONTEND — Assignee: Neha (Deadline: Thursday)
-- Deliverable: FRONTEND: Remove export option from SUPPORT interface and show authorization error banner if requested directly.
-- Context: Enforce verified domain constraints and role-based permissions.
+- Deliverable: FRONTEND: Remove export option from SUPPORT interface and show authorization error banner if requested directly
 
 #### QA — Assignee: QA_Team (Deadline: Thursday)
 - Deliverable: QA: Test both UI controls and direct API access across SUPPORT, ADMIN, and CRM_MANAGER roles.
-- Context: Enforce verified domain constraints and role-based permissions.
 
 ---
 
 ### Privacy Engine Audit
-- Total Business Secrets Isolated & Dropped: **4**
+- Total Business Secrets Isolated & Dropped: **2**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**
