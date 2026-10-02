@@ -47,7 +47,8 @@ if static_path.exists():
     app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
 @app.get("/favicon.ico", include_in_schema=False)
-def favicon():
+@app.get("/.well-known/appspecific/com.chrome.devtools.json", include_in_schema=False)
+def favicon_and_devtools():
     return Response(status_code=204)
 
 @app.get("/")

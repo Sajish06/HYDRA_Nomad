@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Arjun",
+  "action": "Evaluate Redis for caching",
+  "object": "null",
+  "deadline": "null",
+  "normalized": "Arjun will Evaluate Redis for caching"
+}

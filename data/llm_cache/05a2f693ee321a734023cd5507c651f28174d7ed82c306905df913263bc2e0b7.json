@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": "November release",
+  "normalized": "Add SSO support before the November release."
+}

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": "November 8",
+  "normalized": "Add an audit-event endpoint and store the events in the existing backend database"
+}

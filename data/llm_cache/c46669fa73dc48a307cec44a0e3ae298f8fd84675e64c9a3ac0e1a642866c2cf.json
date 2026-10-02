@@ -1,0 +1,40 @@
+{
+  "claims": [
+    {
+      "type": "COMMITMENT",
+      "text": "I'll implement the OAuth callback handling and update the authentication flow by October 15.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "I'll implement the OAuth callback handling and update the authentication flow by October 15.",
+      "source_idx": [
+        1
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "I'll also add API rate limiting to the public endpoints by October 18.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "I'll also add API rate limiting to the public endpoints by October 18.",
+      "source_idx": [
+        3
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "source_idx": [
+        6
+      ]
+    }
+  ]
+}

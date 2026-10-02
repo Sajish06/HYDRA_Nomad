@@ -1,0 +1,16 @@
+{
+  "claims": [
+    {
+      "type": "ACTION",
+      "text": "I'll look into whether Redis is suitable for the API caching requirements.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "i'll look into whether redis is suitable for the api caching requirements",
+      "source_idx": [
+        6
+      ]
+    }
+  ]
+}

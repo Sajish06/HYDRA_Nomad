@@ -1,0 +1,37 @@
+{
+  "stances": [
+    {
+      "idx": 13,
+      "relevance": 0.8,
+      "stance": "SUGGEST",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "For implementation we might use Redis for caching the dashboard data."
+    },
+    {
+      "idx": 14,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I haven't decided on Redis yet. I'll evaluate Redis against the existing database before choosing."
+    },
+    {
+      "idx": 15,
+      "relevance": 1.0,
+      "stance": "DEFER",
+      "toward_claim": "CONTRADICTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Fine. Don't treat Redis as a required technology until that evaluation is complete."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "stances": [
+    {
+      "idx": 1,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I can take that. I'll document the SSO requirements and update the authentication service before November 5."
+    },
+    {
+      "idx": 11,
+      "relevance": 0.8,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "For the audit logging requirement, I'll add an audit-event endpoint and store the events in the existing backend database by November 8."
+    },
+    {
+      "idx": 17,
+      "relevance": 0.6,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Those dates are operational context only. They don't change the engineering requirements."
+    }
+  ]
+}

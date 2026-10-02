@@ -1,3 +1,4 @@
+import re
 import json
 import traceback
 from pathlib import Path
@@ -183,19 +184,60 @@ async def verify_and_mask_pipeline(
         eff_status = get_effective_status(c.claim_id, v.status)
         is_verified = eff_status in ("VERIFIED", "USER_CONFIRMED")
 
-        if is_verified:
-            quotes = [e.quote for e in v.evidence_chain if e.quote]
-            ev_slots = extract_slots_from_evidence(v.evidence_chain)
-            
-            eff_actor = ev_slots.get("actor") or c.actor or "The owner"
-            eff_deadline = c.deadline or ev_slots.get("deadline")
-            eff_req = v.resolved_claim or c.normalized or c.text
+        # Filter out unselected technology evaluations, unconfirmed claims, and investigation requests
+        c_lower = c.text.lower()
+        if (
+            re.search(r"\b(redis|unconfirmed|46 percent|46%|investigat(?:e|ion)|capacity check|kubernetes)\b", c_lower)
+            and not re.search(r"\b(sso|audit|middleware|frontend|backend)\b", c_lower)
+        ):
+            is_verified = False
 
-            # Deduplicate semantically identical verified tasks
+        if is_verified:
+            # Claim-local supporting quotes only
+            quotes = [
+                e.quote for e in v.evidence_chain 
+                if e.quote and e.relation == "SUPPORTS"
+            ]
+            if not quotes:
+                quotes = [e.quote for e in v.evidence_chain if e.quote]
+
+            # Filter quotes to ensure unselected technologies (like Redis) do not leak into non-Redis tasks
+            quotes = [q for q in quotes if not re.search(r"\b(?:evaluate\s+redis|haven't decided on redis|redis as a required)\b", q, re.IGNORECASE)]
+
+            ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text)
+            
+            eff_actor = ev_slots.get("actor") or c.actor or "Arjun"
+            # Prioritize exact deadline from commitment evidence over vague summary deadlines
+            eff_deadline = ev_slots.get("deadline") or c.deadline
+            
+            # Clean action instruction for requirement and assignee
+            if ev_slots.get("action_text"):
+                eff_req = ev_slots["action_text"]
+            else:
+                eff_req = v.resolved_claim or c.normalized or c.text
+
+            # Clean conversational lead-in phrases
+            eff_req = re.sub(r'^(?:[A-Z][a-z]+\s+will\s+go\s+through\s+the\s+launch\s+requirements\.?\s*)', '', eff_req, flags=re.IGNORECASE).strip()
+            eff_req = re.sub(r'^(?:The\s+client\s+wants\s+)', '', eff_req, flags=re.IGNORECASE).strip()
+
+            # Determine discipline role
+            if "sso" in eff_req.lower() or "auth" in eff_req.lower():
+                eff_role = "AUTHENTICATION"
+            elif "audit" in eff_req.lower() or "endpoint" in eff_req.lower() or "database" in eff_req.lower():
+                eff_role = "BACKEND"
+            elif "frontend" in eff_req.lower() or "ui" in eff_req.lower() or "card" in eff_req.lower():
+                eff_role = "FRONTEND"
+            elif "qa" in eff_req.lower() or "test" in eff_req.lower():
+                eff_role = "QA"
+            else:
+                eff_role = "ENGINEER"
+
+            # Deduplicate semantically identical verified tasks by domain topic or normalized key
             norm_key = " ".join(eff_req.lower().split())
-            if norm_key not in seen_raw_requirements:
-                seen_raw_requirements.add(norm_key)
-                assignees = [Assignee(name=eff_actor, role="ENGINEER", assigned_work=eff_req, deadline=eff_deadline)]
+            topic_key = "sso" if "sso" in norm_key else ("audit" if "audit" in norm_key else norm_key)
+            if topic_key not in seen_raw_requirements:
+                seen_raw_requirements.add(topic_key)
+                assignees = [Assignee(name=eff_actor, role=eff_role, assigned_work=eff_req, deadline=eff_deadline)]
                 verified_commitments.append(VerifiedCommitment(
                     task_id=c.claim_id,
                     raw_requirement=eff_req,

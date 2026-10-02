@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Arjun",
+  "action": "Ask platform team to run Kubernetes cluster capacity check",
+  "object": "Kubernetes cluster capacity",
+  "deadline": null,
+  "normalized": "Arjun will Ask platform team to run Kubernetes cluster capacity check"
+}

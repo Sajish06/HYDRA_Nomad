@@ -31,13 +31,14 @@ GENERIC_VERBS = {
     "use", "used", "using", "make", "create", "build", "have", "has", "select", "selected",
     "take", "keep", "stay", "stays", "include", "included", "continue", "work", "support",
     "document", "handle", "prepare", "decide", "agreed", "look", "require", "required",
-    "needs", "need", "mandatory"
+    "needs", "need", "mandatory", "add", "added", "store", "stored"
 }
 
 TOPIC_STOPWORDS = {
     "requirement", "requirements", "technical", "session", "database", "store",
     "prototype", "pipeline", "framework", "required", "mandatory", "decided",
-    "finalized", "approved", "payment", "payments", "field", "fields", "system"
+    "finalized", "approved", "payment", "payments", "field", "fields", "system",
+    "existing", "current", "new", "latest", "upcoming", "part", "change", "changes", "scope"
 }
 
 def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Optional[Dict[str, Any]] = None) -> SegmentStance:

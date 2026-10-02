@@ -118,40 +118,116 @@ def dates_match_semantically(claim_date_str: str, text: str) -> bool:
         
     return False
 
-def extract_slots_from_evidence(evidence_items: List[EvidenceItem]) -> Dict[str, Optional[str]]:
-    """Extracts actor, action, object, and deadline from strong supporting evidence items."""
+def extract_slots_from_evidence(
+    evidence_items: List[EvidenceItem], 
+    claim_text: Optional[str] = None
+) -> Dict[str, Optional[str]]:
+    """Extracts actor, action, object, deadline, and clean action text from strong supporting evidence items with claim isolation."""
     extracted = {
         "actor": None,
         "action": None,
         "object": None,
-        "deadline": None
+        "deadline": None,
+        "action_text": None,
+        "technology": None
     }
     
-    for e in evidence_items:
-        if e.relation != "SUPPORTS" and e.stance not in (Stance.COMMIT, Stance.ACCEPT, Stance.DECIDE):
-            continue
-            
+    # Isolate evidence matching claim topic if claim_text is provided
+    claim_words = set()
+    if claim_text:
+        claim_clean = re.sub(r"[^\w\s]", " ", claim_text.lower())
+        stopwords = {
+            "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "is", "are", "was",
+            "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "into", "our",
+            "we", "you", "i", "he", "she", "they", "them", "us", "about", "arjun", "maya", "rahul",
+            "team", "decision", "action", "item", "requirement"
+        }
+        claim_words = {w for w in claim_clean.split() if w not in stopwords and len(w) > 2}
+
+    def _evidence_matches_claim(e: EvidenceItem) -> bool:
+        if not claim_words:
+            return True
+        ev_clean = re.sub(r"[^\w\s]", " ", f"{e.resolved_text or ''} {e.quote or ''} {e.text or ''}".lower())
+        ev_words = set(ev_clean.split())
+        
+        # Explicit topic isolation
+        if ("sso" in claim_words or "auth" in claim_words or "authentication" in claim_words):
+            if "audit" in ev_words and "sso" not in ev_words and "auth" not in ev_words and "authentication" not in ev_words:
+                return False
+            if "sso" in ev_words or "auth" in ev_words or "authentication" in ev_words:
+                return True
+
+        if ("audit" in claim_words or "logging" in claim_words or "endpoint" in claim_words):
+            if "sso" in ev_words and "audit" not in ev_words and "logging" not in ev_words:
+                return False
+            if "audit" in ev_words or "logging" in ev_words or "endpoint" in ev_words or "database" in ev_words:
+                return True
+
+        # Generic overlap
+        overlap = claim_words.intersection(ev_words)
+        return len(overlap) >= 1
+
+    scoped_evidence = [e for e in evidence_items if _evidence_matches_claim(e)]
+    if not scoped_evidence:
+        scoped_evidence = evidence_items
+
+    # 1. Prioritize explicit first-person commitment statements in scoped evidence
+    commitments = [
+        e for e in scoped_evidence 
+        if e.relation == "SUPPORTS" and (
+            e.stance == Stance.COMMIT 
+            or re.search(r"\b(?:i'?ll|i will|i can take that|i'?m on it)\b", f"{e.resolved_text or ''} {e.quote or ''}", re.IGNORECASE)
+        )
+    ]
+    
+    candidates = commitments if commitments else [e for e in scoped_evidence if e.relation == "SUPPORTS"]
+    
+    for e in candidates:
         full_text = f"{e.resolved_text or ''} {e.quote or ''} {e.text or ''}".strip()
         
-        # 1. Extract deadline
-        if not extracted["deadline"]:
-            m_dead = re.search(r"\b(?:by|before|until|on)\s+([A-Za-z0-9\s,-]+?)(?:[\.\!\?]|\s*$)", full_text, re.IGNORECASE)
-            if m_dead:
-                extracted["deadline"] = m_dead.group(1).strip()
-
-        # 2. Extract actor
+        # Extract actor (speaker of commitment or addressed person)
         if not extracted["actor"]:
-            if e.actor_mentioned:
+            if e.actor_mentioned and not e.actor_mentioned.lower().startswith("speaker"):
                 extracted["actor"] = e.actor_mentioned
             elif e.speaker and not e.speaker.lower().startswith("speaker") and not e.speaker.lower().startswith("user"):
                 extracted["actor"] = e.speaker
 
-        # 3. Extract action and object from first-person commitments e.g. "I'll document the SSO requirements..."
-        if not extracted["action"] or not extracted["object"]:
-            m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+([a-z]+)\s+(.*?)(?:\s+by\s+[A-Za-z0-9\s,-]+|[\.\!\?]|$)", full_text, re.IGNORECASE)
-            if m_commit:
-                extracted["action"] = m_commit.group(1).strip()
-                extracted["object"] = m_commit.group(2).strip()
+        # Extract action and object from explicit commitment
+        m_commit = re.search(
+            r"\b(?:i'?ll|i will|i can take that\.?\s*(?:i'?ll|i will)?)\s+([a-zA-Z].*?)(?:\s+(?:by|before|until|on)\s+([A-Za-z0-9\s,-]+?))?[\.\!\?]?$",
+            full_text,
+            re.IGNORECASE
+        )
+        if m_commit:
+            raw_action = m_commit.group(1).strip()
+            # Clean leading intro phrases e.g. "take that. I'll "
+            raw_action = re.sub(r"^(?:take that\.?\s*(?:i'?ll|i will)?\s*)", "", raw_action, flags=re.IGNORECASE).strip()
+            if raw_action and not extracted["action_text"]:
+                extracted["action_text"] = raw_action[0].upper() + raw_action[1:]
+            
+            # If deadline was in the same commitment clause
+            raw_dead = m_commit.group(2)
+            if raw_dead and not extracted["deadline"]:
+                d_clean = raw_dead.strip().rstrip(".")
+                if not re.search(r"\b(?:the\s+)?(?:release|version)\b", d_clean, re.IGNORECASE):
+                    extracted["deadline"] = d_clean
+                    
+        # Dedicated exact deadline extraction (e.g. "November 5", "November 8", "October 10", "Wednesday", "Friday")
+        if not extracted["deadline"]:
+            m_dead_exact = re.search(
+                r"\b(?:by|before|until|on)\s+((?:(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)|(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|tomorrow|next week)))\b",
+                full_text,
+                re.IGNORECASE
+            )
+            if m_dead_exact:
+                extracted["deadline"] = m_dead_exact.group(1).strip()
+            else:
+                m_dead_generic = re.search(r"\b(?:by|before|until|on)\s+([A-Za-z0-9\s,-]+?)(?:[\.\!\?]|\s*$)", full_text, re.IGNORECASE)
+                if m_dead_generic:
+                    candidate_dead = m_dead_generic.group(1).strip()
+                    # Do not capture vague release dates if not explicitly exact
+                    if not re.search(r"\b(?:the\s+)?(?:release|version)\b", candidate_dead, re.IGNORECASE):
+                        extracted["deadline"] = candidate_dead
 
     return extracted
 

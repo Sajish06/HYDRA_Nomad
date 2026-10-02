@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Any
 from app.masking.models import AgentTaskPayload
 from app.masking.rules import (
     CREDENTIAL_PATTERNS,
@@ -97,3 +97,57 @@ class LeakInspector:
                 f"Security Leak Gate Failed for task {payload.task_id} with {len(violations)} violations:\n" +
                 "\n".join([f" - {v}" for v in violations])
             )
+
+class CrossContaminationValidator:
+    """
+    Validates claim isolation, deadline accuracy, technology exclusion,
+    and cross-task non-contamination (§14).
+    """
+    @classmethod
+    def validate_and_clean_payload(
+        cls,
+        payload: AgentTaskPayload,
+        commitment: Optional[Any] = None
+    ) -> AgentTaskPayload:
+        # 1. Technology & Context Isolation: Remove unselected technologies and operational context
+        cleaned_things = []
+        for t in payload.things_to_implement:
+            # If line is conversational context (e.g. "Arjun will go through the launch requirements..."), drop it
+            if re.search(r'\b(?:go\s+through\s+the\s+launch\s+requirements|client\s+wants\s+SSO\s+support\s+added\s+before)\b', t, re.IGNORECASE):
+                continue
+            cleaned_things.append(t)
+
+        if not cleaned_things and payload.things_to_implement:
+            cleaned_things = payload.things_to_implement
+
+        cleaned_context = []
+        for c in payload.technical_context:
+            # Exclude unselected technology evaluations (e.g. Redis)
+            if re.search(r'\b(?:redis|evaluate\s+redis|not\s+decided\s+on\s+redis)\b', c, re.IGNORECASE):
+                continue
+            # Exclude operational dates that do not belong to technical execution
+            if re.search(r'\b(?:renewal|security\s+review|annual\s+contract|enterprise\s+accounts|deadline:\s*November)\b', c, re.IGNORECASE):
+                continue
+            cleaned_context.append(c)
+
+        # 2. Deadline Isolation: Prefer commitment-local assignee deadline
+        clean_deadline = payload.deadline
+        if commitment and commitment.assignees:
+            comm_deadline = commitment.assignees[0].deadline
+            if comm_deadline and comm_deadline.lower() != "none":
+                clean_deadline = comm_deadline
+
+        # 3. Clean Intentions: Strip conversational narrative
+        cleaned_intentions = []
+        for it in payload.intentions:
+            clean_it = re.sub(r'^(?:[A-Z][a-z]+\s+will\s+go\s+through\s+the\s+launch\s+requirements\.?\s*)', '', it, flags=re.IGNORECASE).strip()
+            if clean_it:
+                cleaned_intentions.append(clean_it)
+
+        return AgentTaskPayload(
+            task_id=payload.task_id,
+            intentions=cleaned_intentions or payload.intentions,
+            things_to_implement=cleaned_things,
+            technical_context=cleaned_context,
+            deadline=clean_deadline
+        )

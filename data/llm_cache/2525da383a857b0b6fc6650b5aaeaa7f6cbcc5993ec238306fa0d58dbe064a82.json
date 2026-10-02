@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 1,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I'll implement the OAuth callback handling and update the authentication flow by October 15."
+    }
+  ]
+}

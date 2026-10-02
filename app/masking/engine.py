@@ -14,7 +14,7 @@ from app.masking.vault import EntityVault
 from app.masking.semantic import SemanticDecomposer
 from app.masking.firewall import DeterministicFirewall
 from app.masking.splitter import PersonaSplitter
-from app.masking.validator import LeakInspector
+from app.masking.validator import LeakInspector, CrossContaminationValidator
 
 class PrivacyMaskingEngine:
     """
@@ -73,6 +73,12 @@ class PrivacyMaskingEngine:
                 vault=vault
             )
             audit_record.sanitized_pii_entities.extend(pii_entries)
+
+            # === LAYER 3: Cross-Contamination & Technology Isolation Validation ===
+            clean_agent_payload = CrossContaminationValidator.validate_and_clean_payload(
+                payload=clean_agent_payload,
+                commitment=commitment
+            )
 
             all_agent_payloads.append(clean_agent_payload)
             all_audit_records.append(audit_record)

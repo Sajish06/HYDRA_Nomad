@@ -2,17 +2,6 @@
   "stances": [
     {
       "idx": 0,
-      "relevance": 0.8,
-      "stance": "SUGGEST",
-      "toward_claim": "SUPPORTS",
-      "resolved_text": null,
-      "antecedent_idx": null,
-      "actor_mentioned": null,
-      "deadline_mentioned": null,
-      "quote": "The analytics dashboard needs one change before the next release. Customer revenue information shouldn't be visible to everyone."
-    },
-    {
-      "idx": 6,
       "relevance": 1.0,
       "stance": "SUGGEST",
       "toward_claim": "SUPPORTS",
@@ -20,10 +9,10 @@
       "antecedent_idx": null,
       "actor_mentioned": null,
       "deadline_mentioned": null,
-      "quote": "Yes. Admins and finance managers can see them. Regular support users shouldn't."
+      "quote": "Let's go through the launch requirements. The client wants SSO support added before the November release."
     },
     {
-      "idx": 18,
+      "idx": 1,
       "relevance": 1.0,
       "stance": "SUGGEST",
       "toward_claim": "SUPPORTS",
@@ -31,7 +20,18 @@
       "antecedent_idx": null,
       "actor_mentioned": null,
       "deadline_mentioned": null,
-      "quote": "QA should verify that admins and finance managers can see the metrics and support users cannot."
+      "quote": "I can take that. I'll document the SSO requirements and update the authentication service before November 5."
+    },
+    {
+      "idx": 16,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Also, the customer's renewal is December 12 and our internal security review is December 3."
     }
   ]
 }

@@ -1,15 +1,15 @@
 {
   "stances": [
     {
-      "idx": 1,
+      "idx": 6,
       "relevance": 1.0,
-      "stance": "SUGGEST",
+      "stance": "COMMIT",
       "toward_claim": "SUPPORTS",
       "resolved_text": null,
       "antecedent_idx": null,
       "actor_mentioned": null,
       "deadline_mentioned": null,
-      "quote": "QA should verify that admins and finance managers can see the metrics and support users cannot."
+      "quote": "I'll ask the platform team to run a capacity check."
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Arjun",
+  "action": null,
+  "object": null,
+  "deadline": "November 5",
+  "normalized": "Arjun will Document the SSO requirements and update the authentication service by November 5"
+}

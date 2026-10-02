@@ -1,8 +1,0 @@
-{
-  "type": "DECISION",
-  "actor": null,
-  "action": null,
-  "object": null,
-  "deadline": null,
-  "normalized": "Customer revenue, average order value, and monthly customer value should not be visible to ordinary support staff, only to admins and finance managers."
-}
