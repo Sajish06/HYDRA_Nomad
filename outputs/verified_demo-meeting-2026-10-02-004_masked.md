@@ -6,13 +6,13 @@
 
 ---
 
-## Task: claim_tx_demo-meeting-2026-10-02-004_2
+## Task: claim_demo-meeting-2026-10-02-004_1
 
 ### 1. Intentions (Technical Objective)
-- Implement the OAuth callback handling and update the authentication flow by October 15
+- Implement the OAuth callback handling and update the authentication flow
 
 ### 2. Things to Implement (Structured Deliverables)
-- AUTHENTICATION: Implement OAuth callback handling and update the authentication flow
+- AUTHENTICATION: Implement the OAuth callback handling and update the authentication flow
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
@@ -20,7 +20,25 @@
 
 ### 4. Role-Specific Briefs
 #### AUTHENTICATION — Assignee: Arjun (Deadline: October 15)
-- Deliverable: AUTHENTICATION: Implement OAuth callback handling and update the authentication flow
+- Deliverable: AUTHENTICATION: Implement the OAuth callback handling and update the authentication flow
+
+---
+
+## Task: claim_demo-meeting-2026-10-02-004_2
+
+### 1. Intentions (Technical Objective)
+- Also add API rate limiting to the public endpoints
+
+### 2. Things to Implement (Structured Deliverables)
+- BACKEND: Also add API rate limiting to the public endpoints
+
+### 3. Technical Context (Prerequisites & Constraints)
+
+**Deadline**: October 18
+
+### 4. Role-Specific Briefs
+#### BACKEND — Assignee: Priya (Deadline: October 18)
+- Deliverable: BACKEND: Also add API rate limiting to the public endpoints
 
 ---
 

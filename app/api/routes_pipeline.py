@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
 
-from app.models import Meeting, Claim, ClaimType, Participant, Segment
+from app.models import Meeting, Claim, ClaimType, Participant, Segment, Stance, Status
 from app.config import BASE_DIR
 from app.db import get_db
 from app.adapters.mock_adapter import MockAdapter, normalize_summary_item
@@ -33,6 +33,59 @@ def safe_decode_json(b: bytes) -> Any:
         except (UnicodeDecodeError, LookupError, json.JSONDecodeError):
             continue
     raise ValueError("File content is not valid JSON.")
+
+def extract_summary_items_from_json(s_json: Any) -> List[str]:
+    """Recursively and comprehensively extracts summary/claims/topics from arbitrary summary JSON schemas."""
+    if not s_json:
+        return []
+    if isinstance(s_json, list):
+        items = []
+        for it in s_json:
+            items.extend(extract_summary_items_from_json(it))
+        return items
+    if isinstance(s_json, str):
+        norm = normalize_summary_item(s_json)
+        return [norm] if norm else []
+    
+    extracted: List[str] = []
+    if isinstance(s_json, dict):
+        # 1. Direct recognized list keys
+        priority_keys = [
+            "verified_commitments", "commitments", "decisions", "action_items", "claims", 
+            "expected_test_cases", "actions", "tasks", "topics_discussed", "topics", 
+            "discussion_points", "key_decisions", "key_points", "points", "takeaways", 
+            "agenda", "notes", "items"
+        ]
+        for k in priority_keys:
+            if k in s_json and s_json[k]:
+                val = s_json[k]
+                if isinstance(val, list):
+                    for sub_item in val:
+                        if isinstance(sub_item, dict) and "raw_requirement" in sub_item:
+                            extracted.append(sub_item["raw_requirement"])
+                        else:
+                            norm = normalize_summary_item(sub_item)
+                            if norm:
+                                extracted.append(norm)
+                elif isinstance(val, str):
+                    norm = normalize_summary_item(val)
+                    if norm:
+                        extracted.append(norm)
+
+        # 2. Check nested summary object if top-level yielded nothing or to supplement
+        if "summary" in s_json and isinstance(s_json["summary"], dict):
+            extracted.extend(extract_summary_items_from_json(s_json["summary"]))
+        elif "summary" in s_json and isinstance(s_json["summary"], str):
+            norm = normalize_summary_item(s_json["summary"])
+            if norm:
+                extracted.append(norm)
+
+        if not extracted and "summary_text" in s_json:
+            extracted.extend(extract_summary_items_from_json(s_json["summary_text"]))
+        if not extracted and "result" in s_json and isinstance(s_json["result"], str):
+            extracted.extend(extract_summary_items_from_json(s_json["result"]))
+
+    return extracted
 
 @router.post("/verify-and-mask")
 async def verify_and_mask_pipeline(
@@ -69,76 +122,23 @@ async def verify_and_mask_pipeline(
     meeting_title = "Uploaded Meeting"
     meeting_id = f"MEET_{Path(transcript_file.filename).stem}"
 
+    # Extract all summary items from summary JSON
+    s_items = extract_summary_items_from_json(s_json)
+
     # Reconstruct meeting object from transcript JSON
     if isinstance(t_json, dict):
         meeting_id = t_json.get("meeting_id") or t_json.get("id") or meeting_id
         meeting_title = t_json.get("title") or t_json.get("meeting_title") or meeting_title
         t_dict = dict(t_json)
         
-        # Parse summary items into decisions/action items
-        s_items = []
-        if isinstance(s_json, dict):
-            raw_v_comms = s_json.get("verified_commitments", [])
-            comm_items = [c.get("raw_requirement") for c in raw_v_comms if isinstance(c, dict) and c.get("raw_requirement")]
-            s_items = (
-                s_json.get("commitments", []) +
-                comm_items +
-                s_json.get("decisions", []) + 
-                s_json.get("action_items", []) + 
-                s_json.get("claims", []) + 
-                s_json.get("expected_test_cases", []) +
-                s_json.get("actions", []) +
-                s_json.get("tasks", []) +
-                s_json.get("key_decisions", []) +
-                s_json.get("key_points", []) +
-                s_json.get("points", []) +
-                s_json.get("takeaways", [])
-            )
-            if not s_items and isinstance(s_json.get("summary"), dict):
-                sub = s_json["summary"]
-                s_items = (
-                    sub.get("decisions", []) +
-                    sub.get("action_items", []) +
-                    sub.get("claims", []) +
-                    sub.get("actions", []) +
-                    sub.get("tasks", [])
-                )
-            if not s_items and "summary_text" in s_json:
-                s_items = [s_json["summary_text"]]
-            elif not s_items and "summary" in s_json and isinstance(s_json["summary"], str):
-                s_items = [s_json["summary"]]
-            elif not s_items and "result" in s_json and isinstance(s_json["result"], str):
-                s_items = [s_json["result"]]
-        elif isinstance(s_json, list):
-            s_items = s_json
-
         # If s_items is still empty, check if transcript itself contains summary
         if not s_items:
-            s_items = (
-                t_dict.get("decisions", []) + 
-                t_dict.get("action_items", []) + 
-                t_dict.get("claims", []) + 
-                t_dict.get("expected_test_cases", [])
-            )
-            if isinstance(t_dict.get("summary"), dict):
-                sub = t_dict["summary"]
-                s_items = sub.get("decisions", []) + sub.get("action_items", []) + sub.get("claims", [])
+            s_items = extract_summary_items_from_json(t_dict)
 
         norm_s_items = [normalize_summary_item(it) for it in s_items if normalize_summary_item(it)]
         t_dict["summary"] = {"decisions": norm_s_items, "action_items": []}
         meeting = adapter.load(t_dict)
     elif isinstance(t_json, list):
-        # Array of segments
-        s_items = []
-        if isinstance(s_json, dict):
-            s_items = s_json.get("decisions", []) + s_json.get("action_items", []) + s_json.get("claims", []) + s_json.get("expected_test_cases", [])
-            if not s_items and "summary_text" in s_json:
-                s_items = [s_json["summary_text"]]
-            elif not s_items and "summary" in s_json and isinstance(s_json["summary"], str):
-                s_items = [s_json["summary"]]
-        elif isinstance(s_json, list):
-            s_items = s_json
-
         norm_s_items = [normalize_summary_item(it) for it in s_items if normalize_summary_item(it)]
         meeting = adapter.load({
             "meeting_id": meeting_id,
@@ -184,14 +184,24 @@ async def verify_and_mask_pipeline(
         v = run_verification_pipeline(c)
         eff_status = get_effective_status(c.claim_id, v.status)
         is_verified = eff_status in ("VERIFIED", "USER_CONFIRMED")
+        # A claim is verified only if its own claim-local evidence contains explicit commitment support without same-claim cancellation
+        if is_verified:
+            # Verify claim-local commitment support
+            has_explicit_commitment = any(
+                e.relation == "SUPPORTS" and (e.stance in (Stance.COMMIT, Stance.ACCEPT, Stance.DECIDE))
+                for e in v.evidence_chain
+            )
+            is_investigation_only = any(
+                re.search(r"\b(investigat\w*|check whether|look into whether|explore whether|before we decide|don'?t think we'?ve selected|haven'?t selected|rather than implementation commitments?|not selected either)\b", e.quote or e.text or "", re.IGNORECASE)
+                for e in v.evidence_chain if e.relation in ("SUPPORTS", "CONTEXT", "CONTRADICTS")
+            ) and not any(
+                re.search(r"\b(?:i'?ll|i will|committed for|committed as well|part of the sprint)\b", e.quote or e.text or "", re.IGNORECASE)
+                and not re.search(r"\b(investigat\w*|check whether|look into|explore|not sure)\b", e.quote or e.text or "", re.IGNORECASE)
+                for e in v.evidence_chain if e.relation == "SUPPORTS"
+            )
 
-        # Filter out unselected technology evaluations, unconfirmed claims, and investigation requests
-        c_lower = c.text.lower()
-        if (
-            re.search(r"\b(redis|unconfirmed|46 percent|46%|investigat(?:e|ion)|capacity check|kubernetes)\b", c_lower)
-            and not re.search(r"\b(sso|audit|middleware|frontend|backend)\b", c_lower)
-        ):
-            is_verified = False
+            if not has_explicit_commitment or is_investigation_only or v.status in (Status.AMBIGUOUS, Status.UNSUPPORTED):
+                is_verified = False
 
         if is_verified:
             # Claim-local supporting quotes only
@@ -207,7 +217,7 @@ async def verify_and_mask_pipeline(
 
             ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text)
             
-            eff_actor = ev_slots.get("actor") or c.actor or "Arjun"
+            eff_actor = ev_slots.get("actor") or c.actor or "Team"
             # Prioritize exact deadline from commitment evidence over vague summary deadlines
             eff_deadline = ev_slots.get("deadline") or c.deadline
             
@@ -222,22 +232,23 @@ async def verify_and_mask_pipeline(
             eff_req = re.sub(r'^(?:The\s+client\s+wants\s+)', '', eff_req, flags=re.IGNORECASE).strip()
 
             # Determine discipline role
-            if "sso" in eff_req.lower() or "auth" in eff_req.lower():
+            if "sso" in eff_req.lower() or "auth" in eff_req.lower() or "password" in eff_req.lower():
                 eff_role = "AUTHENTICATION"
-            elif "audit" in eff_req.lower() or "endpoint" in eff_req.lower() or "database" in eff_req.lower():
+            elif "audit" in eff_req.lower() or "endpoint" in eff_req.lower() or "database" in eff_req.lower() or "validation" in eff_req.lower():
                 eff_role = "BACKEND"
             elif "frontend" in eff_req.lower() or "ui" in eff_req.lower() or "card" in eff_req.lower():
                 eff_role = "FRONTEND"
+            elif "deploy" in eff_req.lower() or "health" in eff_req.lower() or "infrastructure" in eff_req.lower():
+                eff_role = "DEVOPS"
             elif "qa" in eff_req.lower() or "test" in eff_req.lower():
                 eff_role = "QA"
             else:
                 eff_role = "ENGINEER"
 
-            # Deduplicate semantically identical verified tasks by domain topic or normalized key
+            # Deduplicate semantically identical verified tasks by clean requirement text
             norm_key = " ".join(eff_req.lower().split())
-            topic_key = "sso" if "sso" in norm_key else ("audit" if "audit" in norm_key else norm_key)
-            if topic_key not in seen_raw_requirements:
-                seen_raw_requirements.add(topic_key)
+            if norm_key not in seen_raw_requirements:
+                seen_raw_requirements.add(norm_key)
                 assignees = [Assignee(name=eff_actor, role=eff_role, assigned_work=eff_req, deadline=eff_deadline)]
                 verified_commitments.append(VerifiedCommitment(
                     task_id=c.claim_id,
@@ -249,7 +260,21 @@ async def verify_and_mask_pipeline(
             reason_text = v.explanation or "Claim was held for manual human review or ambiguous dialogue context."
             quotes = [e.quote for e in v.evidence_chain if e.quote] if v.evidence_chain else []
             ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text) if v.evidence_chain else {}
-            eff_actor = ev_slots.get("actor") or c.actor or "Unassigned"
+            
+            # Find accurate actor from evidence chain speakers if slot extraction didn't find one
+            candidate_actor = ev_slots.get("actor") or c.actor
+            if not candidate_actor or candidate_actor in ("Unassigned", "Team"):
+                if v.evidence_chain:
+                    for e in v.evidence_chain:
+                        spk = getattr(e, "speaker", None)
+                        if spk and not spk.lower().startswith("speaker") and not spk.lower().startswith("user") and spk.lower() != "maya":
+                            candidate_actor = spk
+                            break
+                    if not candidate_actor and v.evidence_chain:
+                        spk = getattr(v.evidence_chain[0], "speaker", None)
+                        if spk and not spk.lower().startswith("speaker") and not spk.lower().startswith("user"):
+                            candidate_actor = spk
+            eff_actor = candidate_actor or "Unassigned"
             eff_deadline = ev_slots.get("deadline") or c.deadline
 
             chain_list = []
@@ -316,11 +341,19 @@ async def verify_and_mask_pipeline(
             leak_gate_passed = False
             leak_violations.extend(violations)
 
+    # Map actors from verified commitments
+    task_actor_map = {}
+    for c in verified_commitments:
+        actor = c.assignees[0].name if c.assignees else "Team"
+        task_actor_map[c.task_id] = actor
+
     # Format clean, highly readable verified tasks
     formatted_tasks = []
-    for p in masking_result.agent_payloads:
+    for idx, p in enumerate(masking_result.agent_payloads):
+        actor_name = task_actor_map.get(p.task_id, "Team")
         formatted_tasks.append({
-            "task_id": p.task_id,
+            "task_id": f"TASK-{idx+1:03d}",
+            "actor": actor_name,
             "intentions": p.intentions,
             "things_to_implement": p.things_to_implement,
             "technical_context": p.technical_context,

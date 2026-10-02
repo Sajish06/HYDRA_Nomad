@@ -95,8 +95,8 @@ class SemanticDecomposer:
             if cached_result:
                 return cached_result
 
-        # Try Ollama structured inference if online
-        if self._is_ollama_online():
+        # Try Ollama structured inference if online and not mocked
+        if not settings.MOCK_LLM and self._is_ollama_online():
             try:
                 agent_payload, audit_record = self._call_ollama(commitment, vault_session_id)
                 if self.use_cache:
@@ -120,6 +120,9 @@ class SemanticDecomposer:
         candidate_models = [
             self.model_name,
             settings.OLLAMA_MODEL,
+            "qwen3.5:4b",
+            "qwen3.5:4b-instruct",
+            "qwen3.5:latest",
             "qwen2.5:7b-instruct",
             "qwen2.5:7b",
             "qwen2.5:latest",
@@ -155,7 +158,7 @@ class SemanticDecomposer:
                 "agent_payload": payload.model_dump(),
                 "audit_record": audit.model_dump()
             }
-            models_to_write = [self.model_name, "default", "qwen2.5:7b-instruct", "qwen2.5:7b"]
+            models_to_write = [self.model_name, "default", "qwen3.5:4b", "qwen3.5:4b-instruct", "qwen2.5:7b-instruct", "qwen2.5:7b"]
             seen = set()
             for m in models_to_write:
                 if m in seen:
@@ -260,7 +263,22 @@ class SemanticDecomposer:
 
         with urllib.request.urlopen(req, timeout=90.0) as response:
             result = json.loads(response.read().decode("utf-8"))
-            content = json.loads(result.get("message", {}).get("content", "{}"))
+            raw_content = result.get("message", {}).get("content", "{}").strip()
+            if raw_content.startswith("```"):
+                lines = raw_content.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].strip().startswith("```"):
+                    lines = lines[:-1]
+                raw_content = "\n".join(lines).strip()
+            try:
+                content = json.loads(raw_content)
+            except Exception:
+                match = re.search(r'\{.*\}', raw_content, re.DOTALL)
+                if match:
+                    content = json.loads(match.group(0))
+                else:
+                    content = {}
             
             deadlines = [a.deadline for a in commitment.assignees if a.deadline]
             deadline_val = deadlines[0] if deadlines else content.get("deadline")

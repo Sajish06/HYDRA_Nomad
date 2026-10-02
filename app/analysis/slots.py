@@ -25,7 +25,7 @@ ACTION_SYNONYMS = {
     "build": {"build", "create", "implement", "develop", "make"},
     "ask": {"ask", "check", "inquire", "reach out", "request"},
     "test": {"test", "verify", "validate", "benchmark"},
-    "investigate": {"investigate", "explore", "research", "check", "analyze"},
+    "investigate": {"investigate", "explore", "research", "check", "analyze", "look"},
 }
 
 def normalize_slot_string(s: Optional[str]) -> str:
@@ -171,26 +171,32 @@ def extract_slots_from_evidence(
     if not scoped_evidence:
         scoped_evidence = evidence_items
 
-    # 1. Prioritize explicit first-person commitment statements in scoped evidence
-    commitments = [
+    # 1. Prioritize explicit first-person commitment statements in scoped evidence (excluding investigations)
+    first_person_commitments = [
+        e for e in scoped_evidence 
+        if e.relation == "SUPPORTS" and re.search(r"\b(?:i'?ll|i will|i can take that|i'?m on it|i'?ll take care)\b", f"{e.resolved_text or ''} {e.quote or ''}", re.IGNORECASE)
+        and not re.search(r"\b(investigat\w*|check whether|look into|explore|not sure whether|open investigation\w*)\b", f"{e.resolved_text or ''} {e.quote or ''}", re.IGNORECASE)
+    ]
+    
+    commitments = first_person_commitments if first_person_commitments else [
         e for e in scoped_evidence 
         if e.relation == "SUPPORTS" and (
             e.stance == Stance.COMMIT 
             or re.search(r"\b(?:i'?ll|i will|i can take that|i'?m on it)\b", f"{e.resolved_text or ''} {e.quote or ''}", re.IGNORECASE)
-        )
+        ) and not re.search(r"\b(investigat\w*|check whether|look into|explore|not sure whether|open investigation\w*)\b", f"{e.resolved_text or ''} {e.quote or ''}", re.IGNORECASE)
     ]
     
     candidates = commitments if commitments else [e for e in scoped_evidence if e.relation == "SUPPORTS"]
     
     for e in candidates:
-        full_text = f"{e.resolved_text or ''} {e.quote or ''} {e.text or ''}".strip()
+        full_text = (e.text or e.resolved_text or e.quote or "").strip()
         
         # Extract actor (speaker of commitment or addressed person)
         if not extracted["actor"]:
-            if e.actor_mentioned and not e.actor_mentioned.lower().startswith("speaker"):
-                extracted["actor"] = e.actor_mentioned
-            elif e.speaker and not e.speaker.lower().startswith("speaker") and not e.speaker.lower().startswith("user"):
+            if e.speaker and not e.speaker.lower().startswith("speaker") and not e.speaker.lower().startswith("user"):
                 extracted["actor"] = e.speaker
+            elif e.actor_mentioned and not e.actor_mentioned.lower().startswith("speaker"):
+                extracted["actor"] = e.actor_mentioned
 
         # Extract action and object from explicit commitment
         m_commit = re.search(
@@ -198,7 +204,7 @@ def extract_slots_from_evidence(
             full_text,
             re.IGNORECASE
         )
-        if m_commit:
+        if m_commit and not re.search(r"\b(investigat\w*|check whether|look into|explore|not sure|open investigation\w*)\b", full_text, re.IGNORECASE):
             raw_action = m_commit.group(1).strip()
             # Clean leading intro phrases e.g. "take that. I'll "
             raw_action = re.sub(r"^(?:take that\.?\s*(?:i'?ll|i will)?\s*)", "", raw_action, flags=re.IGNORECASE).strip()
@@ -228,6 +234,12 @@ def extract_slots_from_evidence(
                     # Do not capture vague release dates if not explicitly exact
                     if not re.search(r"\b(?:the\s+)?(?:release|version)\b", candidate_dead, re.IGNORECASE):
                         extracted["deadline"] = candidate_dead
+
+    if not extracted["actor"]:
+        for e in scoped_evidence:
+            if e.speaker and not e.speaker.lower().startswith("speaker") and not e.speaker.lower().startswith("user"):
+                extracted["actor"] = e.speaker
+                break
 
     return extracted
 

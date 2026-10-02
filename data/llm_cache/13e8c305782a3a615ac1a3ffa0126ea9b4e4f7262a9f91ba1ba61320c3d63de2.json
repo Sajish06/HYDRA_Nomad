@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-claim-local-001_4",
+    "intentions": [
+      "Add structured error responses to the public API and document the error format"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Add structured error responses to the public API and document the error format"
+    ],
+    "technical_context": [],
+    "deadline": "October 20"
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-claim-local-001_4",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-claim-local-001"
+  }
+}

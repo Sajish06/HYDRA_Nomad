@@ -3,11 +3,11 @@ from typing import Optional, Dict, Any, List
 from app.models import Stance
 
 CUE_PATTERNS = [
-    # DEFER / UNRESOLVED
+    # DEFER / UNRESOLVED / INVESTIGATION
     (
         Stance.DEFER,
         re.compile(
-            r"\b(leave that for a future version|future version|for a future|hold off|not now|later|next semester|next sprint|next quarter|postpone|push (?:this|it) back|revisit|table (?:this|it)|not yet|park (?:this|it)|haven'?t decided|hasn'?t been decided|nothing is decided|not decided (?:yet|today)|nobody has been assigned|hasn'?t been finalized|not finalized|hasn'?t been approved|not approved (?:yet|today)|deployment infrastructure hasn'?t|unconfirmed|not independently checked|until we receive|not sure we need|let'?s decide which|need to decide which)\b",
+            r"\b(leave that for a future version|future version|for a future|hold off|not now|later|next semester|(?:defer (?:to|until)?|hold off until|push (?:to|for)?|postpone until)\s*next sprint|next quarter|postpone|push (?:this|it) back|revisit|table (?:this|it)|not yet|park (?:this|it)|haven'?t decided|hasn'?t been decided|nothing is decided|not decided (?:yet|today)|nobody has been assigned|hasn'?t been finalized|not finalized|hasn'?t been approved|not approved (?:yet|today)|deployment infrastructure hasn'?t|unconfirmed|not independently checked|until we receive|not sure we need|not sure whether|let'?s decide which|need to decide which|open investigations?|open investigation|investigat(?:e|ing|ion)|check whether|look into whether|explore whether|before we decide|don'?t think we'?ve selected|haven'?t selected|rather than implementation commitments?|not selected either|trade-offs? before we decide|look into|check if|investigate whether|investigate if|evaluate whether)\b",
             re.IGNORECASE
         )
     ),
@@ -39,15 +39,15 @@ CUE_PATTERNS = [
     (
         Stance.ACCEPT,
         re.compile(
-            r"^(?:yes|yeah|sure|okay|ok|sounds good|agreed|understood|right|correct|i agree)(?:,\s*|[\.\!\?]|\s+|$)",
+            r"^(?:yes|yeah|sure|okay|ok|sounds good|agreed|understood|right|correct|i agree)(?:,\s*|[\.\!\?]|\s+|$)|that'?s committed|committed for|part of the sprint|sprint commitment|sprint scope|committed item|committed as well|we('ll| will) include that",
             re.IGNORECASE
         )
     ),
-    # COMMIT (Explicit first-person commitments and task ownership)
+    # COMMIT (Explicit first-person commitments and task ownership, excluding investigations)
     (
         Stance.COMMIT,
         re.compile(
-            r"\b(i'?ll\s+[a-z]+|i will\s+[a-z]+|i can\s+(?:take|do|handle|prepare|document|[a-z]+)|i am on it|i'm on it|on it|committed to|that'?s committed|we('ll| will) include|we'll include)\b",
+            r"\b(i'?ll\s+(?!investigate\b|check\b|look\b|explore\b|research\b|analyze\b|evaluate\b|compare\b|benchmark\b)[a-z]+|i will\s+(?!investigate\b|check\b|look\b|explore\b|research\b|analyze\b|evaluate\b|compare\b|benchmark\b)[a-z]+|i can\s+(?!investigate\b|check\b|look\b|explore\b|research\b|analyze\b|evaluate\b|compare\b|benchmark\b)(?:take|do|handle|prepare|document|[a-z]+)|i am on it|i'm on it|on it|committed to|i'?ll take care|i will take care|we('ll| will) include|we'll include)\b",
             re.IGNORECASE
         )
     ),

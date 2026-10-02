@@ -9,10 +9,10 @@
 ## Task: claim_demo-meeting-2026-10-02-003_2
 
 ### 1. Intentions (Technical Objective)
-- Add an audit-event endpoint and store the events in the existing backend database by November 8
+- Add an audit-event endpoint and store the events in the existing backend database
 
 ### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Add an audit-event endpoint and store the events in the existing backend database by November 8
+- BACKEND: Add an audit-event endpoint and store the events in the existing backend database
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
@@ -20,14 +20,14 @@
 
 ### 4. Role-Specific Briefs
 #### BACKEND — Assignee: Arjun (Deadline: November 8)
-- Deliverable: BACKEND: Add an audit-event endpoint and store the events in the existing backend database by November 8
+- Deliverable: BACKEND: Add an audit-event endpoint and store the events in the existing backend database
 
 ---
 
 ## Task: claim_demo-meeting-2026-10-02-003_3
 
 ### 1. Intentions (Technical Objective)
-- Document the SSO requirements and update the authentication service before November 5
+- Document the SSO requirements and update the authentication service
 
 ### 2. Things to Implement (Structured Deliverables)
 - AUTHENTICATION: Document the SSO requirements and update the authentication service

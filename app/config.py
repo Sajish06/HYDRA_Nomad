@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     OLLAMA_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "qwen2.5:7b-instruct"
+    OLLAMA_MODEL: str = "qwen3.5:4b"
     MOCK_LLM: int = 0
     EMBED_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     DB_PATH: str = str(BASE_DIR / "data" / "proof.db")

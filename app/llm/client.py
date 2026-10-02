@@ -95,6 +95,9 @@ def find_cached_llm_response(
     candidate_models = [
         active_model,
         settings.OLLAMA_MODEL,
+        "qwen3.5:4b",
+        "qwen3.5:4b-instruct",
+        "qwen3.5:latest",
         "qwen2.5:7b-instruct",
         "qwen2.5:7b",
         "qwen2.5:latest",
@@ -120,7 +123,7 @@ def save_to_cache_multi(
     data: Dict[str, Any]
 ) -> None:
     """Saves to cache under active_model and also alias keys so all collaborators hit cache."""
-    models_to_cache = [active_model, "default", "qwen2.5:7b-instruct", "qwen2.5:7b"]
+    models_to_cache = [active_model, "default", "qwen3.5:4b", "qwen3.5:4b-instruct", "qwen2.5:7b-instruct", "qwen2.5:7b"]
     seen = set()
     for m in models_to_cache:
         if m in seen:
@@ -182,8 +185,22 @@ def query_structured_llm(
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
-                raw_content = data.get("message", {}).get("content", "{}")
-                parsed_json = json.loads(raw_content)
+                raw_content = data.get("message", {}).get("content", "{}").strip()
+                if raw_content.startswith("```"):
+                    lines = raw_content.split("\n")
+                    if lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if lines and lines[-1].strip().startswith("```"):
+                        lines = lines[:-1]
+                    raw_content = "\n".join(lines).strip()
+                try:
+                    parsed_json = json.loads(raw_content)
+                except Exception:
+                    match = re.search(r'\{.*\}', raw_content, re.DOTALL)
+                    if match:
+                        parsed_json = json.loads(match.group(0))
+                    else:
+                        parsed_json = {}
                 validated = response_model.model_validate(parsed_json)
                 
                 # Save valid result to cache across model aliases

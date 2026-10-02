@@ -38,7 +38,8 @@ TOPIC_STOPWORDS = {
     "requirement", "requirements", "technical", "session", "database", "store",
     "prototype", "pipeline", "framework", "required", "mandatory", "decided",
     "finalized", "approved", "payment", "payments", "field", "fields", "system",
-    "existing", "current", "new", "latest", "upcoming", "part", "change", "changes", "scope"
+    "existing", "current", "new", "latest", "upcoming", "part", "change", "changes", "scope",
+    "sprint", "commitment", "commitments", "meeting", "investigation", "investigations"
 }
 
 def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Optional[Dict[str, Any]] = None) -> SegmentStance:
@@ -55,7 +56,8 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
         "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "is", "are", "was",
         "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "has", "been", "had",
         "should", "must", "not", "no", "never", "can", "cannot", "could", "would", "do", "does",
-        "did", "am", "also", "only", "we", "i", "you", "they", "our", "all", "so", "just"
+        "did", "am", "also", "only", "we", "i", "you", "they", "our", "all", "so", "just",
+        "sprint", "commitment", "commitments", "meeting", "engineering", "work", "item", "items"
     }
     raw_claim_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.text} {claim.object or ''} {claim.action or ''} {claim.normalized or ''}".lower())) - claim_stopwords
     
@@ -67,17 +69,47 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
             if act_lower in syns or root in act_lower:
                 claim_words.update(syns)
 
+    DISTINCTIVE_TOPICS = {
+        "worker": ["worker"],
+        "redis": ["redis"],
+        "mongodb": ["mongodb", "mongo"],
+        "postgresql": ["postgresql", "postgres"],
+        "storage": ["storage", "file service"],
+        "lockout": ["lockout", "unlock"],
+        "pagination": ["pagination", "customer-list"],
+        "migration": ["migration"],
+        "error": ["error", "errors"],
+        "dashboard": ["dashboard"],
+        "fastapi": ["fastapi"],
+        "sqlite": ["sqlite"],
+        "faiss": ["faiss"],
+        "sentencetransformers": ["sentencetransformers", "minilm", "embeddings"],
+        "pinecone": ["pinecone"],
+        "tokens": ["tokens", "plaintext"],
+        "mfa": ["mfa", "multi-factor", "biometric"],
+        "3ds": ["3ds", "three-d"],
+        "card": ["card", "cards", "card payment", "card payments"],
+        "vendor": ["vendor"],
+        "aws": ["aws", "infrastructure"]
+    }
+
+    claim_distinct_topics = {
+        topic for topic, kws in DISTINCTIVE_TOPICS.items()
+        if any(kw in claim.text.lower() for kw in kws)
+    }
+
     key_claim_words = {w for w in claim_words if w not in GENERIC_VERBS}
     primary_subject_words = {w for w in key_claim_words if w not in TOPIC_STOPWORDS}
 
     seg_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", text.lower())) - claim_stopwords
     
-    # Anaphora only applies if segment refers to an antecedent and does NOT introduce its own distinct topic noun
+    # Anaphora only applies if prev_seg is the IMMEDIATELY preceding segment in the meeting
+    is_immediate_prev = (prev_seg is not None and prev_seg.get("idx") == idx - 1)
     has_pronoun = bool(re.search(r"\b(that|this|it|so|them|these|those)\b", text, re.IGNORECASE)) or len(text.split()) <= 4
-    has_own_topic = bool(re.search(r"\b(database|field|fields|provider|card|payment|tokens|mfa|fastapi|sqlite|redis|aws|framework|biometric|infrastructure)\b", text, re.IGNORECASE))
-    is_anaphoric = has_pronoun and not has_own_topic
+    has_own_topic = bool(re.search(r"\b(database|field|fields|provider|vendor|card|payment|tokens|mfa|fastapi|sqlite|redis|aws|framework|biometric|infrastructure|worker|mongodb|postgresql|storage)\b", text, re.IGNORECASE))
+    is_anaphoric = has_pronoun and not has_own_topic and is_immediate_prev
 
-    prev_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", prev_seg.get("text", "").lower())) - claim_stopwords if (prev_seg and is_anaphoric) else set()
+    prev_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", prev_seg.get("text", "").lower())) - claim_stopwords if (is_anaphoric and prev_seg) else set()
     all_context_words = seg_words | prev_words
 
     def _words_overlap(set1, set2):
@@ -101,6 +133,28 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     has_context_key_overlap = _words_overlap(key_claim_words, all_context_words)
     has_primary_overlap = _words_overlap(primary_subject_words, seg_words) or (is_anaphoric and _words_overlap(primary_subject_words, all_context_words))
 
+    INVESTIGATION_TOPICS = {"worker", "redis", "mongodb", "postgresql", "storage"}
+
+    # If claim specifies distinct topics, check if segment or its immediate antecedent matches those topics
+    if claim_distinct_topics:
+        inv_topics_in_claim = claim_distinct_topics.intersection(INVESTIGATION_TOPICS)
+        if inv_topics_in_claim:
+            seg_matches_distinct_topic = any(
+                any(kw in text.lower() for kw in DISTINCTIVE_TOPICS[t])
+                or (is_anaphoric and prev_seg and any(kw in prev_seg.get("text", "").lower() for kw in DISTINCTIVE_TOPICS[t]))
+                for t in inv_topics_in_claim
+            )
+        else:
+            seg_matches_distinct_topic = any(
+                any(kw in text.lower() for kw in DISTINCTIVE_TOPICS[t])
+                or (is_anaphoric and prev_seg and any(kw in prev_seg.get("text", "").lower() for kw in DISTINCTIVE_TOPICS[t]))
+                for t in claim_distinct_topics
+            )
+        if not seg_matches_distinct_topic:
+            has_primary_overlap = False
+            has_key_overlap = False
+            has_claim_overlap = False
+
     overlap = len(claim_words.intersection(seg_words))
     context_overlap = len(claim_words.intersection(all_context_words))
 
@@ -110,11 +164,18 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     # Check if claim is asserting a negative constraint (e.g. "must not", "never", "should not", "not be disclosed")
     claim_is_negative = bool(re.search(r"\b(must not|never|should not|cannot|not be disclosed|don'?t)\b", claim.text, re.IGNORECASE))
 
+    # Check whether the segment is an investigation statement (HOW/options exploration)
+    is_investigation_statement = bool(re.search(r"\b(investigat\w*|check whether|look into whether|explore whether|open investigation\w*|trade-offs?|whether.*is suitable|not sure whether|haven'?t selected|keep all four)\b", text, re.IGNORECASE))
+    
+    # Check if this statement is an affirmative confirmation of an antecedent commitment
+    is_confirmation_statement = bool(re.search(r"\b(committed|sprint commitment|sprint scope|committed item|committed as well|part of the sprint)\b", text, re.IGNORECASE)) and is_immediate_prev
+
     if (has_claim_overlap and (has_key_overlap or not key_claim_words)) or (has_context_claim_overlap and has_context_key_overlap) or (claim.actor and claim.actor.lower() in text.lower()):
         relevance = min(0.95, 0.45 + max(overlap, context_overlap, 1) * 0.15)
         
         # 1. COMMITMENT / ACTION CLAIMS
         if claim.type in (ClaimType.COMMITMENT, ClaimType.ACTION):
+            claim_is_investigation_task = bool(re.search(r"\b(investigat\w*|look into|check whether|explore)\b", f"{claim.action or ''} {claim.text}", re.IGNORECASE))
             speaker_matches = (
                 not claim.actor 
                 or not speaker 
@@ -122,7 +183,7 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
                 or speaker.lower().startswith("user")
                 or (claim.actor.lower() in speaker.lower() or speaker.lower() in claim.actor.lower())
                 or (claim.actor.lower() in text.lower())
-                or (prev_seg and claim.actor.lower() in prev_seg.get("text", "").lower())
+                or (prev_seg and is_immediate_prev and claim.actor.lower() in prev_seg.get("text", "").lower())
             )
 
             # Check if speaker states "only agreed to [different task]" vs [this task]
@@ -134,27 +195,44 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
                 else:
                     toward = "CONTRADICTS"
                     relevance = 0.90
+            elif claim_is_investigation_task and speaker_matches and ((overlap >= 1 and (has_key_overlap or not key_claim_words)) or (has_context_key_overlap and is_immediate_prev)):
+                if re.search(r"\b(i'?ll|sure|will|i can|look into|investigate)\b", text, re.IGNORECASE):
+                    toward = "SUPPORTS"
+                    relevance = 0.95
+                    stance = Stance.COMMIT
+                else:
+                    toward = "NEUTRAL"
             elif stance in (Stance.COMMIT, Stance.ACCEPT):
                 # Must match claim action/object or addressed in conversation
-                if speaker_matches and ((overlap >= 1 and (has_key_overlap or not key_claim_words)) or (has_context_key_overlap and prev_seg)):
+                if speaker_matches and ((overlap >= 1 and (has_key_overlap or not key_claim_words)) or (has_context_key_overlap and is_immediate_prev)):
+                    if not is_investigation_statement or claim_is_investigation_task:
+                        toward = "SUPPORTS"
+                        relevance = 0.95
+                    else:
+                        toward = "NEUTRAL"
+                elif is_confirmation_statement and has_context_key_overlap:
                     toward = "SUPPORTS"
                     relevance = 0.95
                 else:
                     toward = "NEUTRAL"
             elif stance in (Stance.CANCEL, Stance.REVERSE):
-                if speaker_matches and (overlap >= 2 or has_key_overlap):
+                # Requires explicit same-claim match
+                if speaker_matches and (overlap >= 2 or (has_primary_overlap and has_key_overlap)):
                     toward = "CONTRADICTS"
                     relevance = 0.90
                 else:
                     toward = "NEUTRAL"
             elif stance == Stance.REJECT:
-                if speaker_matches and (overlap >= 1 or has_context_key_overlap):
+                if speaker_matches and (overlap >= 2 or (has_primary_overlap and has_key_overlap)):
                     toward = "CONTRADICTS"
                     relevance = 0.90
                 else:
                     toward = "NEUTRAL"
             elif stance == Stance.DEFER:
-                if has_primary_overlap or (not primary_subject_words and (has_key_overlap or overlap >= 1)):
+                # Same-claim identity required: investigation into HOW does NOT contradict commitment on WHAT
+                if is_investigation_statement:
+                    toward = "NEUTRAL"
+                elif has_primary_overlap and has_key_overlap and not is_anaphoric:
                     toward = "CONTRADICTS"
                     relevance = 0.85
                 else:
@@ -184,25 +262,32 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
                     else:
                         toward = "CONTRADICTS"
                         relevance = 0.85
-                # A contradiction requires topic overlap
+                # A contradiction requires strict same-claim / topic overlap
                 elif stance in (Stance.DEFER, Stance.REJECT, Stance.REVERSE, Stance.CANCEL):
-                    if (has_primary_overlap or (not primary_subject_words and has_context_key_overlap)):
-                        toward = "CONTRADICTS"
-                        relevance = max(relevance, 0.85)
-                    else:
+                    if is_investigation_statement:
+                        # Scoped investigations into HOW or architecture options NEVER contradict WHAT implementation commitments
                         toward = "NEUTRAL"
-                elif stance in (Stance.DECIDE, Stance.ACCEPT):
+                    elif stance in (Stance.REJECT, Stance.CANCEL, Stance.REVERSE):
+                        if (has_primary_overlap and has_key_overlap) or (is_anaphoric and has_context_key_overlap):
+                            toward = "CONTRADICTS"
+                            relevance = max(relevance, 0.85)
+                        else:
+                            toward = "NEUTRAL"
+                    elif stance == Stance.DEFER:
+                        if (has_primary_overlap and has_key_overlap) or (is_anaphoric and has_context_key_overlap):
+                            toward = "CONTRADICTS"
+                            relevance = max(relevance, 0.85)
+                        else:
+                            toward = "NEUTRAL"
+                elif stance in (Stance.DECIDE, Stance.ACCEPT, Stance.COMMIT):
                     # Must match primary subject if primary subjects exist
                     if (has_primary_overlap or (not primary_subject_words and has_key_overlap)):
-                        toward = "SUPPORTS"
-                        relevance = max(relevance, 0.85)
-                    else:
-                        toward = "NEUTRAL"
-                elif stance == Stance.COMMIT:
-                    # A commitment to investigate is not a final decision affirmation
-                    if (has_primary_overlap or (not primary_subject_words and has_key_overlap)) and not re.search(r"\b(investigate|look into|check|review)\b", text, re.IGNORECASE):
-                        toward = "SUPPORTS"
-                        relevance = max(relevance, 0.85)
+                        if not re.search(r"\b(investigate|look into|check whether|check if|explore|open investigation)\b", text, re.IGNORECASE):
+                            toward = "SUPPORTS"
+                            relevance = max(relevance, 0.85)
+                        else:
+                            toward = "CONTRADICTS"
+                            relevance = 0.85
                     else:
                         toward = "NEUTRAL"
                 else:
@@ -218,27 +303,29 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     if m_dead:
         deadline_mentioned = m_dead.group(1).strip().rstrip(".")
 
-    if stance in (Stance.ACCEPT, Stance.COMMIT) and prev_seg:
-        antecedent_idx = prev_seg.get("idx")
-        prev_txt = prev_seg.get("text", "")
-        
+    if stance in (Stance.ACCEPT, Stance.COMMIT):
         eff_actor = speaker or "Speaker"
-        m_addr = re.search(r"\b([A-Z][a-z]+),\s*(?:can you|could you|will you|please)\b", prev_txt)
-        if m_addr:
-            eff_actor = m_addr.group(1).strip()
-            
-        m_act = re.search(r"(?:can you|could you|should we|will you|please|let's)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
-        m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", text, re.IGNORECASE)
+        m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+([a-zA-Z].*)$", text, re.IGNORECASE)
         
-        if m_act:
-            resolved_text = f"{eff_actor} will {m_act.group(1).strip()}."
-            actor_mentioned = eff_actor
-        elif m_commit and not re.search(r"\b(it|that|this)\b", m_commit.group(1), re.IGNORECASE):
+        # 1. If this segment contains its own explicit first-person commitment
+        if m_commit and not re.search(r"^(?:it|that|this|so|do that|take that)\b", m_commit.group(1).strip(), re.IGNORECASE):
             resolved_text = f"{eff_actor} will {m_commit.group(1).strip().rstrip('.')}."
             actor_mentioned = eff_actor
-        else:
-            resolved_text = f"{eff_actor} agrees to: {prev_txt}"
-            actor_mentioned = eff_actor
+        # 2. Otherwise if it's an acceptance/agreement of an antecedent question or proposal
+        elif prev_seg:
+            antecedent_idx = prev_seg.get("idx")
+            prev_txt = prev_seg.get("text", "")
+            m_addr = re.search(r"\b([A-Z][a-z]+),\s*(?:can you|could you|will you|please)\b", prev_txt)
+            if m_addr:
+                eff_actor = m_addr.group(1).strip()
+                
+            m_act = re.search(r"(?:can you|could you|should we|will you|please)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
+            if m_act:
+                resolved_text = f"{eff_actor} will {m_act.group(1).strip()}."
+                actor_mentioned = eff_actor
+            else:
+                resolved_text = text
+                actor_mentioned = speaker
 
     return SegmentStance(
         idx=idx,
@@ -283,7 +370,7 @@ def analyze_stances(
     except Exception:
         llm_stances = []
         for i, c in enumerate(candidates):
-            prev = candidates[i-1] if i > 0 else None
+            prev = cand_map.get(c["idx"] - 1)
             llm_stances.append(heuristic_classify_segment(c, claim, prev))
 
     llm_stance_map = {s.idx: s for s in llm_stances}
@@ -320,12 +407,16 @@ def analyze_stances(
             if h_obj.toward_claim != "NEUTRAL":
                 final_toward = h_obj.toward_claim
                 final_rel = max(final_rel, h_obj.relevance)
+                final_stance = h_obj.stance
                 source = "BOTH"
             elif final_stance in NEGATE and not claim_is_neg:
                 if h_obj.toward_claim == "CONTRADICTS":
                     final_toward = "CONTRADICTS"
                     final_rel = max(final_rel, 0.85)
                     source = "BOTH"
+                else:
+                    final_toward = "NEUTRAL"
+                    final_stance = Stance.INFORM
         elif final_stance in (Stance.INFORM, Stance.OTHER):
             if h_obj.stance not in (Stance.INFORM, Stance.OTHER):
                 final_stance = h_obj.stance

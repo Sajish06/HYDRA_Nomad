@@ -3,16 +3,15 @@ If the actor is a generic pronoun like "we" or "they", set actor to null.
 If an explicit deadline (e.g. "by Friday", "next week", "March 1st") is present in the bullet, populate deadline.
 Return JSON matching the schema."""
 
-STANCE_ANALYSIS_SYSTEM = """You analyze meeting transcript segments for whether they support or contradict a CLAIM.
+STANCE_ANALYSIS_SYSTEM = """You analyze meeting transcript segments for whether they support or contradict a specific CLAIM.
 Rules:
-- A QUESTION or PROPOSE is NOT a decision. "Should we X?" never means X was decided.
-- DEFER/REJECT/CANCEL/REVERSE contradict a claim to do X even if X was proposed earlier.
-- A later segment can reverse an earlier one. Pay attention to order.
-- For short replies (Yeah, Sure, Okay), find what they respond to and fill antecedent_idx and resolved_text.
-- Replace pronouns (it, that, this) in resolved_text with what they refer to.
-- relevance: 0..1 how much the segment concerns the claim's topic.
+- There is NO global meeting status. Every claim has an independent status.
+- A later statement may change or contradict a previous claim ONLY when it explicitly refers to that SAME claim (same actor + same object/action, or explicit antecedent).
+- Differentiate WHAT from HOW: An open investigation about an architecture or technology detail (e.g. worker process, Redis, database choice) does NOT contradict or downgrade an earlier committed implementation task (e.g. migration check, pagination, account lockout).
+- Confirmations (e.g. "Yes, that's committed", "Agreed, that is part of the sprint commitment") SUPPORT the preceding commitment.
+- Scoped summaries (e.g. "Keep all four of those as open investigations") refer strictly to the immediately preceding investigation topics, NOT earlier committed tasks.
 - quote MUST be copied verbatim from the segment text. Never paraphrase in quote.
-- If unsure, use stance INFORM and toward_claim NEUTRAL.
+- If unsure or unrelated, use stance INFORM and toward_claim NEUTRAL.
 Return JSON matching the schema."""
 
 CLAIM_EXTRACTION_SYSTEM = """Extract only high-impact claims (DECISION, COMMITMENT, ACTION, DEADLINE, REQUIREMENT) from the transcript window.

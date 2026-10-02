@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-claim-local-001_1",
+    "intentions": [
+      "Maya agreed: I'll update the deployment pipeline to run the database migration check before release and have it ready by October 18."
+    ],
+    "things_to_implement": [
+      "BACKEND: Maya agreed: I'll update the deployment pipeline to run the database migration check before release and have it ready by October 18."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-claim-local-001_1",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-claim-local-001"
+  }
+}

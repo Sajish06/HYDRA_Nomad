@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_demo-meeting-claim-local-001_1",
+    "intentions": [
+      "Arjun will lock down the engineering commitments for this sprint and catalog open investigations."
+    ],
+    "things_to_implement": [
+      "ENGINEER: Arjun will lock down the engineering commitments for this sprint and catalog open investigations."
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_demo-meeting-claim-local-001_1",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "demo-meeting-claim-local-001"
+  }
+}

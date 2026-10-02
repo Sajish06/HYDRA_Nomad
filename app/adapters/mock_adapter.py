@@ -214,7 +214,18 @@ class MockAdapter(MeetingAdapter):
                     else:
                         raw_decisions.append(tc)
             else:
-                dec = summary_data.get("decisions") or summary_data.get("key_decisions") or summary_data.get("key_points") or summary_data.get("points") or summary_data.get("takeaways") or data.get("summary_decisions") or []
+                dec = (
+                    summary_data.get("decisions") or 
+                    summary_data.get("topics_discussed") or 
+                    summary_data.get("topics") or 
+                    summary_data.get("key_decisions") or 
+                    summary_data.get("key_points") or 
+                    summary_data.get("points") or 
+                    summary_data.get("takeaways") or 
+                    summary_data.get("agenda") or
+                    summary_data.get("notes") or
+                    data.get("summary_decisions") or []
+                )
                 if isinstance(dec, list):
                     raw_decisions.extend(dec)
                 elif dec:

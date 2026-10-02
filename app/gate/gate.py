@@ -199,7 +199,7 @@ def evaluate_gate(
     elif state == "NEGATED":
         # If the claim asserts an affirmative decision/finalized fact (e.g. "required now", "is approved", "is finalized", "is a technical requirement")
         # that is negated/refuted by transcript:
-        is_assertive = bool(re.search(r"\b(required now|is approved|is finalized|approved next week|technical requirement)\b", claim.text, re.IGNORECASE))
+        is_assertive = bool(re.search(r"\b(required now|is approved|is finalized|approved next week|technical requirement|is approved|approved|finalized)\b", claim.text, re.IGNORECASE))
         if is_assertive:
             status = Status.UNSUPPORTED
             gate_action = "BLOCK"
