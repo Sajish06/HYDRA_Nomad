@@ -1,0 +1,39 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-TC3-01",
+    "intentions": [
+      "Restrict privileged operations to ADMIN and MANAGER roles and record audit events for all actions, including denied ones, for at least 180 days"
+    ],
+    "things_to_implement": [
+      "BACKEND: Add authorization middleware to privileged operations endpoints",
+      "SECURITY: Ensure audit events are immutable and capture both successful and denied privileged actions",
+      "QA: Test access for administrator, manager, and regular employee roles and verify that denied actions generate audit events"
+    ],
+    "technical_context": [
+      "Support 10,000 concurrent users",
+      "Use PostgreSQL and FastAPI",
+      "Audit records retained for 180 days"
+    ],
+    "deadline": "January release"
+  },
+  "audit_record": {
+    "task_id": "TASK-TC3-01",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "COMMERCIAL_NEGOTIATION",
+        "reason": "Preliminary discussions with a competitor acquisition have not been announced",
+        "source": "semantic_model",
+        "value": "Preliminary discussions with a competitor acquisition"
+      },
+      {
+        "category": "LEGAL_CONFIDENTIAL",
+        "reason": "Pending legal dispute with a former vendor",
+        "source": "semantic_model",
+        "value": "Pending legal dispute with a former vendor"
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEET-TC3-TEST"
+  }
+}

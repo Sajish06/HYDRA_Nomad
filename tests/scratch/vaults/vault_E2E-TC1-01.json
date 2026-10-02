@@ -1,0 +1,7 @@
+{
+  "session_id": "E2E-TC1-01",
+  "mappings": {
+    "[DB_CONNECTION_URI_1]": "postgres://staging_user:StagingPass123@orders.internal:5432/ecommerce",
+    "[INTERNAL_HOST_1]": "checkout.internal"
+  }
+}

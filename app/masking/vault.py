@@ -1,72 +1,65 @@
-import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+import json
+from typing import Dict, Optional
 
-class LocalSecretVault:
-    """Local reversible secret vault: keeps sensitive data offline and maps tokens back to originals."""
-
-    def __init__(self, meeting_id: str, vault_dir: Path):
-        self.meeting_id = meeting_id
-        self.vault_dir = Path(vault_dir)
-        self.vault_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.vault_path = self.vault_dir / f"vault_{self.meeting_id}.json"
-        
-        # Token to secret mapping: {"[PERSON_1]": "Ravi", "[METRIC_1]": "$8 million"}
+class EntityVault:
+    """
+    Local Reversible Secret Vault.
+    Stores bidirectional mappings: real_text <-> placeholder token.
+    Secrets NEVER leave the local environment.
+    """
+    def __init__(self, session_id: str, storage_dir: str = "data/vaults"):
+        self.session_id = session_id
+        self.storage_dir = Path(storage_dir)
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.token_to_secret: Dict[str, str] = {}
-        # Secret to token mapping for consistent tokenization: {"ravi": "[PERSON_1]"}
         self.secret_to_token: Dict[str, str] = {}
-        # Category counters: {"PERSON": 1, "METRIC": 1}
-        self.counters: Dict[str, int] = {}
-        
-        self._load()
+        self.category_counts: Dict[str, int] = {}
 
-    def _load(self) -> None:
-        if self.vault_path.exists():
-            try:
-                with open(self.vault_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self.token_to_secret = data.get("mappings", {})
-                    for token, secret in self.token_to_secret.items():
-                        self.secret_to_token[secret.lower()] = token
-                    self.counters = data.get("counters", {})
-            except Exception:
-                pass
+    def get_or_create_token(self, secret_text: str, category: str = "ENTITY") -> str:
+        """Returns existing placeholder token or registers a new one."""
+        cleaned_secret = secret_text.strip()
+        if not cleaned_secret:
+            return secret_text
 
-    def save(self) -> Path:
-        data = {
-            "meeting_id": self.meeting_id,
-            "mappings": self.token_to_secret,
-            "counters": self.counters
-        }
-        with open(self.vault_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return self.vault_path
+        # Return existing token if already masked
+        if cleaned_secret in self.secret_to_token:
+            return self.secret_to_token[cleaned_secret]
 
-    def register(self, secret: str, category: str = "ENTITY") -> str:
-        """Registers a secret and returns its reversible token."""
-        secret_clean = secret.strip()
-        if not secret_clean:
-            return secret
+        # Allocate new token, e.g., [SENSITIVE_FINANCIAL_1]
+        cat_upper = category.upper().replace(" ", "_")
+        self.category_counts[cat_upper] = self.category_counts.get(cat_upper, 0) + 1
+        count = self.category_counts[cat_upper]
+        token = f"[{cat_upper}_{count}]"
 
-        key = secret_clean.lower()
-        if key in self.secret_to_token:
-            return self.secret_to_token[key]
-
-        cat = category.upper()
-        idx = self.counters.get(cat, 0) + 1
-        self.counters[cat] = idx
-        token = f"[{cat}_{idx}]"
-
-        self.token_to_secret[token] = secret_clean
-        self.secret_to_token[key] = token
+        self.token_to_secret[token] = cleaned_secret
+        self.secret_to_token[cleaned_secret] = token
         return token
 
-    def unmask(self, text: str) -> str:
-        """Detokenizes text by replacing all registered tokens with original secrets."""
-        if not text:
-            return text
-        result = text
+    def unmask_text(self, text: str) -> str:
+        """Re-hydrates masked tokens in cloud LLM responses back to their original secret values."""
+        unmasked = text
         for token, secret in self.token_to_secret.items():
-            result = result.replace(token, secret)
-        return result
+            unmasked = unmasked.replace(token, secret)
+        return unmasked
+
+    def save(self) -> Path:
+        """Persists the vault file locally for audit and downstream unmasking."""
+        file_path = self.storage_dir / f"vault_{self.session_id}.json"
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "session_id": self.session_id,
+                "mappings": self.token_to_secret
+            }, f, indent=2)
+        return file_path
+
+    @classmethod
+    def load(cls, session_id: str, storage_dir: str = "data/vaults") -> "EntityVault":
+        vault = cls(session_id, storage_dir)
+        file_path = vault.storage_dir / f"vault_{session_id}.json"
+        if file_path.exists():
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                vault.token_to_secret = data.get("mappings", {})
+                vault.secret_to_token = {v: k for k, v in vault.token_to_secret.items()}
+        return vault

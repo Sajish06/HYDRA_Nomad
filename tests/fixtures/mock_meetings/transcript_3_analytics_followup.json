@@ -1,0 +1,120 @@
+{
+  "source": "meetily",
+  "meeting_id": "MEET-20261001-03",
+  "title": "Analytics Dashboard Follow-up",
+  "meeting_date": "2026-10-01T14:00:00Z",
+  "duration_seconds": 65,
+  "participants": [
+    { "name": "Maya", "role": "Client" },
+    { "name": "Arjun", "role": "Project Lead" },
+    { "name": "Ravi", "role": "Backend Developer" },
+    { "name": "Neha", "role": "Frontend Developer" }
+  ],
+  "segments": [
+    {
+      "segment_id": "seg_003_01",
+      "speaker": "Maya",
+      "start_time": 0.0,
+      "end_time": 4.5,
+      "text": "I wanted to revisit the revenue analytics access."
+    },
+    {
+      "segment_id": "seg_003_02",
+      "speaker": "Arjun",
+      "start_time": 5.0,
+      "end_time": 9.5,
+      "text": "The current requirement is that admins and finance managers can access those metrics, while support users cannot."
+    },
+    {
+      "segment_id": "seg_003_03",
+      "speaker": "Maya",
+      "start_time": 10.0,
+      "end_time": 12.5,
+      "text": "Yes, that's right."
+    },
+    {
+      "segment_id": "seg_003_04",
+      "speaker": "Maya",
+      "start_time": 13.0,
+      "end_time": 21.5,
+      "text": "But our customer support leads now need access to the monthly revenue summary as well. They don't need the detailed customer-value breakdown."
+    },
+    {
+      "segment_id": "seg_003_05",
+      "speaker": "Arjun",
+      "start_time": 22.0,
+      "end_time": 26.5,
+      "text": "So you're changing the existing access rule rather than creating a completely new analytics feature?"
+    },
+    {
+      "segment_id": "seg_003_06",
+      "speaker": "Maya",
+      "start_time": 27.0,
+      "end_time": 28.5,
+      "text": "Correct."
+    },
+    {
+      "segment_id": "seg_003_07",
+      "speaker": "Arjun",
+      "start_time": 29.0,
+      "end_time": 31.5,
+      "text": "And they should only get the monthly summary?"
+    },
+    {
+      "segment_id": "seg_003_08",
+      "speaker": "Maya",
+      "start_time": 32.0,
+      "end_time": 34.5,
+      "text": "Exactly."
+    },
+    {
+      "segment_id": "seg_003_09",
+      "speaker": "Ravi",
+      "start_time": 35.0,
+      "end_time": 37.5,
+      "text": "The existing backend authorization is already implemented."
+    },
+    {
+      "segment_id": "seg_003_10",
+      "speaker": "Arjun",
+      "start_time": 38.0,
+      "end_time": 40.5,
+      "text": "Then we shouldn't build the authorization system again."
+    },
+    {
+      "segment_id": "seg_003_11",
+      "speaker": "Ravi",
+      "start_time": 41.0,
+      "end_time": 45.5,
+      "text": "Right. We only need to modify the permission for the monthly summary endpoint."
+    },
+    {
+      "segment_id": "seg_003_12",
+      "speaker": "Neha",
+      "start_time": 46.0,
+      "end_time": 50.5,
+      "text": "And I'll update the dashboard so support leads see the monthly summary but not the detailed revenue cards."
+    },
+    {
+      "segment_id": "seg_003_13",
+      "speaker": "Arjun",
+      "start_time": 51.0,
+      "end_time": 55.5,
+      "text": "Good. QA should also test that normal support users still don't get access."
+    },
+    {
+      "segment_id": "seg_003_14",
+      "speaker": "Maya",
+      "start_time": 56.0,
+      "end_time": 57.5,
+      "text": "Yes."
+    },
+    {
+      "segment_id": "seg_003_15",
+      "speaker": "Arjun",
+      "start_time": 58.0,
+      "end_time": 65.0,
+      "text": "Let's make that the change for this release."
+    }
+  ]
+}

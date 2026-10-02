@@ -1,0 +1,43 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-005",
+    "intentions": [
+      "Notification service should consume PAYMENT_FAILED events, maintain a failure counter, and trigger an email notification plus an account dashboard warning banner after 3 consecutive failures."
+    ],
+    "things_to_implement": [
+      "BACKEND: Add PAYMENT_FAILED event listener in notification service, maintain failure counter, and emit notification job on 3rd failure.",
+      "FRONTEND: Add 'Payment issue' warning banner state to account dashboard upon 3rd failed payment.",
+      "QA: Verify event handling across 1, 2, and 3 failed payments and assert email and banner dispatch on the 3rd attempt."
+    ],
+    "technical_context": [
+      "Notification service consumes PAYMENT_FAILED events from payment service."
+    ],
+    "deadline": "Wednesday"
+  },
+  "audit_record": {
+    "task_id": "TASK-005",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Matched deterministic heuristic trigger",
+        "source": "deterministic_rule",
+        "value": "Maya: We're doing this because payment failures increased significantly after our recent pricing experiment."
+      },
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Matched deterministic heuristic trigger",
+        "source": "deterministic_rule",
+        "value": "Maya: The experiment caused a measurable drop in conversions, but the finance team doesn't want that information discussed outside management yet."
+      },
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Matched deterministic heuristic trigger",
+        "source": "deterministic_rule",
+        "value": "Maya: Also, we're planning another pricing experiment next month, but that's confidential as well."
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "TEST_CASE_05"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "source": "meetily",
+  "meeting_id": "MEET-20261001-01",
+  "title": "Customer Analytics Dashboard",
+  "meeting_date": "2026-10-01T09:00:00Z",
+  "duration_seconds": 118,
+  "participants": [
+    { "name": "Maya", "role": "Client" },
+    { "name": "Arjun", "role": "Project Lead" },
+    { "name": "Ravi", "role": "Backend Developer" },
+    { "name": "Neha", "role": "Frontend Developer" }
+  ],
+  "segments": [
+    {
+      "segment_id": "seg_001_01",
+      "speaker": "Maya",
+      "start_time": 0.0,
+      "end_time": 11.5,
+      "text": "The analytics dashboard needs one change before the next release. Customer revenue information shouldn't be visible to everyone."
+    },
+    {
+      "segment_id": "seg_001_02",
+      "speaker": "Arjun",
+      "start_time": 12.0,
+      "end_time": 16.5,
+      "text": "Is this about all analytics or specifically the revenue-related metrics?"
+    },
+    {
+      "segment_id": "seg_001_03",
+      "speaker": "Maya",
+      "start_time": 17.0,
+      "end_time": 25.5,
+      "text": "Specifically revenue, average order value, and the monthly customer value figures."
+    },
+    {
+      "segment_id": "seg_001_04",
+      "speaker": "Arjun",
+      "start_time": 26.0,
+      "end_time": 30.5,
+      "text": "Okay. What's driving the restriction?"
+    },
+    {
+      "segment_id": "seg_001_05",
+      "speaker": "Maya",
+      "start_time": 31.0,
+      "end_time": 47.5,
+      "text": "We are expanding into two new markets next month, and our customer numbers are expected to increase significantly. Some of our internal sales information is sensitive because we're negotiating with another company right now. I don't want ordinary support staff seeing the revenue numbers."
+    },
+    {
+      "segment_id": "seg_001_06",
+      "speaker": "Arjun",
+      "start_time": 48.0,
+      "end_time": 51.5,
+      "text": "Understood. So support staff shouldn't see those metrics, but administrators should?"
+    },
+    {
+      "segment_id": "seg_001_07",
+      "speaker": "Maya",
+      "start_time": 52.0,
+      "end_time": 59.5,
+      "text": "Yes. Admins and finance managers can see them. Regular support users shouldn't."
+    },
+    {
+      "segment_id": "seg_001_08",
+      "speaker": "Ravi",
+      "start_time": 60.0,
+      "end_time": 67.5,
+      "text": "We already have the RBAC system with ADMIN and FINANCE roles. We could enforce the restriction at the API level rather than changing authentication."
+    },
+    {
+      "segment_id": "seg_001_09",
+      "speaker": "Arjun",
+      "start_time": 68.0,
+      "end_time": 71.5,
+      "text": "That sounds reasonable. Does the frontend also need to hide the cards?"
+    },
+    {
+      "segment_id": "seg_001_10",
+      "speaker": "Neha",
+      "start_time": 72.0,
+      "end_time": 76.5,
+      "text": "Yes. If the API denies access but the cards remain visible, users will just see errors."
+    },
+    {
+      "segment_id": "seg_001_11",
+      "speaker": "Arjun",
+      "start_time": 77.0,
+      "end_time": 83.5,
+      "text": "Then let's do both. Ravi, handle the API authorization. Neha, hide the revenue cards for unauthorized users."
+    },
+    {
+      "segment_id": "seg_001_12",
+      "speaker": "Ravi",
+      "start_time": 84.0,
+      "end_time": 88.5,
+      "text": "I'll take the backend part. I'll check the existing RBAC middleware and update the relevant analytics endpoints."
+    },
+    {
+      "segment_id": "seg_001_13",
+      "speaker": "Neha",
+      "start_time": 89.0,
+      "end_time": 93.5,
+      "text": "I'll update the dashboard components."
+    },
+    {
+      "segment_id": "seg_001_14",
+      "speaker": "Arjun",
+      "start_time": 94.0,
+      "end_time": 97.5,
+      "text": "Neha, can you also add the unauthorized-state handling?"
+    },
+    {
+      "segment_id": "seg_001_15",
+      "speaker": "Neha",
+      "start_time": 98.0,
+      "end_time": 100.5,
+      "text": "Yes."
+    },
+    {
+      "segment_id": "seg_001_16",
+      "speaker": "Arjun",
+      "start_time": 101.0,
+      "end_time": 104.5,
+      "text": "Ravi, have this ready by Friday. Neha, same deadline."
+    },
+    {
+      "segment_id": "seg_001_17",
+      "speaker": "Ravi",
+      "start_time": 105.0,
+      "end_time": 106.5,
+      "text": "Okay."
+    },
+    {
+      "segment_id": "seg_001_18",
+      "speaker": "Neha",
+      "start_time": 107.0,
+      "end_time": 109.5,
+      "text": "Done."
+    },
+    {
+      "segment_id": "seg_001_19",
+      "speaker": "Arjun",
+      "start_time": 110.0,
+      "end_time": 118.0,
+      "text": "QA should verify that admins and finance managers can see the metrics and support users cannot."
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "source": "meetily",
+  "meeting_id": "MEET-20261001-02",
+  "title": "API Performance Discussion",
+  "meeting_date": "2026-10-01T11:00:00Z",
+  "duration_seconds": 65,
+  "participants": [
+    { "name": "Arjun", "role": "Project Lead" },
+    { "name": "Ravi", "role": "Backend Developer" },
+    { "name": "Neha", "role": "Backend Developer" }
+  ],
+  "segments": [
+    {
+      "segment_id": "seg_002_01",
+      "speaker": "Arjun",
+      "start_time": 0.0,
+      "end_time": 5.5,
+      "text": "The API response time has increased when traffic gets high."
+    },
+    {
+      "segment_id": "seg_002_02",
+      "speaker": "Ravi",
+      "start_time": 6.0,
+      "end_time": 10.5,
+      "text": "We could add Redis caching for the frequently requested dashboard data."
+    },
+    {
+      "segment_id": "seg_002_03",
+      "speaker": "Arjun",
+      "start_time": 11.0,
+      "end_time": 15.5,
+      "text": "That might help, but I don't want us changing the architecture without checking the numbers first."
+    },
+    {
+      "segment_id": "seg_002_04",
+      "speaker": "Neha",
+      "start_time": 16.0,
+      "end_time": 20.5,
+      "text": "I can investigate whether Redis actually improves the response time."
+    },
+    {
+      "segment_id": "seg_002_05",
+      "speaker": "Arjun",
+      "start_time": 21.0,
+      "end_time": 25.5,
+      "text": "Good. Check the latency difference under normal and high traffic."
+    },
+    {
+      "segment_id": "seg_002_06",
+      "speaker": "Neha",
+      "start_time": 26.0,
+      "end_time": 28.5,
+      "text": "I'll look into it."
+    },
+    {
+      "segment_id": "seg_002_07",
+      "speaker": "Ravi",
+      "start_time": 29.0,
+      "end_time": 33.5,
+      "text": "If the improvement is significant, we can add caching."
+    },
+    {
+      "segment_id": "seg_002_08",
+      "speaker": "Arjun",
+      "start_time": 34.0,
+      "end_time": 38.5,
+      "text": "Yes, but don't implement anything yet."
+    },
+    {
+      "segment_id": "seg_002_09",
+      "speaker": "Neha",
+      "start_time": 39.0,
+      "end_time": 44.5,
+      "text": "I'll compare Redis with the current approach and report the results tomorrow."
+    },
+    {
+      "segment_id": "seg_002_10",
+      "speaker": "Arjun",
+      "start_time": 45.0,
+      "end_time": 50.5,
+      "text": "Actually, before we finish, I think we should just add Redis to the dashboard API."
+    },
+    {
+      "segment_id": "seg_002_11",
+      "speaker": "Ravi",
+      "start_time": 51.0,
+      "end_time": 54.5,
+      "text": "So should we implement it now?"
+    },
+    {
+      "segment_id": "seg_002_12",
+      "speaker": "Arjun",
+      "start_time": 55.0,
+      "end_time": 59.5,
+      "text": "Let's wait until Neha gives us the benchmark."
+    },
+    {
+      "segment_id": "seg_002_13",
+      "speaker": "Ravi",
+      "start_time": 60.0,
+      "end_time": 65.0,
+      "text": "Okay."
+    }
+  ]
+}

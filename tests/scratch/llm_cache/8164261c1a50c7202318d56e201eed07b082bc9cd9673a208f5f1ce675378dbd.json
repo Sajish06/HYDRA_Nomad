@@ -1,0 +1,40 @@
+{
+  "agent_payload": {
+    "task_id": "E2E-TC1-01",
+    "intentions": [
+      "Prepare the e-commerce platform for the upcoming seasonal release and improve order-processing reliability"
+    ],
+    "things_to_implement": [
+      "BACKEND: Improve order API retry handling and optimize database queries used during checkout",
+      "FRONTEND: Implement new checkout error states for failed payments, duplicate orders and unavailable inventory",
+      "QA: Test checkout and order-processing scenarios including successful checkout, failed payments, duplicate submissions, and inventory conflicts"
+    ],
+    "technical_context": [
+      "Support 2,000 requests per second during peak traffic",
+      "Use PostgreSQL and FastAPI",
+      "Use the staging database connection string: postgres://staging_user:StagingPass123@orders.internal:5432/ecommerce",
+      "Use the internal checkout endpoint: https://checkout.internal/api/v2/orders"
+    ],
+    "deadline": "November 20"
+  },
+  "audit_record": {
+    "task_id": "E2E-TC1-01",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "CUSTOMER_CONFIDENTIAL",
+        "reason": "Customer phone number and email",
+        "source": "semantic_model",
+        "value": "+91 94470 12345, rahul.k@example.com"
+      },
+      {
+        "category": "FINANCIAL_DATA",
+        "reason": "PAN and GSTIN",
+        "source": "semantic_model",
+        "value": "PAN: ABCDE1234F, GSTIN: 32ABCDE1234F1Z5"
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "E2E-TC1-01"
+  }
+}

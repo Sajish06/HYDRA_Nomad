@@ -1,0 +1,37 @@
+{
+  "meeting_id": "MEET-20261001-01",
+  "meeting_title": "Customer Analytics Dashboard",
+  "verified_commitments": [
+    {
+      "task_id": "TASK-001",
+      "raw_requirement": "Customer revenue, average order value, and monthly customer value should not be visible to ordinary support staff, only to admins and finance managers.",
+      "assignees": [
+        {
+          "name": "Ravi",
+          "role": "BACKEND",
+          "assigned_work": "Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization.",
+          "deadline": "Friday"
+        },
+        {
+          "name": "Neha",
+          "role": "FRONTEND",
+          "assigned_work": "Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states.",
+          "deadline": "Friday"
+        },
+        {
+          "name": "QA_Team",
+          "role": "QA",
+          "assigned_work": "Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.",
+          "deadline": "Friday"
+        }
+      ],
+      "evidence_context_quotes": [
+        "Maya: We are expanding into two new markets next month, and our customer numbers are expected to increase significantly. Some of our internal sales information is sensitive because we're negotiating with another company right now. I don't want ordinary support staff seeing the revenue numbers.",
+        "Ravi: We already have the RBAC system with ADMIN and FINANCE roles. We could enforce the restriction at the API level rather than changing authentication.",
+        "Arjun: Then let's do both. Ravi, handle the API authorization. Neha, hide the revenue cards for unauthorized users.",
+        "Arjun: Ravi, have this ready by Friday. Neha, same deadline.",
+        "Arjun: QA should verify that admins and finance managers can see the metrics and support users cannot."
+      ]
+    }
+  ]
+}

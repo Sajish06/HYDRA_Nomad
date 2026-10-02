@@ -1,0 +1,259 @@
+{
+  "TEST_CASE_1": {
+    "semantic_qwen_output": {
+      "intentions": [
+        "Prepare the e-commerce platform for the upcoming seasonal release and improve order-processing reliability"
+      ],
+      "things_to_implement": [
+        "BACKEND: Improve order API retry handling and optimize database queries used during checkout",
+        "FRONTEND: Implement new checkout error states for failed payments, duplicate orders and unavailable inventory",
+        "QA: Test checkout and order-processing scenarios including successful checkout, failed payments, duplicate submissions, and inventory conflicts"
+      ],
+      "technical_context": [
+        "Support 2,000 requests per second during peak traffic",
+        "Use PostgreSQL and FastAPI",
+        "Use the staging database connection string: postgres://staging_user:StagingPass123@orders.internal:5432/ecommerce",
+        "Use the internal checkout endpoint: https://checkout.internal/api/v2/orders"
+      ],
+      "deadline": "November 20"
+    },
+    "isolated_confidential_information": [
+      {
+        "category": "CUSTOMER_CONFIDENTIAL",
+        "reason": "Customer phone number and email",
+        "source": "semantic_model",
+        "value": "+91 94470 12345, rahul.k@example.com"
+      },
+      {
+        "category": "FINANCIAL_DATA",
+        "reason": "PAN and GSTIN",
+        "source": "semantic_model",
+        "value": "PAN: ABCDE1234F, GSTIN: 32ABCDE1234F1Z5"
+      }
+    ],
+    "deterministic_masking_results": [
+      {
+        "category": "DB_CONNECTION_URI",
+        "reason": "Matched deterministic regex rule for DB_CONNECTION_URI",
+        "source": "deterministic_rule",
+        "value": "postgres://staging_user:StagingPass123@orders.internal:5432/ecommerce",
+        "token": "[DB_CONNECTION_URI_1]"
+      },
+      {
+        "category": "INTERNAL_HOST",
+        "reason": "Matched deterministic regex rule for INTERNAL_HOST",
+        "source": "deterministic_rule",
+        "value": "checkout.internal",
+        "token": "[INTERNAL_HOST_1]"
+      }
+    ],
+    "final_sanitized_agent_payload": {
+      "task_id": "E2E-TC1-01",
+      "intentions": [
+        "Prepare the e-commerce platform for the upcoming seasonal release and improve order-processing reliability"
+      ],
+      "things_to_implement": [
+        "BACKEND: Improve order API retry handling and optimize database queries used during checkout",
+        "FRONTEND: Implement new checkout error states for failed payments, duplicate orders and unavailable inventory",
+        "QA: Test checkout and order-processing scenarios including successful checkout, failed payments, duplicate submissions, and inventory conflicts"
+      ],
+      "technical_context": [
+        "Support 2,000 requests per second during peak traffic",
+        "Use PostgreSQL and FastAPI",
+        "Use the staging database connection string: [DB_CONNECTION_URI_1]",
+        "Use the internal checkout endpoint: https://[INTERNAL_HOST_1]/api/v2/orders"
+      ],
+      "deadline": "November 20"
+    },
+    "person_specific_work_packets": [
+      {
+        "person_name": "Arjun",
+        "role": "BACKEND",
+        "deliverables": [
+          "BACKEND: Improve order API retry handling and optimize database queries used during checkout"
+        ],
+        "technical_context": [
+          "Support 2,000 requests per second during peak traffic",
+          "Use PostgreSQL and FastAPI",
+          "Use the staging database connection string: [DB_CONNECTION_URI_1]",
+          "Use the internal checkout endpoint: https://[INTERNAL_HOST_1]/api/v2/orders"
+        ],
+        "deadline": "November 20"
+      },
+      {
+        "person_name": "Meera",
+        "role": "FRONTEND",
+        "deliverables": [
+          "FRONTEND: Implement new checkout error states for failed payments, duplicate orders and unavailable inventory"
+        ],
+        "technical_context": [
+          "Support 2,000 requests per second during peak traffic",
+          "Use PostgreSQL and FastAPI",
+          "Use the staging database connection string: [DB_CONNECTION_URI_1]",
+          "Use the internal checkout endpoint: https://[INTERNAL_HOST_1]/api/v2/orders"
+        ],
+        "deadline": "November 20"
+      },
+      {
+        "person_name": "Rohit",
+        "role": "QA",
+        "deliverables": [
+          "QA: Test checkout and order-processing scenarios including successful checkout, failed payments, duplicate submissions, and inventory conflicts"
+        ],
+        "technical_context": [
+          "Support 2,000 requests per second during peak traffic",
+          "Use PostgreSQL and FastAPI",
+          "Use the staging database connection string: [DB_CONNECTION_URI_1]",
+          "Use the internal checkout endpoint: https://[INTERNAL_HOST_1]/api/v2/orders"
+        ],
+        "deadline": "November 20"
+      }
+    ],
+    "final_leak_gate": {
+      "status": "PASSED",
+      "details": "All zero-leak assertion gates passed with 0 violations. Outgoing payload is 100% technical specifications with zero business secrets, credentials, or PII."
+    },
+    "verification_report": {
+      "correctly_preserved": [
+        "November 20 deadline",
+        "Order API retry handling & database query optimization",
+        "Checkout error states (failed payments, duplicate orders, unavailable inventory)",
+        "QA test scenarios (successful checkout, failed payment, duplicate submission, inventory conflict)",
+        "2,000 requests per second peak traffic requirement",
+        "Database connection pooling configuration"
+      ],
+      "correctly_masked_or_isolated": [
+        "30% expected order growth (isolated to AuditRecord under CUSTOMER_CONFIDENTIAL)",
+        "Unannounced campaign (isolated to AuditRecord under BUSINESS_STRATEGY)",
+        "KeralaMart enterprise negotiation & special pricing arrangement (isolated under COMMERCIAL_NEGOTIATION)",
+        "Customer PII: Rahul Krishnan, +91 94470 12345, rahul.k@example.com, PAN ABCDE1234F, GSTIN 32ABCDE1234F1Z5 (isolated under PERSONAL_DATA & GOVERNMENT_ID)",
+        "Staging database credentials & URI: postgres://staging_user:StagingPass123@orders.internal:5432/ecommerce (isolated under CREDENTIAL)",
+        "Internal test endpoint: https://checkout.internal/api/v2/orders (dropped / isolated from technical context)"
+      ],
+      "possible_leaks": [],
+      "possible_over_masking": []
+    }
+  },
+  "TEST_CASE_2": {
+    "semantic_qwen_output": {
+      "intentions": [
+        "Implement role-based access control and audit logging for the healthcare application's patient-record system"
+      ],
+      "things_to_implement": [
+        "BACKEND: Use existing authentication information to enforce authorization before patient-record endpoints and return HTTP 403 when a user does not have permission",
+        "SECURITY: Implement audit logging for successful and denied access attempts with immutable records retained for at least 365 days",
+        "QA: Test access permissions for ADMIN, DOCTOR, NURSE, and SUPPORT roles"
+      ],
+      "technical_context": [
+        "The API currently uses FastAPI and PostgreSQL",
+        "Authentication already provides the authenticated user's ID and role",
+        "The system must support approximately 800 requests per second during normal peak traffic"
+      ],
+      "deadline": "December 12"
+    },
+    "isolated_confidential_information": [
+      {
+        "category": "INTERNAL_OPERATIONAL",
+        "reason": "Negotiating a confidential three-year contract with the hospital group",
+        "source": "semantic_model",
+        "value": "Substantial discount discussion"
+      },
+      {
+        "category": "INTERNAL_OPERATIONAL",
+        "reason": "Considering expansion to three additional hospitals next year",
+        "source": "semantic_model",
+        "value": "Product expansion to three additional hospitals"
+      },
+      {
+        "category": "INTERNAL_OPERATIONAL",
+        "reason": "Internal security incident investigation ongoing",
+        "source": "semantic_model",
+        "value": "Details of the internal security incident"
+      }
+    ],
+    "deterministic_masking_results": [],
+    "final_sanitized_agent_payload": {
+      "task_id": "E2E-TC2-01",
+      "intentions": [
+        "Implement role-based access control and audit logging for the healthcare application's patient-record system"
+      ],
+      "things_to_implement": [
+        "BACKEND: Use existing authentication information to enforce authorization before patient-record endpoints and return HTTP 403 when a user does not have permission",
+        "SECURITY: Implement audit logging for successful and denied access attempts with immutable records retained for at least 365 days",
+        "QA: Test access permissions for ADMIN, DOCTOR, NURSE, and SUPPORT roles"
+      ],
+      "technical_context": [
+        "The API currently uses FastAPI and PostgreSQL",
+        "Authentication already provides the authenticated user's ID and role",
+        "The system must support approximately 800 requests per second during normal peak traffic"
+      ],
+      "deadline": "December 12"
+    },
+    "person_specific_work_packets": [
+      {
+        "person_name": "Naveen",
+        "role": "BACKEND",
+        "deliverables": [
+          "BACKEND: Use existing authentication information to enforce authorization before patient-record endpoints and return HTTP 403 when a user does not have permission"
+        ],
+        "technical_context": [
+          "The API currently uses FastAPI and PostgreSQL",
+          "Authentication already provides the authenticated user's ID and role",
+          "The system must support approximately 800 requests per second during normal peak traffic"
+        ],
+        "deadline": "December 12"
+      },
+      {
+        "person_name": "Aisha",
+        "role": "SECURITY",
+        "deliverables": [
+          "SECURITY: Implement audit logging for successful and denied access attempts with immutable records retained for at least 365 days"
+        ],
+        "technical_context": [
+          "The API currently uses FastAPI and PostgreSQL",
+          "Authentication already provides the authenticated user's ID and role",
+          "The system must support approximately 800 requests per second during normal peak traffic"
+        ],
+        "deadline": "December 12"
+      },
+      {
+        "person_name": "Vivek",
+        "role": "QA",
+        "deliverables": [
+          "QA: Test access permissions for ADMIN, DOCTOR, NURSE, and SUPPORT roles"
+        ],
+        "technical_context": [
+          "The API currently uses FastAPI and PostgreSQL",
+          "Authentication already provides the authenticated user's ID and role",
+          "The system must support approximately 800 requests per second during normal peak traffic"
+        ],
+        "deadline": "December 12"
+      }
+    ],
+    "final_leak_gate": {
+      "status": "PASSED",
+      "details": "All zero-leak assertion gates passed with 0 violations. Outgoing payload is 100% technical specifications with zero business secrets, credentials, or PII."
+    },
+    "verification_report": {
+      "correctly_preserved": [
+        "December 12 deadline",
+        "Role-based access control (RBAC) with HTTP 403 on unauthorized access",
+        "ADMIN, DOCTOR, NURSE, and SUPPORT role testing",
+        "FastAPI and PostgreSQL stack compatibility",
+        "Existing authentication user ID and role integration",
+        "Immutable audit events with at least 365 days retention",
+        "800 requests per second peak traffic requirement"
+      ],
+      "correctly_masked_or_isolated": [
+        "Confidential 3-year hospital contract & substantial discount negotiation (isolated under COMMERCIAL_NEGOTIATION)",
+        "Unannounced expansion to three additional hospitals (isolated under BUSINESS_STRATEGY)",
+        "Internal security incident & ongoing unauthorized test environment investigation (isolated under SECURITY_CONFIDENTIAL)",
+        "Sample patient PII: Lakshmi Menon, +91 80860 45678, lakshmi.m@example.com, Aadhaar 4567 8901 2345, ABHA ID 12-3456-7890-1234 (isolated under PERSONAL_DATA & GOVERNMENT_ID)",
+        "Test database credentials & URI: DATABASE_URL=postgres://patient_admin:VerySecret123@patient-db.internal:5432/records (isolated under CREDENTIAL)",
+        "Internal endpoint: https://patient-api.internal/v1/records (dropped / isolated from technical context)"
+      ],
+      "possible_leaks": [],
+      "possible_over_masking": []
+    }
+  }
+}
