@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_MEET-20261001-01_1",
+    "intentions": [
+      "Maya agrees to: Understood. So support staff shouldn't see those metrics, but administrators should?"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Maya agrees to: Understood. So support staff shouldn't see those metrics, but administrators should?"
+    ],
+    "technical_context": [],
+    "deadline": null
+  },
+  "audit_record": {
+    "task_id": "claim_MEET-20261001-01_1",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEET-20261001-01"
+  }
+}

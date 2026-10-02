@@ -9,32 +9,18 @@
 ## Task: claim_tx_demo-meeting-2026-10-02-004_2
 
 ### 1. Intentions (Technical Objective)
-<<<<<<< HEAD
-- Implement API rate limiting for public endpoints by October 15
-
-### 2. Things to Implement (Structured Deliverables)
-- ENGINEER (Arjun): Implement API rate limiting for public endpoints by October 15
-- ENGINEER: Maya agrees to: I'll also add API rate limiting to the public endpoints by October 18.
-=======
 - Implement the OAuth callback handling and update the authentication flow by October 15
 
 ### 2. Things to Implement (Structured Deliverables)
 - AUTHENTICATION: Implement OAuth callback handling and update the authentication flow
->>>>>>> d781ea0 (fixed verification issue)
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
 **Deadline**: October 15
 
 ### 4. Role-Specific Briefs
-<<<<<<< HEAD
-#### ENGINEER — Assignee: Arjun (Deadline: October 15)
-- Deliverable: ENGINEER (Arjun): Implement API rate limiting for public endpoints by October 15
-- Deliverable: ENGINEER: Maya agrees to: I'll also add API rate limiting to the public endpoints by October 18.
-=======
 #### AUTHENTICATION — Assignee: Arjun (Deadline: October 15)
 - Deliverable: AUTHENTICATION: Implement OAuth callback handling and update the authentication flow
->>>>>>> d781ea0 (fixed verification issue)
 
 ---
 

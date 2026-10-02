@@ -50,25 +50,84 @@ def get_installed_ollama_model(base_url: str, preferred_model: str) -> str:
     if _RESOLVED_MODEL:
         return _RESOLVED_MODEL
     try:
-        with httpx.Client(timeout=1.0) as client:
+        with httpx.Client(timeout=1.5) as client:
             resp = client.get(f"{base_url}/api/tags")
             if resp.status_code == 200:
                 data = resp.json()
                 models = [m.get("name", "") for m in data.get("models", [])]
                 if models:
+                    # 1. Exact match with preferred_model
                     if preferred_model in models:
                         _RESOLVED_MODEL = preferred_model
                         return preferred_model
+                    # 2. Check base name match (e.g. qwen2.5:7b vs qwen2.5:7b-instruct vs qwen2.5:latest)
+                    base_pref = preferred_model.split(":")[0]
                     for m in models:
-                        if "qwen2.5" in m or "qwen" in m:
+                        if m.startswith(f"{base_pref}:") or base_pref in m:
                             _RESOLVED_MODEL = m
                             return m
+                    # 3. Prefer any qwen model
+                    for m in models:
+                        if "qwen" in m.lower():
+                            _RESOLVED_MODEL = m
+                            return m
+                    # 4. Prefer any common model family
+                    for family in ["llama", "mistral", "gemma", "deepseek", "phi"]:
+                        for m in models:
+                            if family in m.lower():
+                                _RESOLVED_MODEL = m
+                                return m
+                    # 5. Fallback to first available installed model
                     _RESOLVED_MODEL = models[0]
                     return _RESOLVED_MODEL
     except Exception:
         pass
     _RESOLVED_MODEL = preferred_model
     return preferred_model
+
+def find_cached_llm_response(
+    active_model: str,
+    prompt_name: str,
+    prompt_version: str,
+    payload: Any
+) -> Optional[Dict[str, Any]]:
+    """Tries active_model first, then falls back to known models and generic cache keys."""
+    candidate_models = [
+        active_model,
+        settings.OLLAMA_MODEL,
+        "qwen2.5:7b-instruct",
+        "qwen2.5:7b",
+        "qwen2.5:latest",
+        "llama3.1:latest",
+        "default"
+    ]
+    seen = set()
+    for m in candidate_models:
+        if m in seen:
+            continue
+        seen.add(m)
+        key = compute_cache_key(m, prompt_name, prompt_version, payload)
+        data = get_from_cache(key)
+        if data is not None:
+            return data
+    return None
+
+def save_to_cache_multi(
+    active_model: str,
+    prompt_name: str,
+    prompt_version: str,
+    payload: Any,
+    data: Dict[str, Any]
+) -> None:
+    """Saves to cache under active_model and also alias keys so all collaborators hit cache."""
+    models_to_cache = [active_model, "default", "qwen2.5:7b-instruct", "qwen2.5:7b"]
+    seen = set()
+    for m in models_to_cache:
+        if m in seen:
+            continue
+        seen.add(m)
+        key = compute_cache_key(m, prompt_name, prompt_version, payload)
+        save_to_cache(key, data)
 
 def query_structured_llm(
     prompt_name: str,
@@ -83,9 +142,8 @@ def query_structured_llm(
     global _OLLAMA_ALIVE
     active_model = get_installed_ollama_model(settings.OLLAMA_URL.rstrip('/'), settings.OLLAMA_MODEL)
     cache_payload = input_context if input_context is not None else {"system": system_prompt, "user": user_prompt}
-    cache_key = compute_cache_key(active_model, prompt_name, prompt_version, cache_payload)
 
-    cached = get_from_cache(cache_key)
+    cached = find_cached_llm_response(active_model, prompt_name, prompt_version, cache_payload)
     if cached is not None:
         try:
             return response_model.model_validate(cached)
@@ -120,7 +178,7 @@ def query_structured_llm(
         }
 
         try:
-            with httpx.Client(timeout=httpx.Timeout(45.0, connect=0.3)) as client:
+            with httpx.Client(timeout=httpx.Timeout(45.0, connect=3.0)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -128,8 +186,8 @@ def query_structured_llm(
                 parsed_json = json.loads(raw_content)
                 validated = response_model.model_validate(parsed_json)
                 
-                # Save valid result to cache
-                save_to_cache(cache_key, validated.model_dump(mode="json"))
+                # Save valid result to cache across model aliases
+                save_to_cache_multi(active_model, prompt_name, prompt_version, cache_payload, validated.model_dump(mode="json"))
                 return validated
 
         except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
@@ -145,3 +203,4 @@ def query_structured_llm(
             messages.append({"role": "user", "content": f"Output validation failed with error: {str(e)}. Please correct your output to strictly adhere to the JSON schema."})
 
     raise LLMUnavailable(f"Failed to query LLM for prompt '{prompt_name}': {str(last_err)}")
+

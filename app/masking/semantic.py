@@ -21,19 +21,28 @@ import socket
 logger = logging.getLogger(__name__)
 
 def get_available_ollama_model(base_url: str, preferred_model: str) -> str:
-    """Checks Ollama /api/tags to find the best available installed model (e.g. qwen2.5:3b, qwen2.5:7b)."""
+    """Checks Ollama /api/tags to find the best available installed model (e.g. qwen2.5:7b, qwen2.5:7b-instruct, llama3.1)."""
     try:
         req = urllib.request.Request(f"{base_url}/api/tags")
-        with urllib.request.urlopen(req, timeout=1.0) as resp:
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             models = [m.get("name", "") for m in data.get("models", [])]
             if not models:
                 return preferred_model
             if preferred_model in models:
                 return preferred_model
+            # Match base name (e.g. qwen2.5:7b matches qwen2.5:7b-instruct or qwen2.5:latest)
+            base_pref = preferred_model.split(":")[0]
             for m in models:
-                if "qwen2.5" in m or "qwen" in m:
+                if m.startswith(f"{base_pref}:") or base_pref in m:
                     return m
+            for m in models:
+                if "qwen" in m.lower():
+                    return m
+            for family in ["llama", "mistral", "gemma", "deepseek", "phi"]:
+                for m in models:
+                    if family in m.lower():
+                        return m
             return models[0]
     except Exception:
         return preferred_model
@@ -65,7 +74,7 @@ class SemanticDecomposer:
             url_part = self.ollama_url.replace("http://", "").replace("https://", "")
             host, port_str = url_part.split(":") if ":" in url_part else (url_part, "11434")
             port = int(port_str.split("/")[0])
-            with socket.create_connection((host, port), timeout=0.2):
+            with socket.create_connection((host, port), timeout=1.0):
                 return True
         except Exception:
             return False
@@ -81,9 +90,8 @@ class SemanticDecomposer:
         1. AgentTaskPayload: Clean, minimal technical specs with ZERO business secrets.
         2. InternalAuditRecord: Internal record of detected business secrets and audit trail.
         """
-        cache_key = self._compute_cache_key(commitment)
         if self.use_cache:
-            cached_result = self._read_cache(cache_key)
+            cached_result = self._read_cache(commitment)
             if cached_result:
                 return cached_result
 
@@ -92,7 +100,7 @@ class SemanticDecomposer:
             try:
                 agent_payload, audit_record = self._call_ollama(commitment, vault_session_id)
                 if self.use_cache:
-                    self._write_cache(cache_key, agent_payload, audit_record)
+                    self._write_cache(commitment, agent_payload, audit_record)
                 return agent_payload, audit_record
             except Exception as e:
                 logger.warning(f"Ollama inference failed: {e}. Falling back to deterministic NLP heuristic decomposition.")
@@ -100,41 +108,66 @@ class SemanticDecomposer:
         # Fallback to deterministic NLP heuristic decomposition
         agent_payload, audit_record = self._heuristic_decomposition(commitment, vault_session_id)
         if self.use_cache:
-            self._write_cache(cache_key, agent_payload, audit_record)
+            self._write_cache(commitment, agent_payload, audit_record)
         return agent_payload, audit_record
 
-    def _compute_cache_key(self, commitment: VerifiedCommitment) -> str:
-        payload = f"{self.model_name}|{commitment.task_id}|{commitment.raw_requirement}|{' '.join(commitment.evidence_context_quotes)}"
+    def _compute_cache_key(self, commitment: VerifiedCommitment, model_override: Optional[str] = None) -> str:
+        model = model_override or self.model_name
+        payload = f"{model}|{commitment.task_id}|{commitment.raw_requirement}|{' '.join(commitment.evidence_context_quotes)}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
-    def _read_cache(self, key: str) -> Optional[Tuple[AgentTaskPayload, InternalAuditRecord]]:
-        cache_file = self.cache_dir / f"{key}.json"
-        if cache_file.exists():
-            try:
-                with open(cache_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                payload = AgentTaskPayload.model_validate(data["agent_payload"])
-                audit = InternalAuditRecord.model_validate(data["audit_record"])
-                return payload, audit
-            except Exception:
-                return None
+    def _read_cache(self, commitment: VerifiedCommitment) -> Optional[Tuple[AgentTaskPayload, InternalAuditRecord]]:
+        candidate_models = [
+            self.model_name,
+            settings.OLLAMA_MODEL,
+            "qwen2.5:7b-instruct",
+            "qwen2.5:7b",
+            "qwen2.5:latest",
+            "llama3.1:latest",
+            "default"
+        ]
+        seen = set()
+        for m in candidate_models:
+            if m in seen:
+                continue
+            seen.add(m)
+            key = self._compute_cache_key(commitment, model_override=m)
+            cache_file = self.cache_dir / f"{key}.json"
+            if cache_file.exists():
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    payload = AgentTaskPayload.model_validate(data["agent_payload"])
+                    audit = InternalAuditRecord.model_validate(data["audit_record"])
+                    return payload, audit
+                except Exception:
+                    continue
         return None
 
     def _write_cache(
         self,
-        key: str,
+        commitment: VerifiedCommitment,
         payload: AgentTaskPayload,
         audit: InternalAuditRecord
     ) -> None:
-        cache_file = self.cache_dir / f"{key}.json"
         try:
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump({
-                    "agent_payload": payload.model_dump(),
-                    "audit_record": audit.model_dump()
-                }, f, indent=2)
+            data = {
+                "agent_payload": payload.model_dump(),
+                "audit_record": audit.model_dump()
+            }
+            models_to_write = [self.model_name, "default", "qwen2.5:7b-instruct", "qwen2.5:7b"]
+            seen = set()
+            for m in models_to_write:
+                if m in seen:
+                    continue
+                seen.add(m)
+                key = self._compute_cache_key(commitment, model_override=m)
+                cache_file = self.cache_dir / f"{key}.json"
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
         except Exception:
             pass
+
 
     def _call_ollama(
         self,

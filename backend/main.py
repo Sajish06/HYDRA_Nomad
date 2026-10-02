@@ -42,6 +42,22 @@ from backend.api.routes import api_router
 
 app.include_router(api_router)
 
+# Include unified pipeline and app routers
+try:
+    from app.api.routes_pipeline import router as pipeline_router
+    from app.api.routes_demo import router as demo_router
+    from app.api.routes_meetings import router as meetings_router
+    from app.api.routes_claims import router as claims_router
+    from app.api.routes_masking import router as masking_router
+
+    app.include_router(pipeline_router)
+    app.include_router(demo_router)
+    app.include_router(meetings_router)
+    app.include_router(claims_router)
+    app.include_router(masking_router)
+except Exception as e:
+    logger.warning(f"Could not load app routes: {e}")
+
 
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
