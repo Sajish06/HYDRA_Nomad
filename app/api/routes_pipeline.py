@@ -177,6 +177,7 @@ async def verify_and_mask_pipeline(
     # Group verified claims vs held/unsupported claims
     verified_commitments = []
     unverified_items = []
+    ambiguous_tasks = []
     seen_raw_requirements = set()
 
     for c in claims:
@@ -245,7 +246,44 @@ async def verify_and_mask_pipeline(
                     evidence_context_quotes=quotes
                 ))
         else:
-            reason_text = v.explanation or "Claim was not confirmed by dialogue evidence."
+            reason_text = v.explanation or "Claim was held for manual human review or ambiguous dialogue context."
+            quotes = [e.quote for e in v.evidence_chain if e.quote] if v.evidence_chain else []
+            ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text) if v.evidence_chain else {}
+            eff_actor = ev_slots.get("actor") or c.actor or "Unassigned"
+            eff_deadline = ev_slots.get("deadline") or c.deadline
+
+            chain_list = []
+            if v.evidence_chain:
+                for e in v.evidence_chain:
+                    chain_list.append({
+                        "speaker": getattr(e, "speaker", None) or "Speaker",
+                        "time": getattr(e, "time", None) or (f"Segment #{getattr(e, 'idx', '')}" if getattr(e, 'idx', None) is not None else ""),
+                        "quote": getattr(e, "quote", "") or getattr(e, "text", ""),
+                        "stance": str(getattr(e, "stance", "NEUTRAL")),
+                        "relation": str(getattr(e, "relation", "CONTEXT"))
+                    })
+
+            action_desc = ev_slots.get("action_text") or v.resolved_claim or c.text
+            proposed_task = {
+                "task_id": c.claim_id,
+                "intentions": [c.text],
+                "things_to_implement": [f"{eff_actor}: {action_desc}"],
+                "technical_context": quotes[:3] if quotes else [f"Verified via human confirmation. Context: {c.text}"],
+                "deadline": eff_deadline
+            }
+
+            ambiguous_tasks.append({
+                "task_id": c.claim_id,
+                "claim_id": c.claim_id,
+                "task_text": c.text,
+                "actor": eff_actor,
+                "deadline": eff_deadline,
+                "status": eff_status if eff_status != "VERIFIED" else "AMBIGUOUS",
+                "gate_action": getattr(v, "gate_action", "HUMAN_REVIEW"),
+                "explanation": reason_text,
+                "evidence_chain": chain_list,
+                "proposed_task": proposed_task
+            })
             unverified_items.append({
                 "claim": c.text,
                 "status": eff_status,
@@ -294,5 +332,8 @@ async def verify_and_mask_pipeline(
         "meeting_id": meeting.meeting_id,
         "meeting_title": meeting.title,
         "verified_tasks_count": len(formatted_tasks),
-        "verified_tasks": formatted_tasks
+        "verified_tasks": formatted_tasks,
+        "ambiguous_tasks_count": len(ambiguous_tasks),
+        "ambiguous_tasks": ambiguous_tasks
     }
+

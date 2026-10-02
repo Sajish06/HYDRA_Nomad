@@ -43,7 +43,7 @@
 
     .app-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 1180px;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -252,10 +252,305 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       line-height: 1.5;
-      max-height: 550px;
+      max-height: 400px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
+    }
+
+    /* Tasks Board Section */
+    .tasks-board-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .tasks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .board-column {
+      background: var(--card-inset);
+      box-shadow: var(--shadow-inset);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 160px;
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-clay);
+    }
+
+    .column-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-count {
+      padding: 2px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-count.verified {
+      background: rgba(59, 122, 87, 0.15);
+      color: var(--sage-green);
+      border: 1px solid rgba(59, 122, 87, 0.3);
+    }
+
+    .badge-count.ambiguous {
+      background: rgba(184, 91, 53, 0.15);
+      color: var(--terracotta);
+      border: 1px solid rgba(184, 91, 53, 0.3);
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .task-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+    }
+
+    @keyframes taskPromoted {
+      0% {
+        background: rgba(59, 122, 87, 0.22);
+        transform: scale(0.97);
+      }
+      100% {
+        background: var(--card-clay);
+        transform: scale(1);
+      }
+    }
+
+    .task-card.promoted {
+      animation: taskPromoted 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .task-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .task-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .task-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .task-tag.verified {
+      background: rgba(59, 122, 87, 0.15);
+      color: var(--sage-green);
+      border: 1px solid rgba(59, 122, 87, 0.3);
+    }
+
+    .task-tag.ambiguous {
+      background: rgba(184, 91, 53, 0.15);
+      color: var(--terracotta);
+      border: 1px solid rgba(184, 91, 53, 0.3);
+    }
+
+    .task-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.45;
+    }
+
+    .task-explanation {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--card-inset);
+      box-shadow: var(--shadow-inset);
+      padding: 8px 12px;
+      border-radius: 6px;
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    .task-meta-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 11px;
+    }
+
+    .meta-chip {
+      background: var(--card-inset);
+      color: var(--text-main);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .evidence-chain-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .evidence-chain-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .evidence-item {
+      background: var(--card-inset);
+      border-left: 3px solid var(--border-clay);
+      padding: 6px 10px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .evidence-item.contradicts {
+      border-left-color: var(--clay-red);
+      background: rgba(163, 59, 59, 0.08);
+    }
+
+    .evidence-item.supports {
+      border-left-color: var(--sage-green);
+      background: rgba(59, 122, 87, 0.08);
+    }
+
+    .evidence-speaker {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .evidence-quote {
+      font-style: italic;
+      color: var(--text-main);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .btn-accept {
+      flex: 1;
+      background: var(--card-clay);
+      color: var(--sage-green);
+      box-shadow: var(--shadow-outer);
+      border: 1px solid rgba(59, 122, 87, 0.35);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-accept:hover {
+      background: var(--sage-green);
+      color: #ffffff;
+      box-shadow: 2px 2px 6px rgba(59, 122, 87, 0.3);
+    }
+
+    .btn-accept:active {
+      box-shadow: var(--shadow-inset);
+    }
+
+    .btn-reject {
+      flex: 1;
+      background: var(--card-clay);
+      color: var(--clay-red);
+      box-shadow: var(--shadow-outer);
+      border: 1px solid rgba(163, 59, 59, 0.35);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-reject:hover {
+      background: var(--clay-red);
+      color: #ffffff;
+      box-shadow: 2px 2px 6px rgba(163, 59, 59, 0.3);
+    }
+
+    .btn-reject:active {
+      box-shadow: var(--shadow-inset);
+    }
+
+    .empty-state {
+      padding: 24px 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-style: italic;
     }
   </style>
 </head>
@@ -306,6 +601,44 @@
       <div class="error-box" id="error-box"></div>
     </section>
 
+    <!-- Tasks Board (Verified on Left, Ambiguous on Right) -->
+    <section class="tasks-board-card" id="tasks-board-card">
+      <div class="output-header">
+        <div>
+          <div class="output-title">Intelligence Task Review Board</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Verified commitments on the left are released. Ambiguous tasks on the right require human review: inspect dialogue evidence and accept or reject.
+          </div>
+        </div>
+      </div>
+
+      <div class="tasks-grid">
+        <!-- Left Column: Verified Tasks -->
+        <div class="board-column">
+          <div class="column-header">
+            <div class="column-title">
+              <span style="font-size: 16px;">🛡️</span>
+              <span>Verified Tasks</span>
+            </div>
+            <span class="badge-count verified" id="badge-verified-count">0</span>
+          </div>
+          <div class="task-list" id="verified-tasks-list"></div>
+        </div>
+
+        <!-- Right Column: Ambiguous Tasks -->
+        <div class="board-column">
+          <div class="column-header">
+            <div class="column-title">
+              <span style="font-size: 16px;">⚠️</span>
+              <span>Ambiguous Tasks (Requires Review)</span>
+            </div>
+            <span class="badge-count ambiguous" id="badge-ambiguous-count">0</span>
+          </div>
+          <div class="task-list" id="ambiguous-tasks-list"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Output Section -->
     <section class="output-card" id="output-card">
       <div class="output-header">
@@ -326,6 +659,16 @@
       summary: null
     };
     let lastResult = null;
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     function onFilePicked(type, file) {
       if (!file) return;
@@ -373,11 +716,155 @@
       btn.disabled = !(files.transcript && files.summary);
     }
 
+    function renderTasksBoard(highlightTaskId = null) {
+      if (!lastResult) return;
+
+      const verifiedTasks = lastResult.verified_tasks || [];
+      const ambiguousTasks = lastResult.ambiguous_tasks || [];
+
+      // Update counters
+      document.getElementById('badge-verified-count').innerText = verifiedTasks.length;
+      document.getElementById('badge-ambiguous-count').innerText = ambiguousTasks.length;
+
+      // Render Verified Tasks (Left Column)
+      const verifiedList = document.getElementById('verified-tasks-list');
+      if (verifiedTasks.length === 0) {
+        verifiedList.innerHTML = `
+          <div class="empty-state">
+            No verified tasks yet.<br>Accept ambiguous tasks from the right to release them here.
+          </div>
+        `;
+      } else {
+        verifiedList.innerHTML = verifiedTasks.map((t, idx) => {
+          const tid = t.task_id || `TASK_${idx + 1}`;
+          const isHighlighted = (highlightTaskId && tid === highlightTaskId);
+          const intentions = (t.intentions || []).map(i => `<div>• ${escapeHtml(i)}</div>`).join("");
+          const things = (t.things_to_implement || []).map(item => `<span class="meta-chip">${escapeHtml(item)}</span>`).join("");
+          const context = (t.technical_context || []).map(ctx => `<div class="evidence-quote">“${escapeHtml(ctx)}”</div>`).join("");
+          const deadline = t.deadline ? `<span class="meta-chip" style="color:var(--terracotta); font-weight:700;">📅 ${escapeHtml(t.deadline)}</span>` : "";
+
+          return `
+            <div class="task-card ${isHighlighted ? 'promoted' : ''}" id="card-verified-${escapeHtml(tid)}">
+              <div class="task-card-header">
+                <span class="task-id">${escapeHtml(tid)}</span>
+                <span class="task-tag verified">✓ VERIFIED</span>
+              </div>
+              ${intentions ? `<div class="task-text">${intentions}</div>` : ""}
+              ${(things || deadline) ? `<div class="task-meta-row">${things} ${deadline}</div>` : ""}
+              ${context ? `<div class="task-explanation">${context}</div>` : ""}
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Ambiguous Tasks (Right Column)
+      const ambiguousList = document.getElementById('ambiguous-tasks-list');
+      if (ambiguousTasks.length === 0) {
+        ambiguousList.innerHTML = `
+          <div class="empty-state" style="color: var(--sage-green);">
+            ✓ All tasks verified!<br>Zero ambiguous tasks pending human review.
+          </div>
+        `;
+      } else {
+        ambiguousList.innerHTML = ambiguousTasks.map((t, idx) => {
+          const tid = t.task_id || t.claim_id || `CLAIM_${idx + 1}`;
+          const text = t.task_text || t.claim || t.text || "";
+          const explanation = t.explanation || t.reason || "Held for review due to ambiguous dialogue evidence.";
+          const actor = t.actor ? `<span class="meta-chip">👤 ${escapeHtml(t.actor)}</span>` : "";
+          const deadline = t.deadline ? `<span class="meta-chip" style="color:var(--terracotta);">📅 ${escapeHtml(t.deadline)}</span>` : "";
+
+          let evidenceHtml = "";
+          if (t.evidence_chain && t.evidence_chain.length > 0) {
+            evidenceHtml = `
+              <div class="evidence-chain-box">
+                <div class="evidence-chain-title">Evidence Chain (${t.evidence_chain.length})</div>
+                ${t.evidence_chain.map(e => {
+                  const rel = (e.relation || "").toUpperCase();
+                  const isContra = rel === "CONTRADICTS" || (e.stance || "").toUpperCase().includes("DEFER") || (e.stance || "").toUpperCase().includes("QUESTION");
+                  const itemClass = isContra ? "evidence-item contradicts" : (rel === "SUPPORTS" ? "evidence-item supports" : "evidence-item");
+                  return `
+                    <div class="${itemClass}">
+                      <span class="evidence-speaker">${escapeHtml(e.speaker || "Speaker")}</span>
+                      ${e.time ? `<span style="font-size:11px; color:var(--text-muted);">(${escapeHtml(e.time)})</span>:` : ":"}
+                      <span class="evidence-quote">“${escapeHtml(e.quote || "")}”</span>
+                      <span class="task-tag" style="margin-left:4px; font-size:10px; ${isContra ? 'background:rgba(163,59,59,0.15); color:var(--clay-red); border:1px solid rgba(163,59,59,0.3);' : 'background:rgba(59,122,87,0.15); color:var(--sage-green); border:1px solid rgba(59,122,87,0.3);'}">${escapeHtml(e.stance || e.relation || "")}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `;
+          }
+
+          return `
+            <div class="task-card" id="card-ambiguous-${escapeHtml(tid)}">
+              <div class="task-card-header">
+                <span class="task-id">${escapeHtml(tid)}</span>
+                <span class="task-tag ambiguous">⚠️ ${escapeHtml(t.status || "AMBIGUOUS")}</span>
+              </div>
+              <div class="task-text">${escapeHtml(text)}</div>
+              ${explanation ? `<div class="task-explanation">${escapeHtml(explanation)}</div>` : ""}
+              ${(actor || deadline) ? `<div class="task-meta-row">${actor} ${deadline}</div>` : ""}
+              ${evidenceHtml}
+              <div class="card-actions">
+                <button type="button" class="btn-accept" onclick="acceptTask('${escapeHtml(tid)}')">
+                  ✓ Accept Task
+                </button>
+                <button type="button" class="btn-reject" onclick="rejectTask('${escapeHtml(tid)}')">
+                  ✕ Reject Task
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function acceptTask(taskId) {
+      if (!lastResult || !lastResult.ambiguous_tasks) return;
+      const idx = lastResult.ambiguous_tasks.findIndex(t => (t.task_id || t.claim_id) === taskId);
+      if (idx === -1) return;
+
+      const item = lastResult.ambiguous_tasks[idx];
+      lastResult.ambiguous_tasks.splice(idx, 1);
+
+      // Create verified task matching backend schema
+      const verifiedItem = item.proposed_task || {
+        task_id: item.task_id || item.claim_id,
+        intentions: [item.task_text || item.claim || "Confirmed task"],
+        things_to_implement: [item.actor ? `${item.actor}: ${item.task_text || item.claim}` : (item.task_text || item.claim)],
+        technical_context: (item.evidence_chain || []).map(e => e.quote).filter(Boolean),
+        deadline: item.deadline
+      };
+
+      if (!lastResult.verified_tasks) {
+        lastResult.verified_tasks = [];
+      }
+      lastResult.verified_tasks.push(verifiedItem);
+      lastResult.verified_tasks_count = lastResult.verified_tasks.length;
+      lastResult.ambiguous_tasks_count = lastResult.ambiguous_tasks.length;
+
+      renderTasksBoard(taskId);
+      document.getElementById('json-result').innerText = JSON.stringify(lastResult, null, 2);
+    }
+
+    function rejectTask(taskId) {
+      if (!lastResult || !lastResult.ambiguous_tasks) return;
+      const idx = lastResult.ambiguous_tasks.findIndex(t => (t.task_id || t.claim_id) === taskId);
+      if (idx === -1) return;
+
+      lastResult.ambiguous_tasks.splice(idx, 1);
+      lastResult.ambiguous_tasks_count = lastResult.ambiguous_tasks.length;
+
+      renderTasksBoard();
+      document.getElementById('json-result').innerText = JSON.stringify(lastResult, null, 2);
+    }
+
     async function runPipeline() {
       if (!files.transcript || !files.summary) return;
 
       const btn = document.getElementById('btn-run');
       const errBox = document.getElementById('error-box');
+      const tasksBoard = document.getElementById('tasks-board-card');
       const outCard = document.getElementById('output-card');
       const jsonDisplay = document.getElementById('json-result');
 
@@ -403,9 +890,15 @@
         const data = await resp.json();
         lastResult = data;
 
+        // Render Side-by-Side Tasks Board
+        renderTasksBoard();
+        tasksBoard.style.display = 'flex';
+
+        // Render JSON Output
         jsonDisplay.innerText = JSON.stringify(data, null, 2);
         outCard.style.display = 'flex';
-        outCard.scrollIntoView({ behavior: 'smooth' });
+
+        tasksBoard.scrollIntoView({ behavior: 'smooth' });
 
         btn.disabled = false;
         btn.innerText = 'Run Verification & Privacy Masking';
@@ -438,3 +931,4 @@
   </script>
 </body>
 </html>
+
