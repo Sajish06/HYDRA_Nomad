@@ -25,6 +25,8 @@ def validate_quote(raw_quote: str, segment_text: str) -> Tuple[str, bool]:
     # Quote hallucinated / paraphrased: repair by using segment text
     return segment_text, True
 
+from app.analysis.slots import ACTION_SYNONYMS
+
 def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Optional[Dict[str, Any]] = None) -> SegmentStance:
     """Heuristic fallback for stance analysis when LLM is unavailable."""
     text = seg.get("text", "")
@@ -37,47 +39,62 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
     # Check relevance to claim
     claim_stopwords = {
         "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "is", "are", "was",
-        "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "has", "been", "had"
+        "were", "will", "be", "by", "with", "that", "this", "it", "from", "as", "has", "been", "had", "should", "must"
     }
-    claim_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.text} {claim.object or ''} {claim.action or ''} {claim.normalized or ''}".lower())) - claim_stopwords
-    seg_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", text.lower())) - claim_stopwords
+    raw_claim_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.text} {claim.object or ''} {claim.action or ''} {claim.normalized or ''}".lower())) - claim_stopwords
     
+    # Expand with action synonyms for semantic matching
+    claim_words = set(raw_claim_words)
+    if claim.action:
+        act_lower = claim.action.lower().strip()
+        for root, syns in ACTION_SYNONYMS.items():
+            if act_lower in syns or root in act_lower:
+                claim_words.update(syns)
+
+    seg_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", text.lower())) - claim_stopwords
     overlap = len(claim_words.intersection(seg_words))
     relevance = 0.20
     toward = "NEUTRAL"
 
-    if overlap >= 1:
+    if overlap >= 1 or (claim.actor and claim.actor.lower() in text.lower()):
         relevance = min(0.95, 0.45 + overlap * 0.15)
         
         # 1. COMMITMENT / ACTION CLAIMS
         if claim.type in (ClaimType.COMMITMENT, ClaimType.ACTION):
             act_words = set(re.findall(r"\b[a-zA-Z0-9_-]+\b", f"{claim.actor or ''} {claim.action or ''}".lower())) - claim_stopwords
+            if claim.action:
+                for root, syns in ACTION_SYNONYMS.items():
+                    if claim.action.lower() in syns or root in claim.action.lower():
+                        act_words.update(syns)
             act_overlap = len(act_words.intersection(seg_words))
 
-            # Affirmative commitment / acceptance
+            # Explicit first-person commitment or confirmation -> SUPPORTS
             if stance in (Stance.COMMIT, Stance.ACCEPT):
-                if not claim.actor or (speaker and (claim.actor.lower() in speaker.lower() or speaker.lower() in claim.actor.lower())):
+                if (
+                    not claim.actor 
+                    or not speaker 
+                    or speaker.lower().startswith("speaker") 
+                    or speaker.lower().startswith("user")
+                    or (claim.actor.lower() in speaker.lower() or speaker.lower() in claim.actor.lower())
+                    or (claim.actor.lower() in text.lower())
+                    or (prev_seg and claim.actor.lower() in prev_seg.get("text", "").lower())
+                    or (overlap >= 1)
+                ):
                     toward = "SUPPORTS"
-                    relevance = 0.90
-                else:
-                    toward = "NEUTRAL"
-            elif stance in (Stance.SUGGEST, Stance.PROPOSE):
-                if act_overlap >= 1 or overlap >= 2:
-                    toward = "SUPPORTS"
-                    relevance = 0.85
+                    relevance = 0.95
                 else:
                     toward = "NEUTRAL"
             elif stance in (Stance.CANCEL, Stance.REVERSE):
                 toward = "CONTRADICTS"
                 relevance = 0.85
             elif stance in (Stance.REJECT, Stance.DEFER):
-                # Only contradicts if specifically rejecting/cancelling the action/request itself
-                if re.search(r"\b(don'?t (?:request|send|do|ask|reach|prepare)|cancel|drop|won'?t (?:request|send|do|ask))\b", text, re.IGNORECASE):
+                if re.search(r"\b(don'?t (?:request|send|do|ask|reach|prepare)|cancel|drop|won'?t (?:request|send|do|ask)|let'?s not)\b", text, re.IGNORECASE):
                     toward = "CONTRADICTS"
                     relevance = 0.85
                 else:
                     toward = "NEUTRAL"
             else:
+                # Do NOT infer commitments from suggestions, possibilities, questions, or informational statements
                 toward = "NEUTRAL"
 
         # 2. DECISION / FACTUAL CLAIMS
@@ -85,13 +102,10 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
             if stance in (Stance.DEFER, Stance.REJECT, Stance.REVERSE, Stance.CANCEL):
                 toward = "CONTRADICTS"
                 relevance = max(relevance, 0.85)
-            elif stance in (Stance.DECIDE, Stance.ACCEPT):
+            elif stance in (Stance.DECIDE, Stance.ACCEPT, Stance.COMMIT):
                 toward = "SUPPORTS"
                 relevance = max(relevance, 0.85)
-            elif stance == Stance.COMMIT:
-                # A commitment to request reconciliation in future does not support claiming it is already reconciled
-                toward = "NEUTRAL"
-            elif stance in (Stance.PROPOSE, Stance.SUGGEST):
+            elif stance in (Stance.PROPOSE, Stance.SUGGEST, Stance.QUESTION):
                 toward = "NEUTRAL"
             elif stance == Stance.INFORM and overlap >= 2:
                 toward = "SUPPORTS"

@@ -64,18 +64,34 @@ def validate_and_resolve_context(
                     flags.append(Reason.UNRESOLVED_REFERENCE)
 
                 # Generate resolved claim sentence if not provided
+                addressed_actor = None
+                m_addressed = re.search(r"\b([A-Z][a-z]+),\s*(?:can you|could you|will you|please)\b", a_text)
+                if m_addressed:
+                    addressed_actor = m_addressed.group(1).strip()
+
+                effective_actor = addressed_actor or (speaker if (speaker and not speaker.lower().startswith("speaker")) else "The owner")
+
                 if not resolved_text or resolved_text.strip() == text or resolved_text.strip() == "":
-                    m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", a_text, re.IGNORECASE)
-                    if m_action and speaker:
-                        act_content = m_action.group(1).strip()
-                        resolved_text = f"{speaker} will {act_content}."
+                    # Check first person commitment in text
+                    m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", text, re.IGNORECASE)
+                    if m_commit:
+                        resolved_text = f"{effective_actor} will {m_commit.group(1).strip().rstrip('.')}."
                     else:
-                        resolved_text = f"{speaker or 'Speaker'} accepted proposal: {a_text}"
+                        m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", a_text, re.IGNORECASE)
+                        if m_action:
+                            act_content = m_action.group(1).strip()
+                            resolved_text = f"{effective_actor} will {act_content}."
+                        else:
+                            resolved_text = f"{effective_actor} agreed: {a_text}"
                     
-                    if isinstance(s, dict):
-                        s["resolved_text"] = resolved_text
-                    else:
-                        s.resolved_text = resolved_text
+                if isinstance(s, dict):
+                    s["resolved_text"] = resolved_text
+                    if addressed_actor:
+                        s["actor_mentioned"] = addressed_actor
+                else:
+                    s.resolved_text = resolved_text
+                    if addressed_actor:
+                        s.actor_mentioned = addressed_actor
 
         # If resolved_text is meaningful on a supporting affirm, use it for resolved_claim
         if (relation == "SUPPORTS" or stance_val in ("ACCEPT", "COMMIT", Stance.ACCEPT, Stance.COMMIT)) and resolved_text:
@@ -90,14 +106,27 @@ def validate_and_resolve_context(
             if s_stance in (Stance.ACCEPT, Stance.COMMIT, "ACCEPT", "COMMIT") and s_idx > 0:
                 s_seg = segments_by_idx.get(s_idx, {})
                 s_speaker = s_seg.get("speaker", "Assignee")
+                s_text = s_seg.get("text", "")
                 prev_seg = segments_by_idx.get(s_idx - 1, {})
                 prev_txt = prev_seg.get("text", "")
-                m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
-                if m_action:
-                    resolved_claim = f"{s_speaker} will {m_action.group(1).strip()}."
-                elif prev_txt:
-                    resolved_claim = f"{s_speaker} will handle: {prev_txt}"
+                
+                addressed = None
+                m_addr = re.search(r"\b([A-Z][a-z]+),\s*(?:can you|could you|will you|please)\b", prev_txt)
+                if m_addr:
+                    addressed = m_addr.group(1).strip()
+                eff_spk = addressed or s_speaker
+
+                m_commit = re.search(r"\b(?:i'?ll|i will|i can)\s+(.*)$", s_text, re.IGNORECASE)
+                if m_commit:
+                    resolved_claim = f"{eff_spk} will {m_commit.group(1).strip().rstrip('.')}."
+                else:
+                    m_action = re.search(r"(?:can you|could you|please)\s+(.*?)[\?\.]?$", prev_txt, re.IGNORECASE)
+                    if m_action:
+                        resolved_claim = f"{eff_spk} will {m_action.group(1).strip()}."
+                    elif prev_txt:
+                        resolved_claim = f"{eff_spk} will handle: {prev_txt}"
                 break
 
     return resolved_claim, flags
+
 

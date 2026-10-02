@@ -167,9 +167,12 @@ async def verify_and_mask_pipeline(
                 normalized=dec
             ))
 
+    from app.analysis.slots import extract_slots_from_evidence
+
     # Group verified claims vs held/unsupported claims
     verified_commitments = []
     unverified_items = []
+    seen_raw_requirements = set()
 
     for c in claims:
         v = run_verification_pipeline(c)
@@ -178,51 +181,30 @@ async def verify_and_mask_pipeline(
 
         if is_verified:
             quotes = [e.quote for e in v.evidence_chain if e.quote]
-            assignees = [Assignee(name=c.actor or "Team", role="BACKEND", assigned_work=c.text, deadline=c.deadline)]
-            verified_commitments.append(VerifiedCommitment(
-                task_id=c.claim_id,
-                raw_requirement=v.resolved_claim or c.normalized or c.text,
-                assignees=assignees,
-                evidence_context_quotes=quotes
-            ))
-        else:
-            # Capture why the claim was not verified
-            reason_text = v.explanation or "Claim was not confirmed by dialogue evidence."
-            if "REVERSED" in [r.value for r in v.reasons]:
-                reason_text = "Explicitly rejected or reversed in meeting dialogue."
-            elif "FLIP_FLOP" in [r.value for r in v.reasons]:
-                reason_text = "Investigative request or unconfirmed discussion item, not a committed deliverable."
-            elif "NO_RELEVANT_EVIDENCE" in [r.value for r in v.reasons]:
-                reason_text = "No direct transcript evidence supporting commitment."
+            ev_slots = extract_slots_from_evidence(v.evidence_chain)
+            
+            eff_actor = ev_slots.get("actor") or c.actor or "The owner"
+            eff_deadline = c.deadline or ev_slots.get("deadline")
+            eff_req = v.resolved_claim or c.normalized or c.text
 
+            # Deduplicate semantically identical verified tasks
+            norm_key = " ".join(eff_req.lower().split())
+            if norm_key not in seen_raw_requirements:
+                seen_raw_requirements.add(norm_key)
+                assignees = [Assignee(name=eff_actor, role="ENGINEER", assigned_work=eff_req, deadline=eff_deadline)]
+                verified_commitments.append(VerifiedCommitment(
+                    task_id=c.claim_id,
+                    raw_requirement=eff_req,
+                    assignees=assignees,
+                    evidence_context_quotes=quotes
+                ))
+        else:
+            reason_text = v.explanation or "Claim was not confirmed by dialogue evidence."
             unverified_items.append({
                 "claim": c.text,
                 "status": eff_status,
                 "reason": reason_text
             })
-
-    # Check if summary itself has structured commitments if none verified
-    if not verified_commitments and isinstance(s_json, dict) and "verified_commitments" in s_json:
-        try:
-            parsed_handoff = MeetingHandoff.model_validate(s_json)
-            verified_commitments = parsed_handoff.verified_commitments
-            meeting_id = parsed_handoff.meeting_id
-            meeting_title = parsed_handoff.meeting_title
-        except Exception:
-            pass
-
-    # If all claims were unverified/held, only extract actionable commitments that had explicit assignees/commitments
-    if not verified_commitments and claims:
-        # Check if any claim had explicit commitment/action intent
-        for c in claims:
-            if c.type in (ClaimType.COMMITMENT, ClaimType.ACTION) and c.actor:
-                assignees = [Assignee(name=c.actor, role="ENGINEER", assigned_work=c.text, deadline=c.deadline)]
-                verified_commitments.append(VerifiedCommitment(
-                    task_id=c.claim_id,
-                    raw_requirement=c.normalized or c.text,
-                    assignees=assignees,
-                    evidence_context_quotes=[s.text for s in meeting.segments if c.actor.lower() in s.text.lower() or c.object and c.object.lower() in s.text.lower()][:4]
-                ))
 
     # 3. Execute Teammate 2 Privacy Masking Engine on Verified Commitments
     output_dir = Path("outputs")

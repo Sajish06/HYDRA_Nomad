@@ -156,12 +156,20 @@ def evaluate_gate(
                 if has_auth or has_prior_prop or "let's" in e.text.lower():
                     is_valid = True
             elif e.stance == Stance.COMMIT:
-                # Valid if speaker matches actor or actor is null
-                if claim.actor is None or (e.speaker and (claim.actor.lower() in e.speaker.lower() or e.speaker.lower() in claim.actor.lower())):
+                # Valid if speaker matches actor, actor is null, or generic speaker
+                if (
+                    claim.actor is None 
+                    or not e.speaker 
+                    or e.speaker.lower().startswith("speaker")
+                    or e.speaker.lower().startswith("user")
+                    or (claim.actor.lower() in e.speaker.lower() or e.speaker.lower() in claim.actor.lower())
+                    or (claim.actor.lower() in e.text.lower())
+                    or (e.relation == "SUPPORTS")
+                ):
                     is_valid = True
             elif e.stance == Stance.ACCEPT:
                 has_prior_prop = any(prev.stance in (Stance.PROPOSE, Stance.SUGGEST, Stance.REQUEST, Stance.QUESTION) for prev in items_before)
-                if has_prior_prop and Reason.UNRESOLVED_REFERENCE not in flags:
+                if (has_prior_prop or e.relation == "SUPPORTS") and Reason.UNRESOLVED_REFERENCE not in flags:
                     is_valid = True
             elif e.stance == Stance.INFORM or e.relation == "SUPPORTS":
                 is_valid = True

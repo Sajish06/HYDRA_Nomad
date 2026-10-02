@@ -146,13 +146,10 @@ async def run_demo_pipeline(repo: Repository = Depends(get_repo)):
     }
 
 
-@router.get("/demo", response_class=HTMLResponse)
+from fastapi.responses import RedirectResponse
+
+@router.get("/demo")
 async def serve_demo_ui():
-    """Serve the static Clean Room compliance dashboard."""
-    index_file = Path("./backend/static/index.html")
-    if index_file.exists():
-        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
-    demo_file = Path("./backend/static/demo.html")
-    if demo_file.exists():
-        return HTMLResponse(content=demo_file.read_text(encoding="utf-8"))
-    return HTMLResponse("<h1>Demo UI is being initialized</h1>", status_code=200)
+    """Redirect to unified NOMAD Verification & Privacy Masking frontend."""
+    return RedirectResponse(url="/")
+

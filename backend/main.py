@@ -43,8 +43,11 @@ from backend.api.routes import api_router
 app.include_router(api_router)
 
 
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+
 # Mount static assets
-static_path = Path("./backend/static")
+static_path = Path(__file__).resolve().parent / "static"
 static_path.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
@@ -55,18 +58,19 @@ async def favicon():
 
 
 @app.get("/demo.html", include_in_schema=False)
-async def redirect_old_demo():
-    return RedirectResponse(url="/demo")
+@app.get("/demo", include_in_schema=False)
+async def redirect_demo_to_root():
+    return RedirectResponse(url="/")
 
 
 @app.get("/")
 async def root(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        return RedirectResponse(url="/demo")
+    clay_file = static_path / "clay.html"
+    if clay_file.exists():
+        return FileResponse(clay_file)
     return {
-        "app": settings.APP_NAME,
+        "app": "NOMAD Verification & Privacy Masking",
         "status": "online",
         "docs_url": "/docs",
-        "demo_url": "/demo",
     }
+

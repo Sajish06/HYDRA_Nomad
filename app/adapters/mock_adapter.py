@@ -60,23 +60,29 @@ def normalize_summary_item(item: Any) -> Optional[str]:
     if isinstance(item, dict):
         if "claim" in item and item["claim"]:
             return str(item["claim"]).strip()
-        if "task" in item and item["task"]:
-            task = str(item["task"]).strip()
-            owner = item.get("owner") or item.get("assignee") or item.get("actor")
-            due = item.get("due_date") or item.get("deadline") or item.get("due")
-            res = task
-            if owner and isinstance(owner, str) and not task.lower().startswith(owner.lower()):
-                res = f"{owner.strip()} will {task.rstrip('.')}"
-            if due and isinstance(due, str) and due not in res:
-                res = f"{res} by {due.strip()}"
-            return res
-        for k in ("decision", "action", "text", "description", "title", "content", "name", "statement", "summary"):
+
+        # Check for task / description / action keys with possible assignee & deadline
+        task_text = None
+        for k in ("task", "description", "action", "decision", "text", "title", "content", "statement", "summary"):
             if k in item and item[k]:
                 val = item[k]
                 if isinstance(val, str) and val.strip():
-                    return val.strip()
+                    task_text = val.strip()
+                    break
                 elif isinstance(val, (int, float, bool)):
-                    return str(val)
+                    task_text = str(val)
+                    break
+
+        if task_text:
+            owner = item.get("owner") or item.get("assignee") or item.get("actor")
+            due = item.get("due_date") or item.get("deadline") or item.get("due")
+            res = task_text
+            if owner and isinstance(owner, str) and not task_text.lower().startswith(owner.lower()):
+                res = f"{owner.strip()} will {task_text.rstrip('.')}"
+            if due and isinstance(due, str) and due not in res:
+                res = f"{res} by {due.strip()}"
+            return res
+
         vals = [str(v).strip() for v in item.values() if v is not None and str(v).strip()]
         if vals:
             return " - ".join(vals)

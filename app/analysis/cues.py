@@ -23,7 +23,7 @@ CUE_PATTERNS = [
     (
         Stance.REJECT,
         re.compile(
-            r"\b(let'?s not|we shouldn'?t|no,?\s*(?:we|let|i)|not a good idea|don'?t (?:do|use|create|build|present)|against (?:it|this)|won'?t work|not independently verified)\b",
+            r"\b(let'?s not|we shouldn'?t|no,?\s*(?:we|let|i)|not a good idea|don'?t (?:do|use|create|build|present|promise)|against (?:it|this)|won'?t work|not independently verified)\b",
             re.IGNORECASE
         )
     ),
@@ -35,11 +35,19 @@ CUE_PATTERNS = [
             re.IGNORECASE
         )
     ),
-    # ACCEPT (explicit agreement to a decision, task, or question)
+    # COMMIT (Explicit first-person commitments and task ownership)
+    (
+        Stance.COMMIT,
+        re.compile(
+            r"\b(i'?ll\s+[a-z]+|i will\s+[a-z]+|i can\s+(?:take|do|handle|prepare|document|[a-z]+)|i am on it|i'm on it|on it|committed to|that'?s committed|yes,?\s+(?:that'?s committed|i'?ll|i will)|i can take that|i'?ll take care of|i'?ll do|i'?ll handle|i'?ll document|i'?ll prepare|i'?ll test|i'?ll improve|i'?ll add|i'?ll optimize|i'?ll enforce|i'?ll investigate|i will do|i will take)\b",
+            re.IGNORECASE
+        )
+    ),
+    # ACCEPT (Explicit confirmations)
     (
         Stance.ACCEPT,
         re.compile(
-            r"^(?:yes|yeah|sure|okay|ok|sounds good|agreed)(?:,\s*(?:i'?ll|i will|let'?s|i can|sounds good|we will|definitely|agreed)|[\.\!\?]|\s*$|\s+(?:i'?ll|i will|let'?s|i can|sounds good|we will|definitely|agreed|that could work))\b",
+            r"^(?:yes|yeah|sure|okay|ok|sounds good|agreed|understood)(?:,\s*(?:i'?ll|i will|let'?s|i can|sounds good|we will|definitely|agreed|that'?s committed)|[\.\!\?]|\s*$|\s+(?:i'?ll|i will|let'?s|i can|sounds good|we will|definitely|agreed|that could work))\b",
             re.IGNORECASE
         )
     ),
@@ -51,34 +59,26 @@ CUE_PATTERNS = [
             re.IGNORECASE
         )
     ),
-    # COMMIT
-    (
-        Stance.COMMIT,
-        re.compile(
-            r"\b(i'?ll\s+[a-z]+|i will\s+[a-z]+|i can\s+[a-z]+|we will\s+[a-z]+|on it|committed to)\b",
-            re.IGNORECASE
-        )
-    ),
-    # QUESTION
+    # QUESTION (Do NOT infer commitment from questions)
     (
         Stance.QUESTION,
         re.compile(
-            r"^(?:should we|can we|do we|what if|could we)\b|\?$",
+            r"^(?:should we|can we|do we|what if|could we|can you|could you|will you|have we|has|is|are)\b|\?$",
             re.IGNORECASE
         )
     ),
-    # SUGGEST / PROPOSE / REQUEST
+    # SUGGEST / PROPOSE (Do NOT infer commitment from suggestions or possibilities)
     (
         Stance.SUGGEST,
         re.compile(
-            r"\b(you need (?:to|separate)|we need to|i suggest|i recommend|please\s+[a-z]+)\b",
+            r"\b(you need (?:to|separate)|we need to|i suggest|i recommend|please\s+[a-z]+|consider|maybe we|let'?s not)\b",
             re.IGNORECASE
         )
     ),
     (
         Stance.PROPOSE,
         re.compile(
-            r"\b(we could\s+(?:create|build|make|set up|use|do|rebuild|launch|split|investigate|adopt|switch)|we should probably|we should\s+(?:create|build|use|do|make|rebuild|split)|i think we should|how about)\b",
+            r"\b(we could\s+(?:create|build|make|set up|use|do|rebuild|launch|split|investigate|adopt|switch)|we should probably|we should\s+(?:create|build|use|do|make|rebuild|split)|i think we should|how about|what if|it might be possible)\b",
             re.IGNORECASE
         )
     ),

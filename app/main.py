@@ -37,50 +37,30 @@ app.include_router(claims_router)
 app.include_router(masking_router)
 
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pathlib import Path
+from fastapi import Response
 
-# Mount static web frontend
+# Mount static web frontend (only clay.html)
 static_path = Path(__file__).resolve().parent.parent / "backend" / "static"
 if static_path.exists():
     app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
-
-from fastapi import Response
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return Response(status_code=204)
 
 @app.get("/")
-def serve_root_clay():
+def serve_root():
     clay_file = static_path / "clay.html"
     if clay_file.exists():
         return FileResponse(clay_file)
-    return {
-        "app": "ASCENT Clean Room",
-        "status": "online",
-        "web_console": "http://localhost:8000/demo",
-        "clean_room": "http://localhost:8000/clean-room"
-    }
-
-@app.get("/clean-room", include_in_schema=False)
-@app.get("/clay", include_in_schema=False)
-def serve_clay_html():
-    clay_file = static_path / "clay.html"
-    if clay_file.exists():
-        return FileResponse(clay_file)
-    return {"error": "clay.html not found"}
+    return {"status": "online", "app": "NOMAD Verification & Privacy Masking"}
 
 @app.get("/demo", include_in_schema=False)
-def serve_demo_html():
-    demo_file = static_path / "demo.html"
-    if demo_file.exists():
-        return FileResponse(demo_file)
-    return {"error": "demo.html not found"}
-
+@app.get("/clean-room", include_in_schema=False)
 @app.get("/control-room", include_in_schema=False)
-def serve_index_html():
-    index_file = static_path / "index.html"
-    if index_file.exists():
-        return FileResponse(index_file)
-    return {"error": "index.html not found"}
+@app.get("/clay", include_in_schema=False)
+def redirect_to_root():
+    return RedirectResponse(url="/", status_code=302)
+
