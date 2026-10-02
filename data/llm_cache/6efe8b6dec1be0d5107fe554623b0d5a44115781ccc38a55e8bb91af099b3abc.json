@@ -1,0 +1,52 @@
+{
+  "claims": [
+    {
+      "type": "COMMITMENT",
+      "text": "I approve the fifteen thousand dollars vendor expenditure for CloudScale Systems data migration.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "approve the fifteen thousand dollars vendor expenditure for CloudScale Systems data migration",
+      "source_idx": [
+        7
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "That migration is scheduled for completion within the next thirty days.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "migration is scheduled for completion within the next thirty days",
+      "source_idx": [
+        8
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "Acme is structuring this as an asset purchase agreement with a ten percent holdback.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Acme is structuring this as an asset purchase agreement with a ten percent holdback",
+      "source_idx": [
+        9
+      ]
+    },
+    {
+      "type": "REQUIREMENT",
+      "text": "We will require a forty-five day exclusivity window starting immediately upon signature.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "require a forty-five day exclusivity window starting immediately upon signature",
+      "source_idx": [
+        11
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 8,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "That migration is scheduled for completion within the next thirty days."
+    }
+  ]
+}

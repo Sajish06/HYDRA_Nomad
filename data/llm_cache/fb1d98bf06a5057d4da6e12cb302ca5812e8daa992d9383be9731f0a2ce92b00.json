@@ -1,0 +1,52 @@
+{
+  "claims": [
+    {
+      "type": "COMMITMENT",
+      "text": "Acme will not assume that credit line; it will be paid off at closing from transaction proceeds.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Acme will not assume the credit line; it will be paid off at closing from transaction proceeds.",
+      "source_idx": [
+        28
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "Let us ensure the definitive purchase agreement reflects that payoff.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Ensure the definitive purchase agreement reflects that payoff.",
+      "source_idx": [
+        29
+      ]
+    },
+    {
+      "type": "DECISION",
+      "text": "Who is handling intellectual property assignment confirmations?",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Who is handling intellectual property assignment confirmations?",
+      "source_idx": [
+        34
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "Our outside counsel will provide IP assignment certificates for all eighty-five employees.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Our outside counsel will provide IP assignment certificates for all eighty-five employees.",
+      "source_idx": [
+        35
+      ]
+    }
+  ]
+}

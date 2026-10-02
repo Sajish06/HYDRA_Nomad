@@ -1,0 +1,18 @@
+{
+  "meeting_id": "MEET-20261001-01",
+  "mappings": {
+    "[METRIC_1]": "monthly customer value",
+    "[METRIC_2]": "average order value",
+    "[METRIC_3]": "revenue metric",
+    "[PERSON_1]": "Ravi",
+    "[METRIC_4]": "revenue cards",
+    "[PERSON_2]": "Neha",
+    "[PERSON_3]": "QA_Team",
+    "[METRIC_5]": "revenue numbers",
+    "[METRIC_6]": "sales information"
+  },
+  "counters": {
+    "METRIC": 6,
+    "PERSON": 3
+  }
+}

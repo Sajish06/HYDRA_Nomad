@@ -1,0 +1,52 @@
+{
+  "claims": [
+    {
+      "type": "ACTION",
+      "text": "Priya sends customer concentration data by Friday. I will have the breakdown ready by end of day Friday.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Priya will send customer concentration data by Friday and have the breakdown ready by the end of the day.",
+      "source_idx": [
+        18
+      ]
+    },
+    {
+      "type": "COMMITMENT",
+      "text": "All senior engineers and department heads will enter into non-compete and retention agreements.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "All senior engineers and department heads will enter into non-compete and retention agreements.",
+      "source_idx": [
+        20
+      ]
+    },
+    {
+      "type": "REQUIREMENT",
+      "text": "Acme will not assume that credit line; it will be paid off at closing from transaction proceeds.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Acme will not assume the credit line; it will be paid off at closing from transaction proceeds.",
+      "source_idx": [
+        28
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "Let us ensure the definitive purchase agreement reflects that payoff.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Ensure the definitive purchase agreement reflects the payoff.",
+      "source_idx": [
+        29
+      ]
+    }
+  ]
+}

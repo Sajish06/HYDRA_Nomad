@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 28,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Acme will not assume that credit line; it will be paid off at closing from transaction proceeds."
+    }
+  ]
+}

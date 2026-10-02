@@ -1,0 +1,18 @@
+{
+  "meeting_id": "DEMO_005",
+  "title": "Caching",
+  "participants": [
+    {"name": "Alice", "role": "engineer"},
+    {"name": "Bob", "role": "engineer"}
+  ],
+  "segments": [
+    {"speaker": "Alice", "time": "10:20", "text": "We should probably use Redis."},
+    {"speaker": "Bob", "time": "10:21", "text": "That could work."},
+    {"speaker": "Alice", "time": "10:22", "text": "Okay, let's investigate it."},
+    {"speaker": "Bob", "time": "10:40", "text": "Actually, we decided not to use Redis."}
+  ],
+  "summary": {
+    "decisions": ["Use Redis."],
+    "action_items": []
+  }
+}

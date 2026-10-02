@@ -1,0 +1,37 @@
+{
+  "stances": [
+    {
+      "idx": 0,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "You need separate technical and design divisions."
+    },
+    {
+      "idx": 1,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Split operations into Tech and Design tracks."
+    },
+    {
+      "idx": 2,
+      "relevance": 1.0,
+      "stance": "DECIDE",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Let's definitely create dedicated teams for both."
+    }
+  ]
+}

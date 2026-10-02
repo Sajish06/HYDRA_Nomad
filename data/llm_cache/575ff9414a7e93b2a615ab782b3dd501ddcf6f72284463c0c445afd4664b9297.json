@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 1,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Yes, I will do the upgrade tomorrow."
+    }
+  ]
+}

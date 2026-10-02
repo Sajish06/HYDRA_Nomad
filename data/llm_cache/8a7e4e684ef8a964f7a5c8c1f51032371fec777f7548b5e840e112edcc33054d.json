@@ -1,0 +1,202 @@
+{
+  "stances": [
+    {
+      "idx": 0,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Good morning everyone, welcome to the phase two diligence session for Project Falcon."
+    },
+    {
+      "idx": 1,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Acme Capital is pleased with initial diligence, but today we need clarity on financials and customer concentration."
+    },
+    {
+      "idx": 2,
+      "relevance": 0.2,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "For fiscal year 2023, Northwind Analytics generated eighteen million in total revenue."
+    },
+    {
+      "idx": 3,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "And on the profitability side, Sarah? We have been analyzing the adjusted operating metrics."
+    },
+    {
+      "idx": 4,
+      "relevance": 0.2,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Our EBITDA was 4.2 million for the last fiscal year, representing an operating margin of approximately twenty-three percent."
+    },
+    {
+      "idx": 6,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Now regarding corporate expenses, we noticed a software infrastructure commitment pending approval."
+    },
+    {
+      "idx": 7,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Yes, I approve the fifteen thousand dollars vendor expenditure for CloudScale Systems data migration."
+    },
+    {
+      "idx": 8,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "That migration is scheduled for completion within the next thirty days."
+    },
+    {
+      "idx": 9,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Let us discuss the transaction perimeter. Acme is structuring this as an asset purchase agreement with a ten percent holdback."
+    },
+    {
+      "idx": 10,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "The board agreed to the exclusivity term during yesterday's special meeting."
+    },
+    {
+      "idx": 15,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Are both contracts up for renewal within the next twelve months?"
+    },
+    {
+      "idx": 16,
+      "relevance": 0.2,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "The primary account is on a multi-year term through 2026. The second renews in November."
+    },
+    {
+      "idx": 20,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "All senior engineers and department heads will enter into non-compete and retention agreements."
+    },
+    {
+      "idx": 25,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Total cash on balance sheet currently stands at three million two hundred thousand dollars."
+    },
+    {
+      "idx": 26,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "And long-term debt obligations?"
+    },
+    {
+      "idx": 27,
+      "relevance": 0.2,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "We have a credit line of one million with Zenith Bank, currently drawn at four hundred thousand."
+    },
+    {
+      "idx": 28,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Acme will not assume that credit line; it will be paid off at closing from transaction proceeds."
+    },
+    {
+      "idx": 29,
+      "relevance": 0.1,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Agreed. Let us ensure the definitive purchase agreement reflects that payoff."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": "uploads",
+  "object": "IP assignment certificates",
+  "deadline": "Monday",
+  "normalized": "Legal counsel uploads IP assignment certificates by Monday."
+}

@@ -1,0 +1,26 @@
+{
+  "stances": [
+    {
+      "idx": 18,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Priya sends customer concentration data by Friday. I will have the breakdown ready by end of day Friday."
+    },
+    {
+      "idx": 38,
+      "relevance": 1.0,
+      "stance": "REJECT",
+      "toward_claim": "CONTRADICTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "To recap next steps: Priya sends cohort data by Friday, legal uploads IP certificates by Monday."
+    }
+  ]
+}

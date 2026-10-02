@@ -1,0 +1,16 @@
+{
+  "meeting_id": "DEMO_002",
+  "title": "Discord planning",
+  "participants": [
+    {"name": "Lead", "role": "lead", "has_authority": true},
+    {"name": "Member", "role": "member", "has_authority": false}
+  ],
+  "segments": [
+    {"speaker": "Member", "time": "10:35", "text": "Should we create a sponsorship channel?"},
+    {"speaker": "Lead", "time": "10:36", "text": "Let's hold off on sponsorships until next semester."}
+  ],
+  "summary": {
+    "decisions": [],
+    "action_items": ["Create a sponsorship Discord channel."]
+  }
+}

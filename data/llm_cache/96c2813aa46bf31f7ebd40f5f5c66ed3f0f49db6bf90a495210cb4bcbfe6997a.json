@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Bob",
+  "action": "upgrade Postgres",
+  "object": null,
+  "deadline": "tomorrow",
+  "normalized": "Bob will upgrade Postgres tomorrow."
+}

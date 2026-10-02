@@ -1,0 +1,16 @@
+{
+  "meeting_id": "DEMO_004",
+  "title": "Website chat",
+  "participants": [
+    {"name": "Alice", "role": "member"},
+    {"name": "Bob", "role": "member"}
+  ],
+  "segments": [
+    {"speaker": "Alice", "time": "14:05", "text": "We discussed improving the website."},
+    {"speaker": "Bob", "time": "14:06", "text": "Yeah, there are some things we could improve."}
+  ],
+  "summary": {
+    "decisions": [],
+    "action_items": ["Bob will rebuild the website by Friday."]
+  }
+}

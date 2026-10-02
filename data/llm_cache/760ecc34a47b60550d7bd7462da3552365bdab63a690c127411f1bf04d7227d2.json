@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "David Vance",
+  "action": "sends",
+  "object": "customer concentration data",
+  "deadline": "by Friday",
+  "normalized": "David Vance sends customer concentration data by Friday."
+}

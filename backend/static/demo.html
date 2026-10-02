@@ -277,13 +277,67 @@
     <div class="brand-title">
       <span>🛡️ Meetily Clean Room</span>
       <span class="brand-badge">Compliance Gatekeeper</span>
-    </div>
     <div class="header-actions">
       <span id="ai-mode-status" style="font-size: 12px; color: var(--text-muted);">Mode: Baseline + Deterministic Gate</span>
-      <button class="btn btn-secondary" onclick="loadDashboard()">↻ Refresh</button>
-      <button class="btn" onclick="triggerRunDemo()">▶ Run Due Diligence Demo</button>
+      <button class="btn btn-primary" onclick="openUploadModal()" style="font-weight:700;">📁 Upload Meeting File</button>
     </div>
   </header>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:24px; width:92%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:18px; font-weight:700; color:var(--text-main); margin:0;">📤 Upload & Verify Meeting Files</h3>
+        <button onclick="closeUploadModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      
+      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        <button class="tab-btn active" id="tab-opt-dual" onclick="selectUploadTab('dual')">📄 1. Transcript + Summary Files</button>
+        <button class="tab-btn" id="tab-opt-single" onclick="selectUploadTab('single')">📦 2. Combined JSON</button>
+        <button class="tab-btn" id="tab-opt-paste" onclick="selectUploadTab('paste')">✍️ 3. Direct Paste</button>
+      </div>
+
+      <!-- Mode 1: Dual Files (Transcript + Summary) -->
+      <div id="upload-view-dual">
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">1. Raw Transcript File (*.txt, *.json, *.vtt)</label>
+          <input type="file" id="custom-transcript-file" accept=".txt,.json,.vtt" style="display:block; width:100%; padding:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+          <span style="font-size:11px; color:var(--text-muted);">Contains spoken lines: <code>Speaker (10:15): What was said...</code></span>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-purple);">2. Summary / Claims File (*.txt, *.json)</label>
+          <input type="file" id="custom-summary-file" accept=".txt,.json" style="display:block; width:100%; padding:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+          <span style="font-size:11px; color:var(--text-muted);">Contains decisions & action item bullets to verify against transcript</span>
+        </div>
+      </div>
+
+      <!-- Mode 2: Single JSON -->
+      <div id="upload-view-single" style="display:none;">
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">Upload Complete Meeting JSON (*.json)</label>
+          <input type="file" id="custom-single-file" accept=".json" style="display:block; width:100%; padding:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+          <span style="font-size:11px; color:var(--text-muted);">Contains both <code>segments</code> and <code>summary</code> in one JSON fixture.</span>
+        </div>
+      </div>
+
+      <!-- Mode 3: Direct Paste -->
+      <div id="upload-view-paste" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">Raw Transcript Text</label>
+          <textarea id="paste-transcript-text" placeholder="Alice (10:15): Should we create a dedicated channel?&#10;Bob (10:16): Let's hold off until next sprint." style="width:100%; height:90px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-family:monospace; font-size:11px; padding:8px; box-sizing:border-box;"></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-purple);">Summary Decisions & Tasks Bullets</label>
+          <textarea id="paste-summary-text" placeholder="- Create a dedicated channel.&#10;- Bob will audit permissions." style="width:100%; height:70px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-family:monospace; font-size:11px; padding:8px; box-sizing:border-box;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+        <button class="btn" id="btn-submit-upload" onclick="submitCustomUpload()">🚀 Verify Claims Against Transcript</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Gatekeeper Decision Banner -->
   <div id="gate-banner" class="gate-status-banner">
@@ -303,7 +357,7 @@
       </div>
       <div id="claims-container" class="claims-list">
         <div style="color: var(--text-dim); text-align: center; padding: 20px;">
-          Click "Run Due Diligence Demo" to analyze the M&A meeting.
+          No claims loaded. Click "Upload Meeting File" above to upload and verify a meeting transcript and summary.
         </div>
       </div>
     </div>
@@ -315,16 +369,16 @@
         <span id="egress-counter" class="counter-pill">Bytes sent: 0 B</span>
       </div>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-        External AI providers see only pseudonymized tokens. Sensitive figures are audited locally.
+        External AI providers see only pseudonymized tokens. Sensitive figures and commitments are audited locally.
       </p>
       <div class="split-view">
         <div>
           <strong style="font-size: 11px; color: var(--text-muted);">RAW CONFIDENTIAL TEXT</strong>
-          <div id="raw-preview" class="text-box">Sarah Chen confirmed EBITDA of $4.2M. Approved $15,000 vendor expenditure with CloudScale Systems. Special advisor Zephyrine Quillfeather attended.</div>
+          <div id="raw-preview" class="text-box">Awaiting meeting input...</div>
         </div>
         <div>
           <strong style="font-size: 11px; color: var(--accent-purple);">MASKED AI PAYLOAD</strong>
-          <div id="masked-preview" class="text-box"><span class="token-highlight">[PERSON_1]</span> confirmed EBITDA of $4.2M. Approved $15,000 vendor expenditure with <span class="token-highlight">[ORGANIZATION_1]</span>. Special advisor <span class="token-highlight">[PERSON_2]</span> attended.</div>
+          <div id="masked-preview" class="text-box">Awaiting meeting input...</div>
         </div>
       </div>
     </div>
@@ -334,12 +388,12 @@
     <!-- Panel 3: Cross-Source Diligence Conflicts -->
     <div class="card">
       <div class="card-title">
-        <span>Cross-Source Diligence Contradictions</span>
+        <span>Transcript Contradictions & Reversals</span>
         <span id="conflicts-counter" class="counter-pill" style="color: var(--accent-amber);">0 conflicts</span>
       </div>
       <div id="conflicts-container">
         <div style="color: var(--text-dim); text-align: center; padding: 20px;">
-          No conflicts evaluated yet.
+          Zero contradictions detected.
         </div>
       </div>
     </div>
@@ -351,7 +405,7 @@
         <span id="review-counter" class="counter-pill" style="color: var(--accent-red);">0 pending</span>
       </div>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-        Non-linear gate holds distribution until compliance reviewer corrects or accepts items.
+        Non-linear gate holds release until human reviewer reviews ambiguous claims.
       </p>
       <div id="review-container">
         <div style="color: var(--text-dim); text-align: center; padding: 20px;">
@@ -365,7 +419,7 @@
     <!-- Panel 5: Audience Output Fan-Out -->
     <div class="card">
       <div class="card-title">
-        <span>Audience Distribution Outputs & Leak Badges</span>
+        <span>Audience Distribution Outputs</span>
         <span id="leak-badge" class="counter-pill" style="color: var(--accent-green);">Leak Scan: READY</span>
       </div>
       <div class="tabs-nav" id="audience-tabs">
@@ -376,7 +430,7 @@
         <button class="tab-btn" onclick="switchAudience('cloud_llm')">cloud_llm</button>
       </div>
       <div id="audience-content" class="tab-content">
-        Select an audience tab above to preview the gated output document.
+        Outputs will generate once verification is completed.
       </div>
     </div>
 
@@ -403,27 +457,191 @@
     let activeAudience = "deal_team";
     let audienceOutputs = {};
 
-    async function loadDashboard() {
-      try {
-        const resp = await fetch("/api/demo/run", { method: "POST" });
-        if (resp.ok) {
-          const data = await resp.json();
-          renderDashboard(data);
+    function openUploadModal() {
+      document.getElementById("upload-modal").style.display = "flex";
+    }
+
+    let activeUploadTab = "dual";
+
+    function selectUploadTab(tab) {
+      activeUploadTab = tab;
+      document.getElementById("upload-view-dual").style.display = tab === "dual" ? "block" : "none";
+      document.getElementById("upload-view-single").style.display = tab === "single" ? "block" : "none";
+      document.getElementById("upload-view-paste").style.display = tab === "paste" ? "block" : "none";
+
+      document.getElementById("tab-opt-dual").className = tab === "dual" ? "tab-btn active" : "tab-btn";
+      document.getElementById("tab-opt-single").className = tab === "single" ? "tab-btn active" : "tab-btn";
+      document.getElementById("tab-opt-paste").className = tab === "paste" ? "tab-btn active" : "tab-btn";
+    }
+
+    function closeUploadModal() {
+      document.getElementById("upload-modal").style.display = "none";
+    }
+
+    async function submitCustomUpload() {
+      const btn = document.getElementById("btn-submit-upload");
+      const formData = new FormData();
+      let hasData = false;
+
+      if (activeUploadTab === "dual") {
+        const tFile = document.getElementById("custom-transcript-file").files[0];
+        const sFile = document.getElementById("custom-summary-file").files[0];
+        if (!tFile) {
+          alert("Please select at least a Raw Transcript file (*.txt, *.json, *.vtt).");
+          return;
         }
-      } catch (e) {
-        console.log("Offline mode or awaiting demo trigger:", e);
+        formData.append("transcript_file", tFile);
+        if (sFile) formData.append("summary_file", sFile);
+        hasData = true;
+      } else if (activeUploadTab === "single") {
+        const sFile = document.getElementById("custom-single-file").files[0];
+        if (!sFile) {
+          alert("Please select a JSON fixture file (*.json).");
+          return;
+        }
+        formData.append("file", sFile);
+        hasData = true;
+      } else if (activeUploadTab === "paste") {
+        const tText = document.getElementById("paste-transcript-text").value.trim();
+        const sText = document.getElementById("paste-summary-text").value.trim();
+        if (!tText) {
+          alert("Please paste your raw transcript text.");
+          return;
+        }
+        formData.append("transcript_text", tText);
+        if (sText) formData.append("summary_text", sText);
+        hasData = true;
+      }
+
+      if (!hasData) return;
+
+      btn.textContent = "⏳ Running Verification Gate...";
+      btn.disabled = true;
+
+      try {
+        const resp = await fetch("/demo/verify", {
+          method: "POST",
+          body: formData
+        });
+
+        const rawText = await resp.text();
+        let result = null;
+        try {
+          result = JSON.parse(rawText);
+        } catch {}
+
+        if (resp.ok && result) {
+          closeUploadModal();
+          renderVerifiedResults(result);
+        } else {
+          const errMsg = result?.detail?.message || result?.detail?.error?.message || result?.detail || result?.error || rawText || ("HTTP " + resp.status);
+          alert("Verification failed: " + (typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg));
+        }
+      } catch (err) {
+        alert("Upload error: " + err.message);
+      } finally {
+        btn.textContent = "🚀 Verify Claims Against Transcript";
+        btn.disabled = false;
       }
     }
 
-    async function triggerRunDemo() {
+    function renderVerifiedResults(result) {
+      currentMeetingId = result.meeting_id;
       const banner = document.getElementById("gate-banner");
-      banner.className = "gate-status-banner";
-      document.getElementById("gate-decision-label").textContent = "PROCESSING DUE DILIGENCE CALL...";
-      document.getElementById("gate-reasons").textContent = "Checking spoken numbers against local audio segments...";
+      const label = document.getElementById("gate-decision-label");
+      const reasons = document.getElementById("gate-reasons");
+      const icon = document.getElementById("gate-icon");
 
-      const resp = await fetch("/api/demo/run", { method: "POST" });
-      const data = await resp.json();
-      renderDashboard(data);
+      const allVerified = result.claims.length > 0 && result.claims.every(c => c.status === "VERIFIED" || c.effective_status === "VERIFIED");
+      if (allVerified) {
+        banner.className = "gate-status-banner released";
+        label.textContent = "RELEASE APPROVED";
+        icon.textContent = "✅";
+        reasons.textContent = `All ${result.claims.length} claims verified cleanly against transcript segments.`;
+      } else {
+        banner.className = "gate-status-banner";
+        label.textContent = "HELD FOR REVIEW";
+        icon.textContent = "🛑";
+        reasons.textContent = `${result.claims.filter(c => c.status !== 'VERIFIED').length} of ${result.claims.length} claims require human review or lack transcript support.`;
+      }
+
+      // Update Raw and Masked Privacy boxes
+      const rawTextSummary = result.claims.map(c => `• [${c.type || 'CLAIM'}] ${c.text} [${c.status}]`).join("\n");
+      const maskedTextSummary = result.claims.map((c, i) => `• [${c.type || 'CLAIM'}_${i+1}] ${c.status} (${c.gate_action})`).join("\n");
+      document.getElementById("raw-preview").textContent = rawTextSummary || "No claims extracted.";
+      document.getElementById("masked-preview").innerHTML = maskedTextSummary || "No claims extracted.";
+      document.getElementById("egress-counter").textContent = `Verified: ${result.claims.filter(c => c.status === 'VERIFIED').length}/${result.claims.length}`;
+
+      // Update Review Queue
+      const reviewContainer = document.getElementById("review-container");
+      const reviewItems = result.claims.filter(c => c.status === "AMBIGUOUS" || c.status === "UNSUPPORTED");
+      document.getElementById("review-counter").textContent = `${reviewItems.length} pending`;
+      if (reviewItems.length > 0) {
+        reviewContainer.innerHTML = reviewItems.map(item => `
+          <div class="review-item-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="color:var(--accent-amber); font-size:12px;">${item.claim_id}</strong>
+              <span class="badge" style="background:rgba(245, 158, 11, 0.15); color:var(--accent-amber); border:1px solid rgba(245, 158, 11, 0.3); font-size:10px;">${item.type || 'CLAIM'}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-main); font-weight:500;">${item.text}</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Reason: ${item.explanation || item.reasons?.join(', ')}</div>
+            <div class="review-actions" style="margin-top:8px;">
+              <button class="btn btn-success" style="font-size:10px; padding:4px 8px;" onclick="alert('Claim confirmed manually.')">✓ Confirm Claim</button>
+              <button class="btn btn-danger" style="font-size:10px; padding:4px 8px;" onclick="alert('Claim rejected.')">✕ Reject Claim</button>
+            </div>
+          </div>
+        `).join("");
+      } else {
+        reviewContainer.innerHTML = '<div style="color:var(--accent-green); text-align:center; padding:16px;">✓ All claims verified! Zero review items pending.</div>';
+      }
+
+      // Render claims list
+      const container = document.getElementById("claims-container");
+      container.innerHTML = "";
+      document.getElementById("claims-counter").textContent = `${result.claims.length} claims`;
+
+      result.claims.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "claim-item";
+        const badgeClass = c.status === "VERIFIED" ? "badge-supported" : (c.status === "AMBIGUOUS" ? "badge-partial" : "badge-contradicted");
+        const typeBadgeColor = c.type === "COMMITMENT" ? "rgba(168, 85, 247, 0.2); color:#c084fc; border:1px solid #c084fc;" :
+                              (c.type === "ACTION" ? "rgba(59, 130, 246, 0.2); color:#60a5fa; border:1px solid #60a5fa;" :
+                               "rgba(56, 189, 248, 0.15); color:var(--accent-cyan); border:1px solid rgba(56, 189, 248, 0.3);");
+
+        let evidenceHtml = "";
+        if (c.evidence_chain && c.evidence_chain.length > 0) {
+          evidenceHtml = c.evidence_chain.map(e => {
+            const relBadgeClass = e.relation === "SUPPORTS" ? "badge-supported" : (e.relation === "CONTRADICTS" ? "badge-contradicted" : "badge-unverifiable");
+            return `
+            <div class="claim-evidence">
+              <strong>${e.speaker || 'Speaker'} (${e.time || 'N/A'}):</strong> “${e.quote || e.text}”
+              <span class="badge ${relBadgeClass}" style="margin-left: 8px;">${e.stance}</span>
+              <span style="font-size: 10px; color: var(--text-dim); margin-left: 4px;">(${e.relation})</span>
+            </div>
+          `;
+          }).join("");
+        }
+
+        item.innerHTML = `
+          <div class="claim-header">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <strong>${c.claim_id}</strong>
+              <span class="badge" style="background:${typeBadgeColor} font-size:10px; font-weight:700;">${c.type || 'CLAIM'}</span>
+              ${c.actor ? `<span style="font-size:11px; color:#93c5fd; background:rgba(59,130,246,0.1); padding:1px 6px; border-radius:4px; border:1px solid rgba(59,130,246,0.2);">👤 ${c.actor}</span>` : ''}
+              ${c.deadline ? `<span style="font-size:11px; color:#fcd34d; background:rgba(245,158,11,0.1); padding:1px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.2);">📅 ${c.deadline}</span>` : ''}
+            </div>
+            <span class="badge ${badgeClass}">${c.status} (${c.gate_action})</span>
+          </div>
+          <div class="claim-text" style="font-weight:600; font-size:13px;">${c.text}</div>
+          ${c.explanation ? `<div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${c.explanation}</div>` : ''}
+          ${evidenceHtml}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function loadDashboard() {
+      // Dashboard starts cleanly ready for upload
     }
 
     function renderDashboard(data) {
@@ -544,10 +762,8 @@
         body: json.stringify ? JSON.stringify(payload) : payload
       });
       const data = await resp.json();
-      if (data.pipeline_resumed) {
-        triggerRunDemo();
-      } else {
-        loadDashboard();
+      if (currentMeetingId) {
+        fetchLedger(currentMeetingId);
       }
     }
 

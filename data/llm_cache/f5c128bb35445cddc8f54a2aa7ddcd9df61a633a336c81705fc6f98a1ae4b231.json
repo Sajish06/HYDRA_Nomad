@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 14,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I'll coordinate with the finance team to reconcile revenue and EBITDA against the working papers by October 7."
+    }
+  ]
+}

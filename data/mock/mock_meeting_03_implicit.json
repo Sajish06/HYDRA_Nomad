@@ -1,0 +1,16 @@
+{
+  "meeting_id": "DEMO_003",
+  "title": "Rate limiting",
+  "participants": [
+    {"name": "Alice", "role": "engineer"},
+    {"name": "Bob", "role": "engineer"}
+  ],
+  "segments": [
+    {"speaker": "Alice", "time": "11:02", "text": "Can you investigate whether Redis works for rate limiting?"},
+    {"speaker": "Bob", "time": "11:03", "text": "Yes, I'll look into it."}
+  ],
+  "summary": {
+    "decisions": [],
+    "action_items": ["Bob will investigate Redis for rate limiting."]
+  }
+}

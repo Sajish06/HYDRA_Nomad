@@ -1,0 +1,26 @@
+{
+  "stances": [
+    {
+      "idx": 36,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Please have those uploaded to the data room by Monday afternoon."
+    },
+    {
+      "idx": 37,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I will coordinate with legal counsel to ensure all IP schedules are posted by Monday."
+    }
+  ]
+}

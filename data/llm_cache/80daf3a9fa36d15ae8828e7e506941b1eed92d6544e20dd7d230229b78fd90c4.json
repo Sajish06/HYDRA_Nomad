@@ -1,0 +1,48 @@
+{
+  "stances": [
+    {
+      "idx": 34,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Who is handling intellectual property assignment confirmations?"
+    },
+    {
+      "idx": 35,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Marcus, our outside counsel will provide IP assignment certificates for all eighty-five employees."
+    },
+    {
+      "idx": 37,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I will coordinate with legal counsel to ensure all IP schedules are posted by Monday."
+    },
+    {
+      "idx": 38,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "To recap next steps: Priya sends cohort data by Friday, legal uploads IP certificates by Monday."
+    }
+  ]
+}

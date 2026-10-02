@@ -1,0 +1,17 @@
+{
+  "meeting_id": "DEMO_001",
+  "title": "Club structure advice",
+  "participants": [
+    {"name": "Lead", "role": "lead", "has_authority": true},
+    {"name": "Advisor", "role": "advisor", "has_authority": false}
+  ],
+  "segments": [
+    {"speaker": "Advisor", "time": "10:12", "text": "You need separate technical and design divisions."},
+    {"speaker": "Advisor", "time": "10:24", "text": "Split operations into Tech and Design tracks."},
+    {"speaker": "Lead", "time": "10:31", "text": "Let's definitely create dedicated teams for both."}
+  ],
+  "summary": {
+    "decisions": ["Create dedicated Tech and Design teams."],
+    "action_items": []
+  }
+}

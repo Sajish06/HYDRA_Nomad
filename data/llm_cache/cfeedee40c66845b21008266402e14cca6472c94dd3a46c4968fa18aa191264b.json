@@ -1,0 +1,26 @@
+{
+  "stances": [
+    {
+      "idx": 19,
+      "relevance": 0.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": ""
+    },
+    {
+      "idx": 29,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Agreed. Let us ensure the definitive purchase agreement reflects that payoff."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Omar",
+  "action": null,
+  "object": null,
+  "deadline": "October 6",
+  "normalized": "Omar will request the billing export and ARR reconciliation by October 6."
+}

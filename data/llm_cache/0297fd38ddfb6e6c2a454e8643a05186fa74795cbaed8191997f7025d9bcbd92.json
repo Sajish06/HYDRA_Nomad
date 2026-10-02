@@ -1,0 +1,15 @@
+{
+  "stances": [
+    {
+      "idx": 13,
+      "relevance": 1.0,
+      "stance": "SUGGEST",
+      "toward_claim": "SUPPORTS",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Let's request the audited financial statements, the current debt schedule, the customer concentration schedule, and the latest capitalization table."
+    }
+  ]
+}

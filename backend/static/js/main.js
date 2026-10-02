@@ -142,6 +142,123 @@ class App {
   }
 }
 
+let activeIdxTab = "dual";
+
+window.selectIndexUploadTab = function(tab) {
+  activeIdxTab = tab;
+  document.getElementById("idx-view-dual").style.display = tab === "dual" ? "block" : "none";
+  document.getElementById("idx-view-single").style.display = tab === "single" ? "block" : "none";
+  document.getElementById("idx-view-paste").style.display = tab === "paste" ? "block" : "none";
+
+  document.getElementById("idx-tab-dual").className = tab === "dual" ? "btn-director active" : "btn-director";
+  document.getElementById("idx-tab-single").className = tab === "single" ? "btn-director active" : "btn-director";
+  document.getElementById("idx-tab-paste").className = tab === "paste" ? "btn-director active" : "btn-director";
+};
+
+// Global upload handler for index.html modal
+window.submitCustomUploadIndex = async function() {
+  const btn = document.getElementById("index-btn-submit-upload");
+  const formData = new FormData();
+  let hasData = false;
+
+  if (activeIdxTab === "dual") {
+    const tFile = document.getElementById("idx-transcript-file")?.files[0];
+    const sFile = document.getElementById("idx-summary-file")?.files[0];
+    if (!tFile) {
+      alert("Please select at least a Raw Transcript file (*.txt, *.json, *.vtt).");
+      return;
+    }
+    formData.append("transcript_file", tFile);
+    if (sFile) formData.append("summary_file", sFile);
+    hasData = true;
+  } else if (activeIdxTab === "single") {
+    const sFile = document.getElementById("idx-single-file")?.files[0];
+    if (!sFile) {
+      alert("Please select a JSON fixture file (*.json).");
+      return;
+    }
+    formData.append("file", sFile);
+    hasData = true;
+  } else if (activeIdxTab === "paste") {
+    const tText = (document.getElementById("idx-paste-transcript")?.value || "").trim();
+    const sText = (document.getElementById("idx-paste-summary")?.value || "").trim();
+    if (!tText) {
+      alert("Please paste your raw transcript text.");
+      return;
+    }
+    formData.append("transcript_text", tText);
+    if (sText) formData.append("summary_text", sText);
+    hasData = true;
+  }
+
+  if (!hasData) return;
+
+  if (btn) {
+    btn.textContent = "⏳ Running Verification Gate...";
+    btn.disabled = true;
+  }
+
+  try {
+    const resp = await fetch("/demo/verify", {
+      method: "POST",
+      body: formData
+    });
+
+    if (resp.ok) {
+      const result = await resp.json();
+      const modal = document.getElementById("upload-modal-index");
+      if (modal) modal.style.display = "none";
+      
+      // Adapt verification result to Clean Room store structure
+      const adaptedClaims = result.claims.map(c => ({
+        id: c.claim_id,
+        text: c.text,
+        status: c.status === "VERIFIED" ? "supported" : (c.status === "AMBIGUOUS" ? "partial" : "contradicted"),
+        verdict: c.status,
+        gate_action: c.gate_action,
+        explanation: c.explanation,
+        evidence: (c.evidence_chain || []).map(e => ({
+          speaker: e.speaker || "Speaker",
+          time: e.time || "N/A",
+          quote: e.quote,
+          stance: e.stance
+        }))
+      }));
+
+      store.setState({
+        data: {
+          meeting_id: result.meeting_id,
+          title: result.title,
+          gate_decision: result.claims.every(c => c.status === "VERIFIED") ? "release" : "held",
+          reasons: result.claims.filter(c => c.status !== "VERIFIED").map(c => `${c.claim_id}: ${c.explanation}`),
+          claims: adaptedClaims,
+          crosscheck_conflicts: [],
+          review_queue: [],
+          ledger: { entries: [], chain_valid: true }
+        },
+        activeStep: "verify",
+        isOffline: false
+      });
+    } else {
+      let errDetail = "HTTP " + resp.status;
+      try {
+        const err = await resp.json();
+        errDetail = err.detail?.message || err.detail?.error?.message || err.detail || JSON.stringify(err);
+      } catch {
+        errDetail = await resp.text();
+      }
+      alert("Verification failed: " + errDetail);
+    }
+  } catch (err) {
+    alert("Upload error: " + err.message);
+  } finally {
+    if (btn) {
+      btn.textContent = "🚀 Verify Claims Against Transcript";
+      btn.disabled = false;
+    }
+  }
+};
+
 // Bootstrap on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   App.init();

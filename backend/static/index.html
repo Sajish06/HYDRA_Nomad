@@ -49,6 +49,10 @@
 
     <!-- Top Right Actions -->
     <div class="top-actions">
+      <button class="btn-director" id="btn-open-upload" title="Upload Meeting File" onclick="document.getElementById('upload-modal-index').style.display='flex'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload File
+      </button>
       <button class="btn-director" id="btn-open-palette" title="Command Palette (Ctrl+K)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Ask Room [Ctrl+K]
@@ -58,6 +62,61 @@
       </button>
     </div>
   </header>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal-index" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:24px; width:92%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.7); color:var(--text-main); max-height:90vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:18px; font-weight:700; color:var(--text-main); margin:0;">📤 Upload & Verify Meeting Files</h3>
+        <button onclick="document.getElementById('upload-modal-index').style.display='none'" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        <button class="btn-director active" id="idx-tab-dual" onclick="selectIndexUploadTab('dual')">📄 1. Transcript + Summary Files</button>
+        <button class="btn-director" id="idx-tab-single" onclick="selectIndexUploadTab('single')">📦 2. Combined JSON</button>
+        <button class="btn-director" id="idx-tab-paste" onclick="selectIndexUploadTab('paste')">✍️ 3. Direct Paste</button>
+      </div>
+      
+      <!-- Dual files -->
+      <div id="idx-view-dual">
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">1. Raw Transcript File (*.txt, *.json, *.vtt)</label>
+          <input type="file" id="idx-transcript-file" accept=".txt,.json,.vtt" style="display:block; width:100%; padding:8px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+          <span style="font-size:11px; color:var(--text-muted);">Contains spoken lines: <code>Speaker (10:15): text</code></span>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-purple);">2. Summary / Claims File (*.txt, *.json)</label>
+          <input type="file" id="idx-summary-file" accept=".txt,.json" style="display:block; width:100%; padding:8px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+          <span style="font-size:11px; color:var(--text-muted);">Contains decision/task bullets to verify against transcript</span>
+        </div>
+      </div>
+
+      <!-- Single JSON -->
+      <div id="idx-view-single" style="display:none;">
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">Upload Combined JSON (*.json)</label>
+          <input type="file" id="idx-single-file" accept=".json" style="display:block; width:100%; padding:8px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:12px;" />
+        </div>
+      </div>
+
+      <!-- Direct Paste -->
+      <div id="idx-view-paste" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-cyan);">Raw Transcript Text</label>
+          <textarea id="idx-paste-transcript" placeholder="Alice (10:15): Should we create a dedicated channel?&#10;Bob (10:16): Let's hold off until next sprint." style="width:100%; height:90px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-family:monospace; font-size:11px; padding:8px; box-sizing:border-box;"></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--accent-purple);">Summary Decisions & Tasks Bullets</label>
+          <textarea id="idx-paste-summary" placeholder="- Create a dedicated channel.&#10;- Bob will audit permissions." style="width:100%; height:70px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-family:monospace; font-size:11px; padding:8px; box-sizing:border-box;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button class="btn-director" onclick="document.getElementById('upload-modal-index').style.display='none'">Cancel</button>
+        <button class="btn-director" id="index-btn-submit-upload" style="background:var(--accent-cyan); color:var(--bg-void); font-weight:700;" onclick="window.submitCustomUploadIndex && window.submitCustomUploadIndex()">🚀 Verify Claims Against Transcript</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 3-Column Cockpit Workspace -->
   <main class="workspace-container">
