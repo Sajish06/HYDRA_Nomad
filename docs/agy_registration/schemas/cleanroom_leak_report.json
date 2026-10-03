@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_leak_report",
+  "description": "Audit leak scanner findings and canary containment.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_leak_reportArguments"
+  }
+}

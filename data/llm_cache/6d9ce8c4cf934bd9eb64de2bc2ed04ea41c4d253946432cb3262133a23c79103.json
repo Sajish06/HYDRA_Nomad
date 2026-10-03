@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": "Build",
+  "object": "a simple HTML page",
+  "deadline": null,
+  "normalized": "Build a simple HTML page displaying Hello World."
+}

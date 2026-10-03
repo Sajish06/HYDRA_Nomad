@@ -833,6 +833,14 @@
 
       </div>
 
+      <!-- Auto-Launch Option -->
+      <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 4px; padding: 4px 6px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer;">
+          <input type="checkbox" id="chk-auto-launch" checked style="accent-color: var(--terracotta); width: 16px; height: 16px;">
+          <span>⚡ Automatically generate prompt, paste into Desktop/test, open Antigravity IDE, and execute build</span>
+        </label>
+      </div>
+
       <!-- Run Button -->
       <button type="button" class="btn-run" id="btn-run" disabled onclick="runPipeline()">
         Run Verification & Privacy Masking
@@ -949,6 +957,9 @@
       <div class="build-actions-bar">
         <button type="button" class="btn-build-primary" id="btn-trigger-build" onclick="triggerBuild()">
           🚀 Build with AGY (Antigravity MCP)
+        </button>
+        <button type="button" class="btn-build-primary" onclick="autoLaunchAgyAction()" style="background: linear-gradient(135deg, #3B7A57, #2D5E43); border:none; color:white;">
+          ⚡ Auto-Launch Antigravity & Run Build Now
         </button>
         <button type="button" class="btn-build-secondary" onclick="simulateAgyDemo('success')">
           ⚡ Demo: Simulate AGY Report (Pass)
@@ -1228,17 +1239,26 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       formData.append('summary_file', files.summary);
 
       try {
-        const resp = await fetch('/api/pipeline/verify-and-mask', {
+        const autoLaunch = document.getElementById('chk-auto-launch') && document.getElementById('chk-auto-launch').checked;
+        const url = autoLaunch ? '/api/pipeline/verify-and-mask?auto_launch=true' : '/api/pipeline/verify-and-mask';
+        const resp = await fetch(url, {
           method: 'POST',
           body: formData
         });
 
-        if (!resp.ok) {
-          const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData.detail ? (errData.detail.message || JSON.stringify(errData.detail)) : `Server returned HTTP ${resp.status}`);
+        const rawText = await resp.text();
+        let data = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          data = { detail: { message: rawText || `HTTP ${resp.status}` } };
         }
 
-        const data = await resp.json();
+        if (!resp.ok) {
+          const errMsg = data.detail ? (data.detail.message || JSON.stringify(data.detail)) : `Server returned HTTP ${resp.status}`;
+          throw new Error(errMsg);
+        }
+
         lastResult = data;
 
         // Render Side-by-Side Tasks Board
@@ -1252,6 +1272,16 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         // Show Autonomous Build Loop Section
         initBuildSection(data.meeting_id);
 
+        if (data.agy_launch) {
+          logConsole(`🚀 [Antigravity IDE] Auto-launched targeting: ${data.agy_launch.workspace_path}`);
+          logConsole(`📋 [Clipboard] Prompt copied to clipboard and saved to PROMPT.md!`);
+          if (data.agy_launch.build_result) {
+            logConsole(`✅ [Nomad Build Result] Verdict: ${data.agy_launch.build_result.final_verdict.toUpperCase()}`);
+          }
+          startLoopPolling();
+          refreshLoopStatus();
+        }
+
         tasksBoard.scrollIntoView({ behavior: 'smooth' });
 
         btn.disabled = false;
@@ -1262,6 +1292,41 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         errBox.style.display = 'block';
         btn.disabled = false;
         btn.innerText = 'Run Verification & Privacy Masking';
+      }
+    }
+
+    async function autoLaunchAgyAction() {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id);
+      if (!mid) {
+        alert("Please run verification first.");
+        return;
+      }
+      logConsole(`⚡ Launching Antigravity IDE & executing autonomous build for ${mid}...`);
+      startLoopPolling();
+      try {
+        const resp = await fetch(`/api/pipeline/auto-launch-agy?meeting_id=${encodeURIComponent(mid)}&auto_execute=true`, {
+          method: 'POST'
+        });
+        const rawText = await resp.text();
+        let data = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseErr) {
+          data = { detail: { message: rawText || `HTTP ${resp.status}` } };
+        }
+        if (!resp.ok) {
+          const errMsg = data.detail ? (data.detail.message || JSON.stringify(data.detail)) : (data.error || `HTTP ${resp.status}`);
+          throw new Error(errMsg);
+        }
+        logConsole(`🚀 [Antigravity IDE] Launched targeting: ${data.workspace_path}`);
+        logConsole(`📋 [Clipboard] Prompt copied to clipboard and saved to PROMPT.md!`);
+        if (data.build_result) {
+          logConsole(`✅ [Nomad Evaluator] Verdict: ${data.build_result.final_verdict.toUpperCase()} (Chain Verified)`);
+        }
+        refreshLoopStatus();
+      } catch (err) {
+        logConsole(`❌ [Error] ${err.message}`);
+        alert(`Failed: ${err.message}`);
       }
     }
 
@@ -1411,27 +1476,37 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         return;
       }
 
-      iterBadge.innerText = `Attempt: ${iter + 1} / ${maxIter}`;
+      iterBadge.innerText = `Attempt: ${Math.max(1, iter)} / ${maxIter}`;
 
-      if (s === 'dispatched') {
+      if (s === 'dispatched' || s === 'brief_issued' || s === 'pending') {
         stateTag.innerText = 'DISPATCHED TO AGY';
         stateTag.style.background = 'rgba(184, 91, 53, 0.15)';
         stateTag.style.color = 'var(--terracotta)';
         pulseDot.className = 'pulse-dot running';
-        titleEl.innerText = `Status: Dispatched to AGY (Attempt ${iter + 1}/${maxIter})`;
-        descEl.innerText = 'Sanitized brief & pytest acceptance criteria are live on MCP. Waiting for AGY to connect and build.';
+        titleEl.innerText = `Status: Dispatched to AGY (Iteration ${Math.max(1, iter)}/${maxIter})`;
+        descEl.innerText = 'Sanitized brief & acceptance criteria live on MCP. Waiting for AGY to pull brief and build.';
         s2.className = 'step-box active';
-      } else if (s === 'evaluating') {
+      } else if (s === 'report_received' || s === 'evaluating') {
         stateTag.innerText = 'EVALUATING LOCALLY';
         stateTag.style.background = 'rgba(184, 91, 53, 0.25)';
         stateTag.style.color = 'var(--terracotta)';
         pulseDot.className = 'pulse-dot running';
         titleEl.innerText = 'Status: Evaluating AGY Submission';
-        descEl.innerText = 'Nomad is cross-checking submitted pytest test results and requirement alignments.';
+        descEl.innerText = 'Nomad is running local acceptance tests against workspace deliverables in a scrubbed environment.';
         s2.className = 'step-box completed';
         s3.className = 'step-box completed';
         s4.className = 'step-box active';
-      } else if (s === 'success') {
+      } else if (s === 'revise') {
+        stateTag.innerText = 'NEEDS REVISION';
+        stateTag.style.background = 'rgba(184, 91, 53, 0.25)';
+        stateTag.style.color = 'var(--terracotta)';
+        pulseDot.className = 'pulse-dot running';
+        titleEl.innerText = `Status: Revision Required (Iteration ${iter}/${maxIter})`;
+        descEl.innerText = 'Tests failed. Re-masked feedback returned to AGY for corrective iteration.';
+        s2.className = 'step-box completed';
+        s3.className = 'step-box completed';
+        s4.className = 'step-box active';
+      } else if (s === 'success' || s === 'passed') {
         stateTag.innerText = '✅ BUILD COMPLETE';
         stateTag.style.background = 'rgba(59, 122, 87, 0.15)';
         stateTag.style.color = 'var(--sage-green)';
@@ -1442,13 +1517,13 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         s3.className = 'step-box completed';
         s4.className = 'step-box completed';
         stopLoopPolling();
-      } else if (s === 'needs_intervention') {
-        stateTag.innerText = '🚨 NEEDS INTERVENTION';
+      } else if (s === 'needs_intervention' || s === 'failed_max_iterations' || s === 'rejected' || s === 'aborted') {
+        stateTag.innerText = '🚨 STOPPED / REVIEW';
         stateTag.style.background = 'rgba(163, 59, 59, 0.15)';
         stateTag.style.color = 'var(--clay-red)';
         pulseDot.className = 'pulse-dot error';
-        titleEl.innerText = 'Status: 🚨 Circuit Breaker Tripped';
-        descEl.innerText = statusData.error_summary || '3 automated attempts failed. Developer review required.';
+        titleEl.innerText = `Status: 🚨 ${s.replace(/_/g, ' ').toUpperCase()}`;
+        descEl.innerText = statusData.error_summary || 'Max iterations (3) reached or violation detected. Developer review required.';
         s2.className = 'step-box completed';
         s3.className = 'step-box failed';
         s4.className = 'step-box failed';

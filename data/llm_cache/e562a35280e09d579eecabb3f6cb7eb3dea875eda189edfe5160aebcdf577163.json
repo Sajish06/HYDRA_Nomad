@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Bob",
+  "action": "Implement",
+  "object": "the Hello World page and number counter",
+  "deadline": null,
+  "normalized": "Bob will Implement the Hello World page and number counter"
+}

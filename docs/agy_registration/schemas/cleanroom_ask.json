@@ -1,0 +1,27 @@
+{
+  "name": "cleanroom_ask",
+  "description": "Answer diligence questions with citations, masked for audience.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      },
+      "question": {
+        "title": "Question",
+        "type": "string"
+      },
+      "audience": {
+        "default": "outside_counsel",
+        "title": "Audience",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id",
+      "question"
+    ],
+    "type": "object",
+    "title": "cleanroom_askArguments"
+  }
+}

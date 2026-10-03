@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_get_loop_status",
+  "description": "Query state, iteration count, and evaluation history for a loop run.",
+  "inputSchema": {
+    "properties": {
+      "loop_run_id": {
+        "title": "Loop Run Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "loop_run_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_get_loop_statusArguments"
+  }
+}

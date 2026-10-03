@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_process_meeting",
+  "description": "Run Clean Room verification and distribution pipeline for a meeting.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_process_meetingArguments"
+  }
+}

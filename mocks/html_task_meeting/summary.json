@@ -1,0 +1,43 @@
+{
+  "meeting_id": "mtg_mock_html_001",
+  "title": "Acme Widgets Web Portal Sprint",
+  "summary": "The team agreed to build static public web pages for Project Falcon.",
+  "action_items": [
+    {
+      "id": "claim_01",
+      "topic": "Build landing page index.html",
+      "claim_text": "Implement landing page index.html with a heading, an about section describing widget optimization, a three-item feature list, and a footer.",
+      "quote": "For the landing page index.html, we need a heading, an about section describing our widget optimization, a three-item feature list, and a footer.",
+      "owner": "Bob",
+      "type": "action_item",
+      "verdict": "supported"
+    },
+    {
+      "id": "claim_02",
+      "topic": "Build contact page contact.html",
+      "claim_text": "Implement contact page contact.html with a form for name, email, and message, labeled inputs, submit button, and contact details billing@acme-widgets-fictional.com and 555-019-2834.",
+      "quote": "We will build contact.html with a form for name, email, and message. Make sure contact.html has proper form labels for each input and a submit button. Absolutely no external CDN or third-party resources allowed.",
+      "owner": "Charlie",
+      "type": "action_item",
+      "verdict": "supported"
+    },
+    {
+      "id": "claim_03_wrong",
+      "topic": "Approved Budget of $50,000",
+      "claim_text": "Alice confirmed an approved budget of $50,000 for immediate deployment.",
+      "quote": "Alice confirmed immediate budget of $50,000",
+      "owner": "Alice",
+      "type": "financial_metric",
+      "verdict": "contradicted"
+    },
+    {
+      "id": "claim_04_unclear",
+      "topic": "Quantum Cloud Computing",
+      "claim_text": "Deploy quantum cloud computing infrastructure across hybrid cloud nodes.",
+      "quote": "Someone should also look into quantum cloud computing, but we haven't assigned an owner for that yet.",
+      "owner": "Unknown",
+      "type": "action_item",
+      "verdict": "unverifiable"
+    }
+  ]
+}

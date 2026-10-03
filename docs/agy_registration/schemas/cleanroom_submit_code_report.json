@@ -1,0 +1,81 @@
+{
+  "name": "cleanroom_submit_code_report",
+  "description": "\n        Submit AGY's build results back to Nomad for local evaluation.\n        agy_status: 'completed' | 'partial' | 'blocked' | 'failed'.\n        ",
+  "inputSchema": {
+    "properties": {
+      "loop_run_id": {
+        "title": "Loop Run Id",
+        "type": "string"
+      },
+      "agy_status": {
+        "title": "Agy Status",
+        "type": "string"
+      },
+      "summary": {
+        "title": "Summary",
+        "type": "string"
+      },
+      "files_changed": {
+        "items": {},
+        "title": "Files Changed",
+        "type": "array"
+      },
+      "diff": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Diff"
+      },
+      "test_results": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Test Results"
+      },
+      "iteration": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Iteration"
+      },
+      "meeting_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Meeting Id"
+      }
+    },
+    "required": [
+      "loop_run_id",
+      "agy_status",
+      "summary",
+      "files_changed"
+    ],
+    "type": "object",
+    "title": "cleanroom_submit_code_reportArguments"
+  }
+}

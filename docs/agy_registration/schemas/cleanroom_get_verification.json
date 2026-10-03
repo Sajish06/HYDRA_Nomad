@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_get_verification",
+  "description": "Get verified claims, verdicts, and evidence citations.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_get_verificationArguments"
+  }
+}

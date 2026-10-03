@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "nomad-cleanroom": {
+      "command": "C:\\Python312\\python.exe",
+      "args": [
+        "-m",
+        "backend.mcp_server.server"
+      ],
+      "cwd": "C:\\Users\\DELL\\Desktop\\ASCENT'26",
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "AGY_WORKSPACE_ROOT": "C:\\Users\\DELL\\Desktop\\test"
+      }
+    }
+  }
+}

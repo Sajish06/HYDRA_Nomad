@@ -219,3 +219,45 @@ class BuildReportModel(Base):
     submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     loop_run = relationship("AutonomousLoopRunModel", backref="reports")
+
+
+class LoopRunModel(Base):
+    """Tracks closed-loop Nomad <-> AGY build executions."""
+
+    __tablename__ = "nomad_loop_runs"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    meeting_id = Column(String(64), ForeignKey("meetings.id"), nullable=False, index=True)
+    status = Column(String(64), default="pending")  # pending, brief_issued, report_received, evaluating, passed, revise, failed_max_iterations, rejected, blocked
+    iteration = Column(Integer, default=1)
+    max_iterations = Column(Integer, default=3)
+    workspace_path = Column(String(512), nullable=False)
+    prompt_hash = Column(String(64), nullable=True)
+    brief_json = Column(Text, nullable=True)
+    criteria_json = Column(Text, nullable=True)
+    judge_hash = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    iterations = relationship("LoopIterationModel", back_populates="loop_run", cascade="all, delete")
+
+
+class LoopIterationModel(Base):
+    """Tracks each iteration within a loop run."""
+
+    __tablename__ = "nomad_loop_iterations"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    loop_run_id = Column(String(64), ForeignKey("nomad_loop_runs.id"), nullable=False, index=True)
+    iteration = Column(Integer, nullable=False)
+    prompt_hash = Column(String(64), nullable=False)
+    prompt_text = Column(Text, nullable=True)
+    agy_status = Column(String(32), nullable=True)
+    report_summary = Column(Text, nullable=True)
+    files_changed_json = Column(Text, default="[]")
+    evaluation_json = Column(Text, nullable=True)
+    verdict = Column(String(32), nullable=True)  # passed, revise, failed_max_iterations, rejected
+    ledger_entry_hash = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    loop_run = relationship("LoopRunModel", back_populates="iterations")

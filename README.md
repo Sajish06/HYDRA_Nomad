@@ -105,28 +105,93 @@ Open `http://localhost:8501` in your browser.
 
 ---
 
-## 🧪 Running the Acceptance Tests
+## 🤖 Nomad Closed-Loop Autonomous Builder (Antigravity Integration)
 
-```bash
-pytest tests/ -v
+Nomad integrates with external autonomous coding agents (Google Antigravity / "AGY") via the **Model Context Protocol (MCP)** over stdio.
+
+```text
+verified + masked JSON
+        |
+        v
+ Ollama / Fallback compiles a STRUCTURED PROMPT from masked tasks
+        |
+        v
+ Nomad MCP server (stdio)  <---- AGY pulls brief: cleanroom_get_masked_brief
+        |                           AGY builds deliverables in: Desktop\test\<slug>\
+        |                           AGY reports: cleanroom_submit_code_report
+        v
+ Nomad evaluates locally (re-runs acceptance tests in isolated subprocess)
+        |
+        +-- passed ---------------> HMAC ledger entry, done
+        +-- needs revision -------> re-masked feedback returned to AGY (iteration 2, then 3)
+        +-- still failing after 3 -> stop, failed_max_iterations, ledger entry
 ```
-Or run the evaluation runner:
-```bash
-python scripts/eval.py
+
+### Quickstart: Running the Closed-Loop Demo (PowerShell)
+
+Run the autonomous build demo with synthetic fake AGY behaviors:
+
+```powershell
+# Multi-turn revision demo: agent fails iteration 1, gets masked feedback, passes iteration 2
+python scripts/run_closed_loop_demo.py --behavior fix_on_second
+
+# Single-turn pass
+python scripts/run_closed_loop_demo.py --behavior good
+
+# Hard iteration cap: stops at iteration 3
+python scripts/run_closed_loop_demo.py --behavior never_passes
+
+# Real Desktop mode (writes to Desktop\test)
+python scripts/run_closed_loop_demo.py --behavior fix_on_second --use-real-desktop
 ```
 
-### Acceptance Fixture Results:
-1. `mock_meeting_01_verified.json` → `VERIFIED` (`CLEAN_SUPPORT`, `PROCEED`)
-2. `mock_meeting_02_ambiguous.json` → `AMBIGUOUS` (`DEFERRED`, `HUMAN_REVIEW`)
-3. `mock_meeting_03_implicit.json` → `VERIFIED` (`resolved_claim` generated, actor grounded)
-4. `mock_meeting_04_unsupported.json` → `UNSUPPORTED` (`INFORM_ONLY`, `BLOCK`)
-5. `mock_meeting_05_reversal.json` → `AMBIGUOUS` (`REVERSED`, `HUMAN_REVIEW`)
+### Running Closed-Loop Automated Tests
 
----
+```powershell
+# Unit test suite (Task selection, compiler, criteria catalog, evaluator, vault, ledger)
+pytest tests/test_closed_loop_unit.py -v
 
-## 🛡️ Handoff & Data Masking Contract
+# Mock Ollama HTTP API server tests
+pytest tests/test_ollama_mock.py -v
 
-ReqCopilot Proof guarantees that unverified claims **fail closed**:
-- Calling `/claims/{id}/handoff` on an `AMBIGUOUS` or `UNSUPPORTED` claim returns `409 Conflict (NOT_RELEASED)`.
-- Only `VERIFIED` or `USER_CONFIRMED` tasks are released to the masking and cloud execution stages.
-- The handoff payload provides `grounding_segments` as a pre-computed minimal context set.
+# Real MCP server stdio protocol & stdout hygiene test
+pytest tests/test_mcp_protocol.py -v
+
+# All 8 fake AGY behaviors (good, fix_on_second, never_passes, lies, tamper, escape, leaky, abandon)
+pytest tests/test_fake_agy_behaviors.py -v
+```
+
+### Antigravity Registration & Workspace Utilities
+
+```powershell
+# Check registration in ~/.gemini/config/mcp_config.json and detect schema drift
+python scripts/check_agy_registration.py
+
+# Apply MCP registration with automated backup and diff preview
+python scripts/check_agy_registration.py --apply
+
+# Safely clean temporary test workspaces in Desktop\test
+python scripts/clean_workspace.py --all-test-runs
+```
+
+### Environment Configuration
+
+The following environment variables configure the closed loop (see `.env.example`):
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `ENABLE_OLLAMA` | `false` | Enable local Ollama LLM for prompt compilation. If false or unavailable, uses deterministic fallback. |
+| `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama HTTP API endpoint. |
+| `OLLAMA_MODEL` | `qwen2.5:7b` | Ollama model name to use for prompt compilation. |
+| `AGY_WORKSPACE_ROOT`| `<Desktop>\test` | Root directory where AGY workspaces are created. |
+| `MAX_ITERATIONS` | `3` | Maximum loop iterations before failing closed (hard-capped at 3). |
+| `NOMAD_VAULT_KEY` | Derived | 32-byte urlsafe base64 key for Fernet vault encryption at rest. |
+| `NOMAD_LEDGER_KEY` | None | HMAC key for signing AuditLedger entries. |
+| `PERSIST_TOKEN_MAP` | `false` | Retain encrypted token map files after terminal loop verdicts (for debugging). |
+
+### Documentation References
+
+- [`docs/STATUS.md`](file:///c:/Users/DELL/Desktop/ASCENT'26/docs/STATUS.md): System audit, component inventory, and verification results.
+- [`docs/ARCHITECTURE.md`](file:///c:/Users/DELL/Desktop/ASCENT'26/docs/ARCHITECTURE.md): Architectural design, security boundaries, and encrypted vault tradeoffs.
+- [`docs/CLOSED_LOOP.md`](file:///c:/Users/DELL/Desktop/ASCENT'26/docs/CLOSED_LOOP.md): Complete MCP tool contracts with sample JSON requests/responses.
+- [`docs/AGY_MANUAL_TEST.md`](file:///c:/Users/DELL/Desktop/ASCENT'26/docs/AGY_MANUAL_TEST.md): Step-by-step instructions for testing with the real Google Antigravity agent.

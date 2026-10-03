@@ -204,121 +204,133 @@ def ask_question_tool(meeting_id: str, question: str, audience: str = "outside_c
 
 
 # Tool 8: Get Masked Brief for AGY
-def get_masked_brief_tool(meeting_id: str) -> str:
+def get_masked_brief_tool(
+    meeting_id: str,
+    loop_run_id: Optional[str] = None,
+    task_id: Optional[str] = None,
+) -> str:
     """
     Retrieve the verified, privacy-masked coding brief for a meeting.
+    Returns structured prompt, workspace path, criteria, and gate status.
     Fail-closed: returns BLOCKED if the gate decision is not 'release'.
-    Called by the Antigravity (AGY) coding agent to receive its task.
     """
-    repo, db = _get_repo()
+    from backend.loop.state import LoopStateMachine
+
+    sm = LoopStateMachine()
     try:
-        meeting = repo.get_meeting_by_id(meeting_id)
-        if not meeting:
-            return json.dumps({"status": "ERROR", "error": f"Meeting '{meeting_id}' not found."})
-
-        # 1. Enforce gate decision — fail closed
-        decision = repo.get_latest_release_decision(meeting.id)
-        if not decision or decision.decision.lower() != "release":
-            return json.dumps({
-                "status": "BLOCKED",
-                "error": "Task brief cannot be released. Gate status is HOLD_FOR_REVIEW or meeting is unverified.",
-                "gate_decision": decision.decision if decision else "NOT_PROCESSED",
-                "reasons": json.loads(decision.reasons_json) if decision else [],
-            })
-
-        # 2. Get the active loop run
-        loop_run = repo.get_active_loop_run(meeting.id)
-        if not loop_run:
-            return json.dumps({
-                "status": "ERROR",
-                "error": "No active autonomous loop run found. Trigger /api/meetings/{id}/build first.",
-            })
-
-        # 3. Return the masked brief and acceptance criteria
+        res = sm.get_or_create_brief(
+            meeting_id=meeting_id,
+            loop_run_id=loop_run_id,
+            task_id=task_id,
+        )
+        data = res.model_dump(mode="json")
+        # Backwards-compatible aliases
+        prompt_obj = data.get("prompt", {})
+        data["brief_markdown"] = prompt_obj.get("objective", "") + "\n\n" + prompt_obj.get("workspace_instructions", "")
+        return json.dumps(data, indent=2)
+    except PermissionError as pe:
         return json.dumps({
-            "status": "RELEASED",
-            "meeting_id": meeting.id,
-            "loop_run_id": loop_run.id,
-            "iteration": loop_run.iteration,
-            "brief_markdown": loop_run.masked_brief_text or "",
-            "acceptance_criteria": loop_run.acceptance_criteria or "",
-            "corrective_prompt": loop_run.corrective_prompt or None,
-            "instructions": (
-                "You are the Antigravity coding agent. Your task: implement the requirements "
-                "in 'brief_markdown'. Write clean, production-quality Python code. "
-                "Also generate and run pytest tests that validate the acceptance criteria. "
-                "When done, call cleanroom_submit_code_report with your results."
-            ),
+            "status": "BLOCKED",
+            "isError": True,
+            "error": str(pe),
+            "gate": {"decision": "HOLD_FOR_REVIEW"},
+        }, indent=2)
+    except Exception as e:
+        return json.dumps({
+            "status": "ERROR",
+            "isError": True,
+            "error": str(e),
         }, indent=2)
     finally:
-        db.close()
+        sm.close()
 
 
 # Tool 9: Submit Code Report
 def submit_code_report_tool(
-    meeting_id: str,
     loop_run_id: str,
-    iteration: int,
     agy_status: str,
     summary: str,
     files_changed: list,
+    diff: Optional[str] = None,
     test_results: Optional[str] = None,
+    iteration: Optional[int] = None,
+    meeting_id: Optional[str] = None,
     code_diff: Optional[str] = None,
 ) -> str:
     """
     Called by AGY to submit its implementation report back to Nomad.
-    Nomad persists the report and triggers local evaluation.
-    agy_status must be one of: 'success', 'failure', 'partial'.
+    Nomad executes local evaluation in an isolated subprocess and returns the verdict.
     """
-    repo, db = _get_repo()
+    from backend.loop.state import CodeReportSubmission, LoopStateMachine
+
+    # Detect legacy argument order: meeting_id, loop_run_id, iteration, agy_status...
+    actual_run_id = loop_run_id
+    actual_status = agy_status
+    actual_summary = summary
+    actual_files = files_changed
+    actual_diff = diff or code_diff
+    actual_iter = iteration
+
+    if meeting_id is not None and not str(loop_run_id).startswith("run_"):
+        # Legacy positional caller
+        actual_run_id = str(agy_status)
+        actual_status = str(files_changed) if isinstance(files_changed, str) else "completed"
+        actual_summary = str(diff) if diff else "Implementation report"
+        actual_files = list(test_results) if isinstance(test_results, list) else []
+
+    sm = LoopStateMachine()
     try:
-        meeting = repo.get_meeting_by_id(meeting_id)
-        if not meeting:
-            return json.dumps({"status": "ERROR", "error": f"Meeting '{meeting_id}' not found."})
-
-        # 1. Persist the build report
-        report = repo.save_build_report(
-            loop_run_id=loop_run_id,
-            meeting_id=meeting.id,
-            iteration=iteration,
-            agy_status=agy_status,
-            summary=summary,
-            files_changed=files_changed,
-            test_results=test_results,
-            code_diff=code_diff,
+        sub = CodeReportSubmission(
+            loop_run_id=actual_run_id,
+            agy_status=actual_status,
+            summary=actual_summary,
+            files_changed=actual_files if isinstance(actual_files, list) else [str(actual_files)],
+            diff=actual_diff,
+            test_results=test_results if isinstance(test_results, str) else None,
+            iteration=actual_iter,
+            meeting_id=meeting_id,
         )
-
-        # 2. Record ingestion event in Audit Ledger
-        from backend.processors.ledger import AuditLedger
-        AuditLedger.record_event(
-            repo=repo,
-            meeting_id=meeting.id,
-            event_type="agy_report_received",
-            payload={
-                "loop_run_id": loop_run_id,
-                "iteration": iteration,
-                "agy_status": agy_status,
-                "files_changed": files_changed,
-                "report_id": report.id,
-            },
-            transcript_sha256=meeting.transcript_sha256 or "no_hash",
-        )
-
-        # 3. Mark loop run as 'evaluating' and run local evaluation
-        repo.update_loop_run(loop_run_id=loop_run_id, status="evaluating")
-
-        from backend.processors.autonomous_loop import AutonomousLoopOrchestrator
-        orchestrator = AutonomousLoopOrchestrator(repo=repo)
-        eval_result = orchestrator.evaluate_report(meeting_id=meeting.id, report_id=report.id)
-
+        res = sm.submit_and_evaluate_report(sub)
+        return json.dumps(res.model_dump(mode="json"), indent=2)
+    except Exception as e:
         return json.dumps({
-            "status": "ACCEPTED",
-            "report_id": report.id,
-            "evaluation": eval_result,
-            "message": f"Report received for iteration {iteration} and evaluated by Nomad. Status: {eval_result.get('status', 'unknown')}.",
+            "status": "ERROR",
+            "isError": True,
+            "error": str(e),
+            "verdict": "rejected",
         }, indent=2)
     finally:
-        db.close()
+        sm.close()
+
+
+# Tool 10: Get Loop Status
+def get_loop_status_tool(loop_run_id: str) -> str:
+    """Query state, iteration count, and evaluation history for a loop run."""
+    from backend.loop.state import LoopStateMachine
+
+    sm = LoopStateMachine()
+    try:
+        status_dict = sm.get_loop_status(loop_run_id)
+        return json.dumps(status_dict, indent=2)
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "isError": True, "error": str(e)}, indent=2)
+    finally:
+        sm.close()
+
+
+# Tool 11: Abort Loop
+def abort_loop_tool(loop_run_id: str, reason: str = "Aborted by operator") -> str:
+    """Manually abort an active build loop."""
+    from backend.loop.state import LoopStateMachine
+
+    sm = LoopStateMachine()
+    try:
+        res = sm.abort_loop(loop_run_id, reason=reason)
+        return json.dumps(res, indent=2)
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "isError": True, "error": str(e)}, indent=2)
+    finally:
+        sm.close()
 
 
 # Register tools on MCP server if MCP is installed
@@ -359,38 +371,52 @@ if mcp_app:
         return ask_question_tool(meeting_id, question, audience)
 
     @mcp_app.tool()
-    def cleanroom_get_masked_brief(meeting_id: str) -> str:
+    def cleanroom_get_masked_brief(
+        meeting_id: str,
+        loop_run_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+    ) -> str:
         """
         Retrieve the verified, privacy-masked coding task brief for AGY.
         Returns BLOCKED if gate decision is not 'release'.
         """
-        return get_masked_brief_tool(meeting_id)
+        return get_masked_brief_tool(meeting_id=meeting_id, loop_run_id=loop_run_id, task_id=task_id)
 
     @mcp_app.tool()
     def cleanroom_submit_code_report(
-        meeting_id: str,
         loop_run_id: str,
-        iteration: int,
         agy_status: str,
         summary: str,
         files_changed: list,
+        diff: Optional[str] = None,
         test_results: Optional[str] = None,
-        code_diff: Optional[str] = None,
+        iteration: Optional[int] = None,
+        meeting_id: Optional[str] = None,
     ) -> str:
         """
         Submit AGY's build results back to Nomad for local evaluation.
-        agy_status: 'success' | 'failure' | 'partial'.
+        agy_status: 'completed' | 'partial' | 'blocked' | 'failed'.
         """
         return submit_code_report_tool(
-            meeting_id=meeting_id,
             loop_run_id=loop_run_id,
-            iteration=iteration,
             agy_status=agy_status,
             summary=summary,
             files_changed=files_changed,
+            diff=diff,
             test_results=test_results,
-            code_diff=code_diff,
+            iteration=iteration,
+            meeting_id=meeting_id,
         )
+
+    @mcp_app.tool()
+    def cleanroom_get_loop_status(loop_run_id: str) -> str:
+        """Query state, iteration count, and evaluation history for a loop run."""
+        return get_loop_status_tool(loop_run_id)
+
+    @mcp_app.tool()
+    def cleanroom_abort_loop(loop_run_id: str, reason: str = "Aborted by operator") -> str:
+        """Manually abort an active build loop."""
+        return abort_loop_tool(loop_run_id, reason)
 
 
 def main():
@@ -398,7 +424,7 @@ def main():
     if mcp_app:
         mcp_app.run()
     else:
-        print("MCP SDK not installed. Run 'pip install mcp' to enable MCP server.")
+        print("MCP SDK not installed. Run 'pip install mcp' to enable MCP server.", file=sys.stderr)
 
 
 if __name__ == "__main__":

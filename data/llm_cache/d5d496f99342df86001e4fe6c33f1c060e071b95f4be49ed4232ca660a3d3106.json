@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "Create a dashboard that authenticated users are redirected to after login and display a welcome message containing their email address."
+}

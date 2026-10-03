@@ -536,6 +536,54 @@ async def get_loop_status(id: str, repo: Repository = Depends(get_repo)):
     if not meeting:
         return {"status": "no_loop_run", "message": "No autonomous build has been triggered yet."}
 
+    from backend.storage.models import LoopRunModel, LoopIterationModel
+    new_loop_run = (
+        repo.db.query(LoopRunModel)
+        .filter(LoopRunModel.meeting_id == meeting.id)
+        .order_by(LoopRunModel.created_at.desc())
+        .first()
+    )
+    if new_loop_run:
+        iterations = (
+            repo.db.query(LoopIterationModel)
+            .filter(LoopIterationModel.loop_run_id == new_loop_run.id)
+            .order_by(LoopIterationModel.iteration.asc())
+            .all()
+        )
+        reports = []
+        for it in iterations:
+            eval_data = json.loads(it.evaluation_json) if it.evaluation_json else {}
+            reports.append({
+                "id": it.id,
+                "iteration": it.iteration,
+                "agy_status": "completed",
+                "summary": it.report_summary or "",
+                "evaluation_result": it.verdict,
+                "evaluation_notes": f"Passed: {eval_data.get('passed_count', 0)}, Failed: {eval_data.get('failed_count', 0)}",
+                "test_results": "\n".join([f"{f.get('test')}: {f.get('message')}" for f in eval_data.get('failures', [])]),
+                "files_changed": eval_data.get("files_changed", []),
+                "submitted_at": it.created_at.isoformat() if it.created_at else None,
+            })
+        
+        latest_it = iterations[-1] if iterations else None
+        latest_eval = json.loads(latest_it.evaluation_json) if (latest_it and latest_it.evaluation_json) else {}
+        corrective = ""
+        if latest_it and latest_eval.get("failures"):
+            corrective = "\n".join([f"- {f.get('test')}: {f.get('message')}" for f in latest_eval.get("failures", [])])
+
+        return {
+            "loop_run_id": new_loop_run.id,
+            "meeting_id": meeting.id,
+            "status": new_loop_run.status,
+            "iteration": new_loop_run.iteration,
+            "max_iterations": new_loop_run.max_iterations,
+            "started_at": new_loop_run.created_at.isoformat() if new_loop_run.created_at else None,
+            "completed_at": new_loop_run.updated_at.isoformat() if new_loop_run.status in ("passed", "failed_max_iterations", "rejected", "aborted") else None,
+            "error_summary": None if new_loop_run.status == "passed" else (f"Build {new_loop_run.status}" if new_loop_run.status not in ("brief_issued", "pending") else None),
+            "corrective_prompt": corrective,
+            "reports": reports,
+        }
+
     loop_run = repo.get_latest_loop_run(meeting.id)
     if not loop_run:
         return {"status": "no_loop_run", "message": "No autonomous build has been triggered yet."}

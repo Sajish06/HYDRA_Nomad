@@ -1,0 +1,41 @@
+{
+  "name": "cleanroom_get_masked_brief",
+  "description": "\n        Retrieve the verified, privacy-masked coding task brief for AGY.\n        Returns BLOCKED if gate decision is not 'release'.\n        ",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      },
+      "loop_run_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Loop Run Id"
+      },
+      "task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Task Id"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_get_masked_briefArguments"
+  }
+}

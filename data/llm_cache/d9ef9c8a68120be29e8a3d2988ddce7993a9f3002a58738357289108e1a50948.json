@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Bob",
+  "action": "implement",
+  "object": "email/password login flow",
+  "deadline": null,
+  "normalized": "Bob will implement the email/password login flow with server-side authentication and hashed passwords"
+}

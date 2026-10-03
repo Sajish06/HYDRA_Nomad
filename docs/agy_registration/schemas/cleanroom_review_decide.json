@@ -1,0 +1,34 @@
+{
+  "name": "cleanroom_review_decide",
+  "description": "Submit human review decision ('approved', 'corrected', 'rejected').",
+  "inputSchema": {
+    "properties": {
+      "item_id": {
+        "title": "Item Id",
+        "type": "string"
+      },
+      "action": {
+        "title": "Action",
+        "type": "string"
+      },
+      "correction": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Correction"
+      }
+    },
+    "required": [
+      "item_id",
+      "action"
+    ],
+    "type": "object",
+    "title": "cleanroom_review_decideArguments"
+  }
+}

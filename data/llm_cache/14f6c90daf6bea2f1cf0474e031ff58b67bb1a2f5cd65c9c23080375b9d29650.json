@@ -1,0 +1,18 @@
+{
+  "agent_payload": {
+    "task_id": "claim_DEMO_001_1",
+    "intentions": [],
+    "things_to_implement": [
+      "ENGINEER: Let's definitely create dedicated teams for both."
+    ],
+    "technical_context": [],
+    "deadline": "null"
+  },
+  "audit_record": {
+    "task_id": "claim_DEMO_001_1",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "DEMO_001"
+  }
+}

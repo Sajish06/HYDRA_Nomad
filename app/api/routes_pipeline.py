@@ -3,7 +3,7 @@ import json
 import traceback
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
 
 from app.models import Meeting, Claim, ClaimType, Participant, Segment, Stance, Status
@@ -90,7 +90,8 @@ def extract_summary_items_from_json(s_json: Any) -> List[str]:
 @router.post("/verify-and-mask")
 async def verify_and_mask_pipeline(
     transcript_file: UploadFile = File(..., description="Compulsory meeting transcript JSON file"),
-    summary_file: UploadFile = File(..., description="Compulsory meeting summary / claims JSON file")
+    summary_file: UploadFile = File(..., description="Compulsory meeting summary / claims JSON file"),
+    auto_launch: bool = Query(False, description="Automatically launch Antigravity IDE and execute build")
 ) -> Dict[str, Any]:
     """
     Unified End-to-End Pipeline:
@@ -360,6 +361,57 @@ async def verify_and_mask_pipeline(
             "deadline": p.deadline
         })
 
+    # Sync meeting and release decision to Nomad database
+    try:
+        from backend.storage.database import SessionLocal
+        from backend.storage.repository import Repository
+        _db = SessionLocal()
+        try:
+            _repo = Repository(_db)
+            _m = _repo.create_or_get_meeting(meetily_id=meeting.meeting_id, title=meeting.title or f"Meeting {meeting.meeting_id}")
+            if out_md_path and out_md_path.exists():
+                _m.raw_summary = out_md_path.read_text(encoding="utf-8")
+            elif not _m.raw_summary and formatted_tasks:
+                summary_lines = []
+                for ft in formatted_tasks:
+                    actor = ft.get("actor", "Team")
+                    for t in ft.get("things_to_implement", []):
+                        summary_lines.append(f"- {actor}: {t}")
+                _m.raw_summary = "\n".join(summary_lines)
+
+            if not _m.transcript_sha256:
+                _m.transcript_sha256 = f"pipeline_{meeting.meeting_id}"
+            _db.commit()
+            if not _repo.get_latest_release_decision(_m.id):
+                _repo.save_release_decision(
+                    run_id=f"pipeline_{meeting.meeting_id}",
+                    meeting_id=_m.id,
+                    decision="release",
+                    reasons=["Verified via Clean Room Pipeline"],
+                    flagged_claims=[],
+                    flagged_conflicts=[]
+                )
+            if out_md_path and out_md_path.exists():
+                _repo.save_output_artifact(
+                    run_id=f"pipeline_{meeting.meeting_id}",
+                    meeting_id=_m.id,
+                    audience="cloud_llm",
+                    file_path=str(out_md_path.resolve()),
+                    status="clean"
+                )
+        finally:
+            _db.close()
+    except Exception:
+        pass
+
+    agy_launch_info = None
+    if auto_launch:
+        try:
+            from backend.loop.auto_launcher import setup_and_launch_agy
+            agy_launch_info = setup_and_launch_agy(meeting_id=meeting.meeting_id, auto_execute=True)
+        except Exception as e:
+            agy_launch_info = {"status": "error", "message": str(e)}
+
     return {
         "status": "SUCCESS",
         "meeting_id": meeting.meeting_id,
@@ -367,6 +419,29 @@ async def verify_and_mask_pipeline(
         "verified_tasks_count": len(formatted_tasks),
         "verified_tasks": formatted_tasks,
         "ambiguous_tasks_count": len(ambiguous_tasks),
-        "ambiguous_tasks": ambiguous_tasks
+        "ambiguous_tasks": ambiguous_tasks,
+        "agy_launch": agy_launch_info
     }
+
+
+@router.post("/auto-launch-agy")
+async def auto_launch_agy_endpoint(
+    meeting_id: str = Query(..., description="Target verified meeting ID"),
+    auto_execute: bool = Query(True, description="Automatically execute autonomous build")
+) -> Dict[str, Any]:
+    """
+    Generate prompt, jail workspace in Desktop/test, write PROMPT.md/AGENTS.md,
+    copy prompt to Windows clipboard, launch Antigravity IDE, and auto-execute build.
+    """
+    try:
+        from backend.loop.auto_launcher import setup_and_launch_agy
+        result = setup_and_launch_agy(meeting_id=meeting_id, auto_execute=auto_execute)
+        if result.get("status") == "error":
+            raise HTTPException(status_code=400, detail={"message": result.get("message", "Auto-launch failed")})
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail={"message": f"Auto-launch failed: {str(e)}"})
+
 

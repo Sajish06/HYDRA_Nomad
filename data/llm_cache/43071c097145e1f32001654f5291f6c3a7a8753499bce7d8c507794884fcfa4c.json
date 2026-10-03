@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Bob",
+  "action": "Ensure unauthenticated users cannot directly access the dashboard",
+  "object": "the dashboard",
+  "deadline": null,
+  "normalized": "Bob will Ensure unauthenticated users cannot directly access the dashboard"
+}

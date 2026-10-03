@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "The team agreed to build a simple HTML page displaying Hello World and a number counter with an increment button. Dark mode was discussed but no decision was made. Bob agreed to implement the Hello World page and counter."
+}

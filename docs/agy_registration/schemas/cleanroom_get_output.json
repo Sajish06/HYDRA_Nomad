@@ -1,0 +1,22 @@
+{
+  "name": "cleanroom_get_output",
+  "description": "Get generated output dossier tailored for a specific audience.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      },
+      "audience": {
+        "default": "lender",
+        "title": "Audience",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_get_outputArguments"
+  }
+}

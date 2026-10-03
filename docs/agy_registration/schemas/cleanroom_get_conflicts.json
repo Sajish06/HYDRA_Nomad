@@ -1,0 +1,17 @@
+{
+  "name": "cleanroom_get_conflicts",
+  "description": "Get cross-source discrepancies between meeting statements and diligence documents.",
+  "inputSchema": {
+    "properties": {
+      "meeting_id": {
+        "title": "Meeting Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_get_conflictsArguments"
+  }
+}

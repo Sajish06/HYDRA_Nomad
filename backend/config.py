@@ -50,6 +50,15 @@ class Settings(BaseSettings):
     EXPOSE_RAW_TRANSCRIPTS: bool = False
     PERSIST_TOKEN_MAP: bool = False
 
+    # Closed Loop & Antigravity settings
+    ENABLE_OLLAMA: bool = True
+    OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
+    OLLAMA_MODEL: str = "qwen2.5:7b"
+    AGY_WORKSPACE_ROOT: Optional[Path] = None
+    MAX_ITERATIONS: int = 3
+    NOMAD_VAULT_KEY: Optional[SecretStr] = None
+    NOMAD_LEDGER_KEY: Optional[SecretStr] = None
+
     # Policy and source paths
     AUDIENCE_PROFILES_PATH: Path = Field(default_factory=lambda: Path("./configs/audience_profiles.yaml"))
     DEAL_CONFIG_PATH: Path = Field(default_factory=lambda: Path("./configs/deal.yaml"))
@@ -75,9 +84,16 @@ class Settings(BaseSettings):
             "ENABLE_RAW_STORAGE": self.ENABLE_RAW_STORAGE,
             "EXPOSE_RAW_TRANSCRIPTS": self.EXPOSE_RAW_TRANSCRIPTS,
             "PERSIST_TOKEN_MAP": self.PERSIST_TOKEN_MAP,
+            "ENABLE_OLLAMA": self.ENABLE_OLLAMA,
+            "OLLAMA_BASE_URL": self.OLLAMA_BASE_URL,
+            "OLLAMA_MODEL": self.OLLAMA_MODEL,
+            "MAX_ITERATIONS": self.MAX_ITERATIONS,
+            "AGY_WORKSPACE_ROOT": str(self.AGY_WORKSPACE_ROOT) if self.AGY_WORKSPACE_ROOT else None,
             "HAS_MEETILY_TOKEN": self.MEETILY_API_TOKEN is not None,
             "HAS_WEBHOOK_SECRET": self.WEBHOOK_SECRET is not None,
             "HAS_GEMINI_KEY": self.GEMINI_API_KEY is not None,
+            "HAS_VAULT_KEY": self.NOMAD_VAULT_KEY is not None,
+            "HAS_LEDGER_KEY": self.NOMAD_LEDGER_KEY is not None,
         }
 
 

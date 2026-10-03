@@ -1,0 +1,37 @@
+{
+  "meeting_id": "mtg_mock_html_001",
+  "title": "Acme Widgets Web Portal Sprint",
+  "date": "2026-10-03",
+  "transcript": [
+    {
+      "speaker": "Alice",
+      "time": "00:00:10",
+      "text": "Welcome team. Let's agree on our public web pages for Project Falcon at Acme Widgets."
+    },
+    {
+      "speaker": "Bob",
+      "time": "00:00:25",
+      "text": "For the landing page index.html, we need a heading, an about section describing our widget optimization, a three-item feature list, and a footer."
+    },
+    {
+      "speaker": "Alice",
+      "time": "00:00:45",
+      "text": "Agreed. Contact Alice at billing@acme-widgets-fictional.com or call 555-019-2834 for questions. We will build contact.html with a form for name, email, and message."
+    },
+    {
+      "speaker": "Charlie",
+      "time": "00:01:10",
+      "text": "Make sure contact.html has proper form labels for each input and a submit button. Absolutely no external CDN or third-party resources allowed."
+    },
+    {
+      "speaker": "Bob",
+      "time": "00:01:30",
+      "text": "Someone should also look into quantum cloud computing, but we haven't assigned an owner for that yet."
+    },
+    {
+      "speaker": "Alice",
+      "time": "00:01:45",
+      "text": "Let's stick to the static pages index.html and contact.html. We have a budget of $25,000, not $50,000."
+    }
+  ]
+}

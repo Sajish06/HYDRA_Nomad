@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "The team agreed to build a user portal with a secure email-and-password authentication system and a protected dashboard. Authentication must be performed server-side, passwords must be securely hashed, and unauthenticated users must not be able to access the dashboard. Google login and password-reset functionality were discussed but were not included in the first version."
+}

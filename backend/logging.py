@@ -53,7 +53,7 @@ def setup_logging(level: str = "INFO") -> logging.Logger:
 
     # Avoid duplicate handlers
     if not root_logger.handlers:
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(SafeJsonFormatter())
         root_logger.addHandler(handler)
 

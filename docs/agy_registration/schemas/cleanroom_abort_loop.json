@@ -1,0 +1,22 @@
+{
+  "name": "cleanroom_abort_loop",
+  "description": "Manually abort an active build loop.",
+  "inputSchema": {
+    "properties": {
+      "loop_run_id": {
+        "title": "Loop Run Id",
+        "type": "string"
+      },
+      "reason": {
+        "default": "Aborted by operator",
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "loop_run_id"
+    ],
+    "type": "object",
+    "title": "cleanroom_abort_loopArguments"
+  }
+}
