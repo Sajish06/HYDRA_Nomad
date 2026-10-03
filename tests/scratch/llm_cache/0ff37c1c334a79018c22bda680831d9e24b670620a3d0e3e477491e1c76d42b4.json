@@ -1,0 +1,44 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-TC1-01",
+    "intentions": [
+      "We need the customer analytics dashboard ready by November 15."
+    ],
+    "things_to_implement": [
+      "BACKEND: Enforce authorization at the API layer and return HTTP 403 when an unauthorized role accesses restricted endpoints.",
+      "FRONTEND: Hide the revenue and margin sections for users who don't have permission and show an appropriate 403 state when the API rejects the request.",
+      "QA: Create test cases covering ADMIN, FINANCE, MANAGER and USER access."
+    ],
+    "technical_context": [
+      "Authorization is enforced at the API layer.",
+      "The dashboard must support around 10,000 concurrent users during normal operation."
+    ],
+    "deadline": "November 15"
+  },
+  "audit_record": {
+    "task_id": "TASK-TC1-01",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Unreleased business strategy / Market expansion / M&A",
+        "source": "semantic_model",
+        "value": "Priya: For context, our current customer base is 8,450 and management expects roughly 35% growth after the upcoming campaign. That campaign has not been announced yet, so this information should remain internal."
+      },
+      {
+        "category": "COMMERCIAL_NEGOTIATION",
+        "reason": "Commercial negotiation / Vendor pricing terms",
+        "source": "semantic_model",
+        "value": "Priya: We're also negotiating a new enterprise contract with Bharat Retail Solutions. They are currently considering leaving their existing vendor because of pricing."
+      },
+      {
+        "category": "GOVERNMENT_ID",
+        "reason": "Indian Government Identifier (Aadhaar/PAN/GSTIN)",
+        "source": "semantic_model",
+        "value": "Neha: I also received a support document containing a customer's personal information: Name: Suresh Nair, Phone: +91 98765 43210, Email: suresh.nair@example.com, Aadhaar: 2345 6789 0123, PAN: ABCDE1234F"
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEET-TC1-TEST"
+  }
+}

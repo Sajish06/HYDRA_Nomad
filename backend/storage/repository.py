@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from backend.storage.models import (
+    AutonomousLoopRunModel,
+    BuildReportModel,
     IntelligenceRowModel,
     LedgerEntryModel,
     MeetingModel,
@@ -373,3 +375,106 @@ class Repository:
             .order_by(LedgerEntryModel.index.asc())
             .all()
         )
+
+    # --- Autonomous Loop Runs ---
+    def create_loop_run(self, meeting_id: str, max_iterations: int = 3) -> AutonomousLoopRunModel:
+        run = AutonomousLoopRunModel(
+            meeting_id=meeting_id,
+            status="pending",
+            iteration=0,
+            max_iterations=max_iterations,
+        )
+        self.db.add(run)
+        self.db.commit()
+        self.db.refresh(run)
+        return run
+
+    def get_active_loop_run(self, meeting_id: str) -> Optional[AutonomousLoopRunModel]:
+        return (
+            self.db.query(AutonomousLoopRunModel)
+            .filter(
+                AutonomousLoopRunModel.meeting_id == meeting_id,
+                AutonomousLoopRunModel.status.in_(["pending", "dispatched", "evaluating"]),
+            )
+            .order_by(AutonomousLoopRunModel.started_at.desc())
+            .first()
+        )
+
+    def update_loop_run(
+        self,
+        loop_run_id: str,
+        status: Optional[str] = None,
+        iteration: Optional[int] = None,
+        masked_brief_text: Optional[str] = None,
+        acceptance_criteria: Optional[str] = None,
+        corrective_prompt: Optional[str] = None,
+        error_summary: Optional[str] = None,
+    ) -> Optional[AutonomousLoopRunModel]:
+        run = self.db.query(AutonomousLoopRunModel).filter(AutonomousLoopRunModel.id == loop_run_id).first()
+        if not run:
+            return None
+        if status is not None:
+            run.status = status
+        if iteration is not None:
+            run.iteration = iteration
+        if masked_brief_text is not None:
+            run.masked_brief_text = masked_brief_text
+        if acceptance_criteria is not None:
+            run.acceptance_criteria = acceptance_criteria
+        if corrective_prompt is not None:
+            run.corrective_prompt = corrective_prompt
+        if error_summary is not None:
+            run.error_summary = error_summary
+        if status in ("success", "needs_intervention"):
+            run.completed_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(run)
+        return run
+
+    def save_build_report(
+        self,
+        loop_run_id: str,
+        meeting_id: str,
+        iteration: int,
+        agy_status: str,
+        summary: str,
+        files_changed: list,
+        test_results: Optional[str] = None,
+        code_diff: Optional[str] = None,
+    ) -> BuildReportModel:
+        report = BuildReportModel(
+            loop_run_id=loop_run_id,
+            meeting_id=meeting_id,
+            iteration=iteration,
+            agy_status=agy_status,
+            summary=summary,
+            files_changed_json=json.dumps(files_changed),
+            test_results=test_results,
+            code_diff=code_diff,
+            evaluation_result="pending",
+        )
+        self.db.add(report)
+        self.db.commit()
+        self.db.refresh(report)
+        return report
+
+    def update_build_report_evaluation(
+        self,
+        report_id: str,
+        evaluation_result: str,
+        evaluation_notes: Optional[str] = None,
+    ) -> None:
+        report = self.db.query(BuildReportModel).filter(BuildReportModel.id == report_id).first()
+        if report:
+            report.evaluation_result = evaluation_result
+            report.evaluation_notes = evaluation_notes
+            self.db.commit()
+
+    def get_latest_loop_run(self, meeting_id: str) -> Optional[AutonomousLoopRunModel]:
+        return (
+            self.db.query(AutonomousLoopRunModel)
+            .filter(AutonomousLoopRunModel.meeting_id == meeting_id)
+            .order_by(AutonomousLoopRunModel.started_at.desc())
+            .first()
+        )
+

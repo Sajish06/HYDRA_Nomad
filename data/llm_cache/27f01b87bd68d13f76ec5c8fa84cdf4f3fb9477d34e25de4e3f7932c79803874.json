@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "payment-service tracing"
+}

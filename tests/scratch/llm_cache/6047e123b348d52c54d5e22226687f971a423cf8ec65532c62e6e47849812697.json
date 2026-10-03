@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-004",
+    "intentions": [
+      "SUPPORT users must no longer be able to export customer email addresses or phone numbers, restricting export capabilities strictly to ADMIN and CRM_MANAGER."
+    ],
+    "things_to_implement": [
+      "BACKEND: Update customer export endpoint authorization to restrict PII field exports strictly to ADMIN and CRM_MANAGER.",
+      "FRONTEND: Remove export option from SUPPORT interface and show authorization error banner if requested directly.",
+      "QA: Test both UI controls and direct API access across SUPPORT, ADMIN, and CRM_MANAGER roles."
+    ],
+    "technical_context": [],
+    "deadline": "Thursday"
+  },
+  "audit_record": {
+    "task_id": "TASK-004",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "TEST_CASE_04"
+  }
+}

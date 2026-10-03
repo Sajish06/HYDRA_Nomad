@@ -1,0 +1,35 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-001",
+    "intentions": [
+      "Customer count, average order value, and revenue must be displayed on the customer dashboard, but ordinary support staff should only see customer count while ADMIN and FINANCE can see all three metrics."
+    ],
+    "things_to_implement": [
+      "BACKEND: Enforce revenue and AOV metric authorization in the analytics API for ADMIN and FINANCE roles.",
+      "FRONTEND: Make revenue and AOV cards conditional based on user authorization.",
+      "QA: Verify ADMIN, FINANCE, SUPPORT, and SALES access permissions."
+    ],
+    "technical_context": [],
+    "deadline": "Wednesday"
+  },
+  "audit_record": {
+    "task_id": "TASK-001",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Unreleased business strategy / Market expansion / M&A",
+        "source": "semantic_model",
+        "value": "Maya: Also, we're expecting around 40% more customers next quarter because we're entering two new countries."
+      },
+      {
+        "category": "COMMERCIAL_NEGOTIATION",
+        "reason": "Commercial negotiation / Vendor pricing terms",
+        "source": "semantic_model",
+        "value": "Maya: Don't mention that to the engineering team yet because we're negotiating a major contract with another company and the projected customer numbers are part of that negotiation."
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "TEST_CASE_01"
+  }
+}

@@ -9,40 +9,29 @@
 ## Task: TASK-001
 
 ### 1. Intentions (Technical Objective)
-- Restrict revenue metrics to ADMIN and FINANCE roles
+- Customer revenue, average order value, and monthly customer value should not be visible to ordinary support staff, only to admins and finance managers.
 
 ### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization
-- FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
+- BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization.
+- FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states.
+- QA: Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.
 
 ### 3. Technical Context (Prerequisites & Constraints)
-- Support 10,000 concurrent users
-- Audit records retained for 180 days
-- Use RBAC and FastAPI
 
 **Deadline**: Friday
 
 ### 4. Role-Specific Briefs
 #### BACKEND — Assignee: Ravi (Deadline: Friday)
-- Deliverable: BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization
-- Context: Support 10,000 concurrent users
-- Context: Audit records retained for 180 days
-- Context: Use RBAC and FastAPI
+- Deliverable: BACKEND: Update RBAC middleware and analytics API endpoints to enforce revenue metric authorization.
 
 #### FRONTEND — Assignee: Neha (Deadline: Friday)
-- Deliverable: FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states
-- Context: Support 10,000 concurrent users
-- Context: Audit records retained for 180 days
-- Context: Use RBAC and FastAPI
+- Deliverable: FRONTEND: Update dashboard UI components to conditionally hide revenue cards and handle unauthorized error states.
 
 #### QA — Assignee: QA_Team (Deadline: Friday)
 - Deliverable: QA: Verify ADMIN and FINANCE roles receive revenue metrics, while SUPPORT role cannot access metrics.
-- Context: Support 10,000 concurrent users
-- Context: Audit records retained for 180 days
-- Context: Use RBAC and FastAPI
 
 ---
 
 ### Privacy Engine Audit
-- Total Business Secrets Isolated & Dropped: **2**
+- Total Business Secrets Isolated & Dropped: **1**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

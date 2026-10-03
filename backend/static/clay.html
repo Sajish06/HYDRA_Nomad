@@ -552,6 +552,247 @@
       font-size: 13px;
       font-style: italic;
     }
+
+    /* Autonomous AGY Coding Loop Styles */
+    .build-loop-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .build-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .build-status-banner {
+      background: var(--card-inset);
+      box-shadow: var(--shadow-inset);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .build-status-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: inline-block;
+    }
+
+    .pulse-dot.running {
+      background: var(--terracotta);
+      box-shadow: 0 0 10px rgba(184, 91, 53, 0.6);
+      animation: loopPulse 1.4s infinite ease-in-out;
+    }
+
+    .pulse-dot.success {
+      background: var(--sage-green);
+      box-shadow: 0 0 10px rgba(59, 122, 87, 0.6);
+      animation: none;
+    }
+
+    .pulse-dot.error {
+      background: var(--clay-red);
+      box-shadow: 0 0 10px rgba(163, 59, 59, 0.6);
+      animation: none;
+    }
+
+    @keyframes loopPulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .loop-stepper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .loop-stepper {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .step-box {
+      background: var(--card-inset);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-left: 3px solid var(--border-clay);
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .step-box.active {
+      border-left-color: var(--terracotta);
+      background: rgba(184, 91, 53, 0.08);
+      font-weight: 600;
+    }
+
+    .step-box.completed {
+      border-left-color: var(--sage-green);
+      background: rgba(59, 122, 87, 0.08);
+    }
+
+    .step-box.failed {
+      border-left-color: var(--clay-red);
+      background: rgba(163, 59, 59, 0.08);
+    }
+
+    .step-num {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .step-title {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .step-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .build-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-build-primary {
+      background: var(--terracotta);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 4px 4px 10px rgba(184, 91, 53, 0.35);
+      transition: all 0.15s;
+    }
+
+    .btn-build-primary:hover:not(:disabled) {
+      background: var(--terracotta-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-build-primary:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn-build-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-build-secondary {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border: 1px solid var(--border-clay);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-build-secondary:hover:not(:disabled) {
+      background: var(--card-inset);
+      transform: translateY(-1px);
+    }
+
+    .build-tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-clay);
+      padding-bottom: 6px;
+    }
+
+    .build-tab-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .build-tab-btn.active {
+      color: var(--terracotta);
+      background: var(--card-inset);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .build-tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .build-tab-pane.active {
+      display: flex;
+    }
+
+    .build-console {
+      background: #1e1d1b;
+      color: #ede8df;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
@@ -649,6 +890,116 @@
         </div>
       </div>
       <pre class="json-display" id="json-result"></pre>
+    </section>
+
+    <!-- Autonomous AGY Coding Loop Section -->
+    <section class="build-loop-card" id="build-loop-card">
+      <div class="build-header-row">
+        <div>
+          <div class="output-title">🤖 Autonomous Meeting-to-Code Closed Loop</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Dual-Plane Architecture: Nomad verifies & gates requirements locally, releases masked briefs via MCP, and audits AGY code generation with self-healing feedback.
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-action" onclick="refreshLoopStatus()">🔄 Refresh Status</button>
+        </div>
+      </div>
+
+      <!-- Live Status Banner -->
+      <div class="build-status-banner">
+        <div class="build-status-left">
+          <span class="pulse-dot" id="loop-pulse-dot"></span>
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: var(--text-main);" id="loop-status-title">Status: Ready to Build</div>
+            <div style="font-size: 12px; color: var(--text-muted);" id="loop-status-desc">Click "Build with AGY" to dispatch verified masked brief to Antigravity via MCP.</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span class="meta-chip" id="loop-iteration-badge">Attempt: 0 / 3</span>
+          <span class="task-tag" id="loop-state-tag" style="background: rgba(184, 91, 53, 0.15); color: var(--terracotta);">IDLE</span>
+        </div>
+      </div>
+
+      <!-- 4-Stage Stepper -->
+      <div class="loop-stepper">
+        <div class="step-box completed" id="step-1">
+          <span class="step-num">Stage 1</span>
+          <span class="step-title">🛡️ Clean Room Gate</span>
+          <span class="step-desc">Commitments verified & PII masked locally</span>
+        </div>
+        <div class="step-box" id="step-2">
+          <span class="step-num">Stage 2</span>
+          <span class="step-title">⚡ MCP Brief Release</span>
+          <span class="step-desc">Acceptance criteria & stubs generated for AGY</span>
+        </div>
+        <div class="step-box" id="step-3">
+          <span class="step-num">Stage 3</span>
+          <span class="step-title">💻 AGY Code & Tests</span>
+          <span class="step-desc">Antigravity builds code & executes pytest suite</span>
+        </div>
+        <div class="step-box" id="step-4">
+          <span class="step-num">Stage 4</span>
+          <span class="step-title">📜 Local Verification</span>
+          <span class="step-desc">Evaluate report & sync to tamper-evident ledger</span>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="build-actions-bar">
+        <button type="button" class="btn-build-primary" id="btn-trigger-build" onclick="triggerBuild()">
+          🚀 Build with AGY (Antigravity MCP)
+        </button>
+        <button type="button" class="btn-build-secondary" onclick="simulateAgyDemo('success')">
+          ⚡ Demo: Simulate AGY Report (Pass)
+        </button>
+        <button type="button" class="btn-build-secondary" onclick="simulateAgyDemo('failure')">
+          ⚠️ Demo: Simulate AGY Retry (Self-Healing)
+        </button>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="build-tabs-nav">
+        <button type="button" class="build-tab-btn active" id="tabbtn-tab-overview" onclick="switchBuildTab('tab-overview')">Live Monitor</button>
+        <button type="button" class="build-tab-btn" id="tabbtn-tab-tests" onclick="switchBuildTab('tab-tests')">Pytest & AGY Reports</button>
+        <button type="button" class="build-tab-btn" id="tabbtn-tab-prompt" onclick="switchBuildTab('tab-prompt')">Corrective Prompts</button>
+        <button type="button" class="build-tab-btn" id="tabbtn-tab-mcp" onclick="switchBuildTab('tab-mcp')">MCP Integration Info</button>
+      </div>
+
+      <!-- Tab Content 1: Overview -->
+      <div class="build-tab-pane active" id="tab-overview">
+        <div class="build-console" id="loop-live-console">Waiting for autonomous build trigger...</div>
+      </div>
+
+      <!-- Tab Content 2: Reports -->
+      <div class="build-tab-pane" id="tab-tests">
+        <div class="build-console" id="loop-reports-console">No reports submitted yet. When AGY finishes coding, its test assertions and diffs will appear here.</div>
+      </div>
+
+      <!-- Tab Content 3: Corrective Prompts -->
+      <div class="build-tab-pane" id="tab-prompt">
+        <div class="build-console" id="loop-prompt-console">No corrective prompt needed. If AGY fails a test, Nomad injects unmasked business context here for self-healing.</div>
+      </div>
+
+      <!-- Tab Content 4: MCP Info -->
+      <div class="build-tab-pane" id="tab-mcp">
+        <div class="build-console">
+[MCP Server Configuration]
+Server Name: nomad-cleanroom
+Command: python -m backend.mcp_server.server
+Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
+
+[Exposed Tools for AGY]
+1. cleanroom_get_masked_brief(meeting_id)
+   - Fetches sanitized markdown brief, instructions, and pytest acceptance criteria.
+   - Enforces fail-closed gate: returns BLOCKED if release decision is not 'release'.
+
+2. cleanroom_submit_code_report(meeting_id, loop_run_id, iteration, agy_status, summary, files_changed, test_results, code_diff)
+   - Submits AGY implementation report back to Nomad.
+   - Triggers local evaluation and updates cryptographic Audit Ledger.
+        </div>
+      </div>
+
     </section>
 
   </div>
@@ -898,6 +1249,9 @@
         jsonDisplay.innerText = JSON.stringify(data, null, 2);
         outCard.style.display = 'flex';
 
+        // Show Autonomous Build Loop Section
+        initBuildSection(data.meeting_id);
+
         tasksBoard.scrollIntoView({ behavior: 'smooth' });
 
         btn.disabled = false;
@@ -927,6 +1281,248 @@
       a.download = `verified_masked_${lastResult.meeting_id || 'output'}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    /* -------------------------------------------------------------
+       AUTONOMOUS MEETING-TO-CODE CLOSED LOOP (AGY) LOGIC
+    -------------------------------------------------------------- */
+    let currentMeetingId = null;
+    let loopPollingInterval = null;
+
+    function initBuildSection(meetingId) {
+      currentMeetingId = meetingId;
+      const buildCard = document.getElementById('build-loop-card');
+      if (buildCard) {
+        buildCard.style.display = 'flex';
+      }
+      logConsole(`Clean Room verification complete for ${meetingId}. Ready for AGY MCP build.`);
+      refreshLoopStatus();
+    }
+
+    function switchBuildTab(tabId) {
+      document.querySelectorAll('.build-tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.build-tab-btn').forEach(el => el.classList.remove('active'));
+
+      const pane = document.getElementById(tabId);
+      const btn = document.getElementById(`tabbtn-${tabId}`);
+      if (pane) pane.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    async function triggerBuild() {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id);
+      if (!mid) {
+        alert("Please run verification & privacy masking first or provide a meeting ID.");
+        return;
+      }
+
+      const btn = document.getElementById('btn-trigger-build');
+      btn.disabled = true;
+      btn.innerText = "⏳ Initializing MCP Build...";
+
+      try {
+        const resp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/build`, {
+          method: 'POST'
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          throw new Error(data.detail || data.error || `HTTP ${resp.status}`);
+        }
+
+        logConsole(`🚀 [Nomad] Autonomous build loop initialized!`);
+        logConsole(`📍 Loop Run ID: ${data.loop_run_id}`);
+        logConsole(`⚡ Status: DISPATCHED. AGY can now call cleanroom_get_masked_brief to start building.`);
+
+        startLoopPolling();
+      } catch (err) {
+        logConsole(`❌ [Error] Failed to initialize build: ${err.message}`);
+        alert(`Failed to trigger build: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 Build with AGY (Antigravity MCP)";
+        refreshLoopStatus();
+      }
+    }
+
+    async function refreshLoopStatus() {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id);
+      if (!mid) return;
+
+      try {
+        const resp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/loop_status`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        renderLoopStatus(data);
+      } catch (err) {
+        console.error("Failed to fetch loop status:", err);
+      }
+    }
+
+    function startLoopPolling() {
+      if (loopPollingInterval) clearInterval(loopPollingInterval);
+      loopPollingInterval = setInterval(() => {
+        refreshLoopStatus();
+      }, 3000);
+    }
+
+    function stopLoopPolling() {
+      if (loopPollingInterval) {
+        clearInterval(loopPollingInterval);
+        loopPollingInterval = null;
+      }
+    }
+
+    function renderLoopStatus(statusData) {
+      if (!statusData || statusData.status === 'no_loop_run') return;
+
+      const stateTag = document.getElementById('loop-state-tag');
+      const pulseDot = document.getElementById('loop-pulse-dot');
+      const titleEl = document.getElementById('loop-status-title');
+      const descEl = document.getElementById('loop-status-desc');
+      const iterBadge = document.getElementById('loop-iteration-badge');
+      const reportsConsole = document.getElementById('loop-reports-console');
+      const promptConsole = document.getElementById('loop-prompt-console');
+
+      const s = (statusData.status || 'idle').toLowerCase();
+      const iter = statusData.iteration || 0;
+      const maxIter = statusData.max_iterations || 3;
+
+      iterBadge.innerText = `Attempt: ${iter + 1} / ${maxIter}`;
+
+      // Reset steps
+      const s1 = document.getElementById('step-1');
+      const s2 = document.getElementById('step-2');
+      const s3 = document.getElementById('step-3');
+      const s4 = document.getElementById('step-4');
+
+      s1.className = 'step-box completed';
+      s2.className = 'step-box';
+      s3.className = 'step-box';
+      s4.className = 'step-box';
+
+      if (s === 'dispatched') {
+        stateTag.innerText = 'DISPATCHED TO AGY';
+        stateTag.style.background = 'rgba(184, 91, 53, 0.15)';
+        stateTag.style.color = 'var(--terracotta)';
+        pulseDot.className = 'pulse-dot running';
+        titleEl.innerText = `Status: Dispatched to AGY (Attempt ${iter + 1}/${maxIter})`;
+        descEl.innerText = 'Sanitized brief & pytest acceptance criteria are live on MCP. Waiting for AGY to connect and build.';
+        s2.className = 'step-box active';
+      } else if (s === 'evaluating') {
+        stateTag.innerText = 'EVALUATING LOCALLY';
+        stateTag.style.background = 'rgba(184, 91, 53, 0.25)';
+        stateTag.style.color = 'var(--terracotta)';
+        pulseDot.className = 'pulse-dot running';
+        titleEl.innerText = 'Status: Evaluating AGY Submission';
+        descEl.innerText = 'Nomad is cross-checking submitted pytest test results and requirement alignments.';
+        s2.className = 'step-box completed';
+        s3.className = 'step-box completed';
+        s4.className = 'step-box active';
+      } else if (s === 'success') {
+        stateTag.innerText = '✅ BUILD COMPLETE';
+        stateTag.style.background = 'rgba(59, 122, 87, 0.15)';
+        stateTag.style.color = 'var(--sage-green)';
+        pulseDot.className = 'pulse-dot success';
+        titleEl.innerText = 'Status: ✅ All Acceptance Criteria Passed!';
+        descEl.innerText = 'Code and test report verified. Cryptographically signed and recorded to Audit Ledger.';
+        s2.className = 'step-box completed';
+        s3.className = 'step-box completed';
+        s4.className = 'step-box completed';
+        stopLoopPolling();
+      } else if (s === 'needs_intervention') {
+        stateTag.innerText = '🚨 NEEDS INTERVENTION';
+        stateTag.style.background = 'rgba(163, 59, 59, 0.15)';
+        stateTag.style.color = 'var(--clay-red)';
+        pulseDot.className = 'pulse-dot error';
+        titleEl.innerText = 'Status: 🚨 Circuit Breaker Tripped';
+        descEl.innerText = statusData.error_summary || '3 automated attempts failed. Developer review required.';
+        s2.className = 'step-box completed';
+        s3.className = 'step-box failed';
+        s4.className = 'step-box failed';
+        stopLoopPolling();
+      }
+
+      // Update Reports tab
+      if (statusData.reports && statusData.reports.length > 0) {
+        reportsConsole.innerText = statusData.reports.map((r, i) => {
+          return `=== REPORT #${i + 1} (Iteration ${r.iteration}) ===\n` +
+                 `AGY Status: ${r.agy_status.toUpperCase()} | Nomad Local Eval: ${(r.evaluation_result || 'PENDING').toUpperCase()}\n` +
+                 `Summary: ${r.summary}\n` +
+                 `Files Changed: ${JSON.stringify(r.files_changed)}\n` +
+                 `Test Output:\n${r.test_results || 'No test results submitted'}\n` +
+                 `Evaluation Notes: ${r.evaluation_notes || 'None'}\n`;
+        }).join('\n----------------------------------------\n\n');
+      }
+
+      // Update Prompt tab
+      if (statusData.corrective_prompt) {
+        promptConsole.innerText = statusData.corrective_prompt;
+      }
+    }
+
+    function logConsole(msg) {
+      const consoleEl = document.getElementById('loop-live-console');
+      if (!consoleEl) return;
+      const time = new Date().toLocaleTimeString();
+      consoleEl.innerText = `[${time}] ${msg}\n` + consoleEl.innerText;
+    }
+
+    async function simulateAgyDemo(outcome) {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id);
+      if (!mid) {
+        alert("Please run verification first.");
+        return;
+      }
+
+      // 1. Ensure build is triggered first
+      try {
+        const buildResp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/build`, { method: 'POST' });
+        if (!buildResp.ok && buildResp.status !== 409) {
+          const err = await buildResp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${buildResp.status}`);
+        }
+      } catch (err) {
+        logConsole(`Init note: ${err.message}`);
+      }
+
+      // 2. Fetch loop status
+      const resp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/loop_status`);
+      const statusData = await resp.json();
+      const loopRunId = statusData.loop_run_id;
+      const currentIter = statusData.iteration || 0;
+
+      if (!loopRunId) {
+        alert("Please click 'Build with AGY' first.");
+        return;
+      }
+
+      logConsole(`🤖 [AGY Agent Simulated] Coding features and executing pytest suite for iteration ${currentIter}...`);
+
+      const testResults = (outcome === 'success')
+        ? "============================= test session starts =============================\n" +
+          "collected 3 items\n\n" +
+          "test_requirement_01_feature_a.py::test_pass PASSED                 [ 33%]\n" +
+          "test_requirement_02_feature_b.py::test_pass PASSED                 [ 66%]\n" +
+          "test_requirement_03_feature_c.py::test_pass PASSED                 [100%]\n\n" +
+          "============================== 3 passed in 0.42s =============================="
+        : "============================= test session starts =============================\n" +
+          "collected 3 items\n\n" +
+          "test_requirement_01_feature_a.py::test_pass PASSED                 [ 33%]\n" +
+          "test_requirement_02_feature_b.py::test_fail FAILED                 [ 66%]\n" +
+          ">>> AssertionError: Expected currency format not respected.\n" +
+          "========================= 1 failed, 2 passed in 0.51s ==========================";
+
+      // Call MCP submit tool via internal evaluation endpoint
+      try {
+        const reportResp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/evaluate_report?report_id=sim_${Date.now()}`, {
+          method: 'POST'
+        }).catch(() => null);
+
+        logConsole(`📡 [AGY -> Nomad] Submitted build report with agy_status='${outcome}'.`);
+        refreshLoopStatus();
+      } catch (e) {
+        console.error(e);
+      }
     }
   </script>
 </body>

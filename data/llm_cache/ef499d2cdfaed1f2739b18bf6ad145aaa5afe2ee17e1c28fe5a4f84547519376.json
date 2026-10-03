@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "The meeting makes decisions about engineering work for the next sprint and records technical questions for investigation."
+}

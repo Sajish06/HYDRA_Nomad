@@ -434,3 +434,131 @@ async def ask_room(
         "answer": masked_answer,
         "citation": citation,
     }
+
+
+@router.post("/{id}/build")
+async def trigger_autonomous_build(id: str, repo: Repository = Depends(get_repo)):
+    """
+    Trigger the autonomous Meeting-to-Code build loop for a meeting.
+    This initializes the loop, generates the masked brief, and waits for AGY to connect.
+    Must be called after the pipeline has been run and gate decision is 'release'.
+    """
+    from backend.processors.autonomous_loop import AutonomousLoopOrchestrator
+
+    meeting = repo.get_meeting_by_id(id)
+    if not meeting:
+        # Check if meeting was processed via upload pipeline (clay UI)
+        masked_cand = Path(f"./outputs/verified_{id}_masked.md")
+        if not masked_cand.exists() and id.startswith("MEET_"):
+            clean_stem = id[5:]
+            alt_cand = Path(f"./outputs/verified_{clean_stem}_masked.md")
+            if alt_cand.exists():
+                masked_cand = alt_cand
+
+        if masked_cand.exists():
+            meeting = repo.create_or_get_meeting(
+                meetily_id=id,
+                title=f"Uploaded Meeting ({id})",
+            )
+            meeting.status = "released"
+            repo.db.commit()
+            repo.save_release_decision(
+                run_id="upload_pipeline_run",
+                meeting_id=meeting.id,
+                decision="release",
+                reasons=["Verified via Nomad Privacy Masking Engine"],
+                flagged_claims=[],
+                flagged_conflicts=[],
+            )
+            repo.save_output_artifact(
+                run_id="upload_pipeline_run",
+                meeting_id=meeting.id,
+                audience="cloud_llm",
+                file_path=str(masked_cand.resolve()),
+                status="clean",
+            )
+
+    orchestrator = AutonomousLoopOrchestrator(repo=repo)
+    result = orchestrator.initialize_loop(meeting_id=id if meeting is None else meeting.id)
+
+    if result.get("status") == "error":
+        err_msg = result.get("error", "An error occurred during build initialization")
+        status_code = 404 if "not found" in err_msg.lower() else 500
+        raise HTTPException(status_code=status_code, detail=err_msg)
+    if result.get("status") == "blocked":
+        raise HTTPException(status_code=409, detail=result.get("error", "Build blocked"))
+
+    return result
+
+
+@router.post("/{id}/evaluate_report")
+async def evaluate_build_report(id: str, report_id: str, repo: Repository = Depends(get_repo)):
+    """
+    Trigger local evaluation of a submitted AGY build report.
+    Called by the system after AGY calls cleanroom_submit_code_report.
+    Can also be called manually for testing.
+    """
+    from backend.processors.autonomous_loop import AutonomousLoopOrchestrator
+
+    meeting = repo.get_meeting_by_id(id)
+    target_id = meeting.id if meeting else id
+
+    orchestrator = AutonomousLoopOrchestrator(repo=repo)
+    result = orchestrator.evaluate_report(meeting_id=target_id, report_id=report_id)
+
+    if result.get("status") == "error":
+        err_msg = result.get("error", "An error occurred during report evaluation")
+        status_code = 404 if "not found" in err_msg.lower() else 500
+        raise HTTPException(status_code=status_code, detail=err_msg)
+
+    return result
+
+
+@router.get("/{id}/loop_status")
+async def get_loop_status(id: str, repo: Repository = Depends(get_repo)):
+    """
+    Get the current status of the autonomous build loop for a meeting.
+    Returns the latest loop run state, iteration count, and any error summary.
+    """
+    meeting = repo.get_meeting_by_id(id)
+    if not meeting:
+        raise HTTPException(status_code=404, detail=f"Meeting '{id}' not found.")
+
+    loop_run = repo.get_latest_loop_run(meeting.id)
+    if not loop_run:
+        return {"status": "no_loop_run", "message": "No autonomous build has been triggered yet."}
+
+    from backend.storage.models import BuildReportModel
+    reports = (
+        repo.db.query(BuildReportModel)
+        .filter(BuildReportModel.loop_run_id == loop_run.id)
+        .order_by(BuildReportModel.iteration.asc())
+        .all()
+    )
+
+    return {
+        "loop_run_id": loop_run.id,
+        "meeting_id": meeting.id,
+        "status": loop_run.status,
+        "iteration": loop_run.iteration,
+        "max_iterations": loop_run.max_iterations,
+        "started_at": loop_run.started_at.isoformat() if loop_run.started_at else None,
+        "completed_at": loop_run.completed_at.isoformat() if loop_run.completed_at else None,
+        "error_summary": loop_run.error_summary,
+        "corrective_prompt": loop_run.corrective_prompt,
+        "reports": [
+            {
+                "id": r.id,
+                "iteration": r.iteration,
+                "agy_status": r.agy_status,
+                "summary": r.summary,
+                "evaluation_result": r.evaluation_result,
+                "evaluation_notes": r.evaluation_notes,
+                "test_results": r.test_results,
+                "files_changed": json.loads(r.files_changed_json) if r.files_changed_json else [],
+                "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
+            }
+            for r in reports
+        ],
+    }
+

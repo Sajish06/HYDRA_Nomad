@@ -9,11 +9,12 @@
 ## Task: TASK-002
 
 ### 1. Intentions (Technical Objective)
-- Restrict salary, bonus, and compensation history on the employee analytics page to HR_ADMIN and FINANCE_ADMIN roles.
+- Salary, bonus, and compensation history on the employee analytics page must only be accessible to HR_ADMIN and FINANCE_ADMIN roles.
 
 ### 2. Things to Implement (Structured Deliverables)
 - BACKEND: Add role-based authorization checks to the employee analytics compensation endpoints for HR_ADMIN and FINANCE_ADMIN.
 - FRONTEND: Hide compensation sections from unauthorized users and handle 403 authorization responses.
+- QA: Verify HR_ADMIN and FINANCE_ADMIN access while ensuring ENGINEER and SUPPORT roles receive 403 Forbidden.
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
@@ -32,5 +33,5 @@
 ---
 
 ### Privacy Engine Audit
-- Total Business Secrets Isolated & Dropped: **2**
+- Total Business Secrets Isolated & Dropped: **3**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

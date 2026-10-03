@@ -12,7 +12,7 @@
 - Implement the OAuth callback handling and update the authentication flow
 
 ### 2. Things to Implement (Structured Deliverables)
-- AUTHENTICATION: Implement the OAuth callback handling and update the authentication flow
+- AUTHENTICATION: Implement OAuth callback handling and update authentication flow
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
@@ -20,7 +20,7 @@
 
 ### 4. Role-Specific Briefs
 #### AUTHENTICATION — Assignee: Arjun (Deadline: October 15)
-- Deliverable: AUTHENTICATION: Implement the OAuth callback handling and update the authentication flow
+- Deliverable: AUTHENTICATION: Implement OAuth callback handling and update authentication flow
 
 ---
 

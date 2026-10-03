@@ -96,24 +96,6 @@
 
 ---
 
-## Task: claim_rfn-meeting-2026-10-03-003_6
-
-### 1. Intentions (Technical Objective)
-- Migrate the scheduled-report job to the new scheduler and add retry handling for failed executions
-
-### 2. Things to Implement (Structured Deliverables)
-- ENGINEER: Migrate the scheduled-report job to the new scheduler and add retry handling for failed executions
-
-### 3. Technical Context (Prerequisites & Constraints)
-
-**Deadline**: October 21
-
-### 4. Role-Specific Briefs
-#### ENGINEER — Assignee: Rahul (Deadline: October 21)
-- Deliverable: ENGINEER: Migrate the scheduled-report job to the new scheduler and add retry handling for failed executions
-
----
-
 ## Task: claim_rfn-meeting-2026-10-03-003_7
 
 ### 1. Intentions (Technical Objective)

@@ -4,8 +4,12 @@ import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None
+    types = None
 
 from backend.ai.base import LLMProvider
 from backend.ai.prompts import INTELLIGENCE_SYSTEM_PROMPT, VERIFICATION_SYSTEM_PROMPT
@@ -21,6 +25,11 @@ class GeminiProvider(LLMProvider):
         api_key: Optional[str] = None,
         model_name: Optional[str] = None,
     ):
+        if genai is None:
+            raise ImportError(
+                "The 'google-genai' package is required to use GeminiProvider. Run `pip install google-genai`."
+            )
+
         raw_key = api_key or (
             settings.GEMINI_API_KEY.get_secret_value() if settings.GEMINI_API_KEY else None
         )

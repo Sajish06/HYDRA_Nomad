@@ -203,6 +203,119 @@ def ask_question_tool(meeting_id: str, question: str, audience: str = "outside_c
         db.close()
 
 
+# Tool 8: Get Masked Brief for AGY
+def get_masked_brief_tool(meeting_id: str) -> str:
+    """
+    Retrieve the verified, privacy-masked coding brief for a meeting.
+    Fail-closed: returns BLOCKED if the gate decision is not 'release'.
+    Called by the Antigravity (AGY) coding agent to receive its task.
+    """
+    repo, db = _get_repo()
+    try:
+        meeting = repo.get_meeting_by_id(meeting_id)
+        if not meeting:
+            return json.dumps({"status": "ERROR", "error": f"Meeting '{meeting_id}' not found."})
+
+        # 1. Enforce gate decision — fail closed
+        decision = repo.get_latest_release_decision(meeting.id)
+        if not decision or decision.decision.lower() != "release":
+            return json.dumps({
+                "status": "BLOCKED",
+                "error": "Task brief cannot be released. Gate status is HOLD_FOR_REVIEW or meeting is unverified.",
+                "gate_decision": decision.decision if decision else "NOT_PROCESSED",
+                "reasons": json.loads(decision.reasons_json) if decision else [],
+            })
+
+        # 2. Get the active loop run
+        loop_run = repo.get_active_loop_run(meeting.id)
+        if not loop_run:
+            return json.dumps({
+                "status": "ERROR",
+                "error": "No active autonomous loop run found. Trigger /api/meetings/{id}/build first.",
+            })
+
+        # 3. Return the masked brief and acceptance criteria
+        return json.dumps({
+            "status": "RELEASED",
+            "meeting_id": meeting.id,
+            "loop_run_id": loop_run.id,
+            "iteration": loop_run.iteration,
+            "brief_markdown": loop_run.masked_brief_text or "",
+            "acceptance_criteria": loop_run.acceptance_criteria or "",
+            "corrective_prompt": loop_run.corrective_prompt or None,
+            "instructions": (
+                "You are the Antigravity coding agent. Your task: implement the requirements "
+                "in 'brief_markdown'. Write clean, production-quality Python code. "
+                "Also generate and run pytest tests that validate the acceptance criteria. "
+                "When done, call cleanroom_submit_code_report with your results."
+            ),
+        }, indent=2)
+    finally:
+        db.close()
+
+
+# Tool 9: Submit Code Report
+def submit_code_report_tool(
+    meeting_id: str,
+    loop_run_id: str,
+    iteration: int,
+    agy_status: str,
+    summary: str,
+    files_changed: list,
+    test_results: Optional[str] = None,
+    code_diff: Optional[str] = None,
+) -> str:
+    """
+    Called by AGY to submit its implementation report back to Nomad.
+    Nomad persists the report and triggers local evaluation.
+    agy_status must be one of: 'success', 'failure', 'partial'.
+    """
+    repo, db = _get_repo()
+    try:
+        meeting = repo.get_meeting_by_id(meeting_id)
+        if not meeting:
+            return json.dumps({"status": "ERROR", "error": f"Meeting '{meeting_id}' not found."})
+
+        # 1. Persist the build report
+        report = repo.save_build_report(
+            loop_run_id=loop_run_id,
+            meeting_id=meeting.id,
+            iteration=iteration,
+            agy_status=agy_status,
+            summary=summary,
+            files_changed=files_changed,
+            test_results=test_results,
+            code_diff=code_diff,
+        )
+
+        # 2. Record ingestion event in Audit Ledger
+        from backend.processors.ledger import AuditLedger
+        AuditLedger.record_event(
+            repo=repo,
+            meeting_id=meeting.id,
+            event_type="agy_report_received",
+            payload={
+                "loop_run_id": loop_run_id,
+                "iteration": iteration,
+                "agy_status": agy_status,
+                "files_changed": files_changed,
+                "report_id": report.id,
+            },
+            transcript_sha256=meeting.transcript_sha256 or "no_hash",
+        )
+
+        # 3. Mark loop run as 'evaluating' so the orchestrator knows a report arrived
+        repo.update_loop_run(loop_run_id=loop_run_id, status="evaluating")
+
+        return json.dumps({
+            "status": "ACCEPTED",
+            "report_id": report.id,
+            "message": f"Report received for iteration {iteration}. Nomad is now evaluating locally.",
+        }, indent=2)
+    finally:
+        db.close()
+
+
 # Register tools on MCP server if MCP is installed
 if mcp_app:
     @mcp_app.tool()
@@ -240,6 +353,40 @@ if mcp_app:
         """Answer diligence questions with citations, masked for audience."""
         return ask_question_tool(meeting_id, question, audience)
 
+    @mcp_app.tool()
+    def cleanroom_get_masked_brief(meeting_id: str) -> str:
+        """
+        Retrieve the verified, privacy-masked coding task brief for AGY.
+        Returns BLOCKED if gate decision is not 'release'.
+        """
+        return get_masked_brief_tool(meeting_id)
+
+    @mcp_app.tool()
+    def cleanroom_submit_code_report(
+        meeting_id: str,
+        loop_run_id: str,
+        iteration: int,
+        agy_status: str,
+        summary: str,
+        files_changed: list,
+        test_results: Optional[str] = None,
+        code_diff: Optional[str] = None,
+    ) -> str:
+        """
+        Submit AGY's build results back to Nomad for local evaluation.
+        agy_status: 'success' | 'failure' | 'partial'.
+        """
+        return submit_code_report_tool(
+            meeting_id=meeting_id,
+            loop_run_id=loop_run_id,
+            iteration=iteration,
+            agy_status=agy_status,
+            summary=summary,
+            files_changed=files_changed,
+            test_results=test_results,
+            code_diff=code_diff,
+        )
+
 
 def main():
     """Run MCP server over stdio transport."""
@@ -251,3 +398,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

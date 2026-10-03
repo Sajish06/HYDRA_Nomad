@@ -171,3 +171,51 @@ class LedgerEntryModel(Base):
     entry_hash = Column(String(64), nullable=False)
 
     meeting = relationship("MeetingModel", back_populates="ledger_entries")
+
+
+class AutonomousLoopRunModel(Base):
+    """Tracks an autonomous build loop lifecycle for a meeting."""
+
+    __tablename__ = "autonomous_loop_runs"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    meeting_id = Column(String(36), ForeignKey("meetings.id"), nullable=False, index=True)
+    # Loop state: pending, dispatched, evaluating, success, needs_intervention
+    status = Column(String(64), default="pending")
+    iteration = Column(Integer, default=0)  # 0-indexed, max is 2 (3 attempts total)
+    max_iterations = Column(Integer, default=3)
+    # The masked brief text sent to AGY (the cloud_llm.md contents)
+    masked_brief_text = Column(Text, nullable=True)
+    # The generated acceptance criteria (pytest stubs as a string)
+    acceptance_criteria = Column(Text, nullable=True)
+    # The corrective prompt for the current retry (populated on failure)
+    corrective_prompt = Column(Text, nullable=True)
+    # Completion tracking
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime, nullable=True)
+    error_summary = Column(Text, nullable=True)
+
+    meeting = relationship("MeetingModel", backref="autonomous_runs")
+
+
+class BuildReportModel(Base):
+    """Stores an execution report submitted by AGY for a specific loop iteration."""
+
+    __tablename__ = "build_reports"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    loop_run_id = Column(String(36), ForeignKey("autonomous_loop_runs.id"), nullable=False, index=True)
+    meeting_id = Column(String(36), nullable=False, index=True)
+    iteration = Column(Integer, nullable=False)
+    # AGY-submitted data
+    agy_status = Column(String(32), nullable=False)  # "success" | "failure" | "partial"
+    summary = Column(Text, nullable=False)
+    files_changed_json = Column(Text, default="[]")  # JSON list of file paths
+    test_results = Column(Text, nullable=True)  # Raw pytest output string
+    code_diff = Column(Text, nullable=True)  # Optional unified diff string
+    # Nomad's local evaluation outcome
+    evaluation_result = Column(String(32), nullable=True)  # "pass" | "fail" | "pending"
+    evaluation_notes = Column(Text, nullable=True)
+    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    loop_run = relationship("AutonomousLoopRunModel", backref="reports")

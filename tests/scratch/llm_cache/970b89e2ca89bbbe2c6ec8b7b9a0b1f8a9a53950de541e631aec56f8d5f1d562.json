@@ -1,0 +1,57 @@
+{
+  "agent_payload": {
+    "task_id": "TASK-TC3-01",
+    "intentions": [
+      "We need the privileged-operation audit system completed before the January release."
+    ],
+    "things_to_implement": [
+      "BACKEND: Add middleware that checks authorization before privileged operations and records the user ID, operation, timestamp and result. Ensure failed authorization attempts don't expose internal details.",
+      "SECURITY: Audit events should be immutable and capture both successful and denied privileged actions.",
+      "QA: Test access for administrator, manager and regular employee roles and verify that denied actions generate audit events."
+    ],
+    "technical_context": [
+      "Audit records must remain available for at least 180 days.",
+      "Use existing PostgreSQL database and FastAPI service.",
+      "Authentication layer provides user IDs and role information."
+    ],
+    "deadline": "January release"
+  },
+  "audit_record": {
+    "task_id": "TASK-TC3-01",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Unreleased business strategy / Market expansion / M&A",
+        "source": "semantic_model",
+        "value": "Maya: One additional piece of context: the board approved entering the Middle East market next year, but the announcement has not been made yet."
+      },
+      {
+        "category": "BUSINESS_STRATEGY",
+        "reason": "Unreleased business strategy / Market expansion / M&A",
+        "source": "semantic_model",
+        "value": "Maya: We're also evaluating whether to acquire a smaller competitor. There have been preliminary discussions but nothing has been announced."
+      },
+      {
+        "category": "SECURITY_CONFIDENTIAL",
+        "reason": "Internal security incident / ongoing investigation",
+        "source": "semantic_model",
+        "value": "Fatima: There was a security incident last month involving an internal service. The investigation is still ongoing, so don't include those details in the engineering agent context."
+      },
+      {
+        "category": "FINANCIAL_DATA",
+        "reason": "Sensitive financial figures / Banking details",
+        "source": "semantic_model",
+        "value": "Maya: Our current employee compensation range for the engineering team is between \u20b98 lakh and \u20b924 lakh per year. That is HR-confidential."
+      },
+      {
+        "category": "LEGAL_CONFIDENTIAL",
+        "reason": "Confidential legal dispute with former vendor",
+        "source": "semantic_model",
+        "value": "Rahul: There is also a pending legal dispute with one of our former vendors. The legal team doesn't want the details distributed internally."
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEET-TC3-TEST"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "stances": [
+    {
+      "idx": 17,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "I'm not sure whether the failed security scan should block every release type or only production releases. I'll investigate the release-policy options before we decide."
+    },
+    {
+      "idx": 27,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Those four technical questions should stay open until we have evidence to make the decisions."
+    },
+    {
+      "idx": 28,
+      "relevance": 1.0,
+      "stance": "INFORM",
+      "toward_claim": "NEUTRAL",
+      "resolved_text": null,
+      "antecedent_idx": null,
+      "actor_mentioned": null,
+      "deadline_mentioned": null,
+      "quote": "Understood."
+    }
+  ]
+}
