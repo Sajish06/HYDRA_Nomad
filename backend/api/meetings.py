@@ -446,15 +446,20 @@ async def trigger_autonomous_build(id: str, repo: Repository = Depends(get_repo)
     from backend.processors.autonomous_loop import AutonomousLoopOrchestrator
 
     meeting = repo.get_meeting_by_id(id)
-    if not meeting:
-        # Check if meeting was processed via upload pipeline (clay UI)
-        masked_cand = Path(f"./outputs/verified_{id}_masked.md")
-        if not masked_cand.exists() and id.startswith("MEET_"):
-            clean_stem = id[5:]
-            alt_cand = Path(f"./outputs/verified_{clean_stem}_masked.md")
-            if alt_cand.exists():
-                masked_cand = alt_cand
 
+    # Check if this meeting has verified masked output on disk from the verify-and-mask upload pipeline
+    masked_cand = Path(f"./outputs/verified_{id}_masked.md")
+    if not masked_cand.exists() and id.startswith("MEET_"):
+        clean_stem = id[5:]
+        alt_cand = Path(f"./outputs/verified_{clean_stem}_masked.md")
+        if alt_cand.exists():
+            masked_cand = alt_cand
+    elif not masked_cand.exists():
+        alt_cand = Path(f"./outputs/verified_MEET_{id}_masked.md")
+        if alt_cand.exists():
+            masked_cand = alt_cand
+
+    if not meeting:
         if masked_cand.exists():
             meeting = repo.create_or_get_meeting(
                 meetily_id=id,
@@ -462,6 +467,10 @@ async def trigger_autonomous_build(id: str, repo: Repository = Depends(get_repo)
             )
             meeting.status = "released"
             repo.db.commit()
+
+    if meeting and masked_cand.exists():
+        # Ensure release decision exists
+        if not repo.get_latest_release_decision(meeting.id):
             repo.save_release_decision(
                 run_id="upload_pipeline_run",
                 meeting_id=meeting.id,
@@ -470,6 +479,9 @@ async def trigger_autonomous_build(id: str, repo: Repository = Depends(get_repo)
                 flagged_claims=[],
                 flagged_conflicts=[],
             )
+        # Ensure cloud_llm output artifact is recorded
+        artifacts = repo.list_output_artifacts(meeting.id)
+        if not any(a.audience.lower() == "cloud_llm" for a in artifacts):
             repo.save_output_artifact(
                 run_id="upload_pipeline_run",
                 meeting_id=meeting.id,
@@ -522,7 +534,7 @@ async def get_loop_status(id: str, repo: Repository = Depends(get_repo)):
     """
     meeting = repo.get_meeting_by_id(id)
     if not meeting:
-        raise HTTPException(status_code=404, detail=f"Meeting '{id}' not found.")
+        return {"status": "no_loop_run", "message": "No autonomous build has been triggered yet."}
 
     loop_run = repo.get_latest_loop_run(meeting.id)
     if not loop_run:

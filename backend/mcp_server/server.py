@@ -304,13 +304,18 @@ def submit_code_report_tool(
             transcript_sha256=meeting.transcript_sha256 or "no_hash",
         )
 
-        # 3. Mark loop run as 'evaluating' so the orchestrator knows a report arrived
+        # 3. Mark loop run as 'evaluating' and run local evaluation
         repo.update_loop_run(loop_run_id=loop_run_id, status="evaluating")
+
+        from backend.processors.autonomous_loop import AutonomousLoopOrchestrator
+        orchestrator = AutonomousLoopOrchestrator(repo=repo)
+        eval_result = orchestrator.evaluate_report(meeting_id=meeting.id, report_id=report.id)
 
         return json.dumps({
             "status": "ACCEPTED",
             "report_id": report.id,
-            "message": f"Report received for iteration {iteration}. Nomad is now evaluating locally.",
+            "evaluation": eval_result,
+            "message": f"Report received for iteration {iteration} and evaluated by Nomad. Status: {eval_result.get('status', 'unknown')}.",
         }, indent=2)
     finally:
         db.close()

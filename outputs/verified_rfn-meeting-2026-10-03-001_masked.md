@@ -42,6 +42,24 @@
 
 ---
 
+## Task: claim_rfn-meeting-2026-10-03-001_3
+
+### 1. Intentions (Technical Objective)
+- Update the deployment configuration so the application uses the new health-check endpoint, and I'll have that ready
+
+### 2. Things to Implement (Structured Deliverables)
+- BACKEND: Update the deployment configuration so the application uses the new health-check endpoint, and I'll have that ready
+
+### 3. Technical Context (Prerequisites & Constraints)
+
+**Deadline**: October 20
+
+### 4. Role-Specific Briefs
+#### BACKEND — Assignee: Rahul (Deadline: October 20)
+- Deliverable: BACKEND: Update the deployment configuration so the application uses the new health-check endpoint, and I'll have that ready
+
+---
+
 ### Privacy Engine Audit
 - Total Business Secrets Isolated & Dropped: **0**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

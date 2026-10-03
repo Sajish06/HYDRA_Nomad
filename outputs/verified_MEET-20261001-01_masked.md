@@ -9,16 +9,16 @@
 ## Task: claim_MEET-20261001-01_1
 
 ### 1. Intentions (Technical Objective)
-- Maya agrees to: Understood. So support staff shouldn't see those metrics, but administrators should?
+- Maya agreed: Understood. So support staff shouldn't see those metrics, but administrators should?
 
 ### 2. Things to Implement (Structured Deliverables)
-- ENGINEER: Maya agrees to: Understood. So support staff shouldn't see those metrics, but administrators should?
+- ENGINEER: Maya agreed: Understood. So support staff shouldn't see those metrics, but administrators should?
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
 ### 4. Role-Specific Briefs
 #### ENGINEER — Assignee: Maya
-- Deliverable: ENGINEER: Maya agrees to: Understood. So support staff shouldn't see those metrics, but administrators should?
+- Deliverable: ENGINEER: Maya agreed: Understood. So support staff shouldn't see those metrics, but administrators should?
 
 ---
 

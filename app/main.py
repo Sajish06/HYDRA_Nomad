@@ -3,16 +3,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import init_db
+from backend.storage.database import init_db as init_backend_db
 from app.api.routes_meetings import router as meetings_router
 from app.api.routes_claims import router as claims_router
 from app.api.routes_demo import router as demo_router
 from app.api.routes_masking import router as masking_router
 from app.api.routes_pipeline import router as pipeline_router
+from backend.api.routes import api_router as backend_api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize DB tables on startup
     init_db()
+    init_backend_db()
     yield
 
 app = FastAPI(
@@ -35,6 +38,7 @@ app.include_router(demo_router)
 app.include_router(meetings_router)
 app.include_router(claims_router)
 app.include_router(masking_router)
+app.include_router(backend_api_router)
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse

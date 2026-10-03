@@ -1319,6 +1319,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       const btn = document.getElementById('btn-trigger-build');
       btn.disabled = true;
       btn.innerText = "⏳ Initializing MCP Build...";
+      logConsole(`Contacting Nomad Clean Room backend for meeting ${mid}...`);
 
       try {
         const resp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/build`, {
@@ -1333,6 +1334,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         logConsole(`📍 Loop Run ID: ${data.loop_run_id}`);
         logConsole(`⚡ Status: DISPATCHED. AGY can now call cleanroom_get_masked_brief to start building.`);
 
+        renderLoopStatus(data);
         startLoopPolling();
       } catch (err) {
         logConsole(`❌ [Error] Failed to initialize build: ${err.message}`);
@@ -1373,7 +1375,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
     }
 
     function renderLoopStatus(statusData) {
-      if (!statusData || statusData.status === 'no_loop_run') return;
+      if (!statusData) return;
 
       const stateTag = document.getElementById('loop-state-tag');
       const pulseDot = document.getElementById('loop-pulse-dot');
@@ -1384,10 +1386,8 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       const promptConsole = document.getElementById('loop-prompt-console');
 
       const s = (statusData.status || 'idle').toLowerCase();
-      const iter = statusData.iteration || 0;
+      const iter = statusData.iteration !== undefined ? statusData.iteration : 0;
       const maxIter = statusData.max_iterations || 3;
-
-      iterBadge.innerText = `Attempt: ${iter + 1} / ${maxIter}`;
 
       // Reset steps
       const s1 = document.getElementById('step-1');
@@ -1399,6 +1399,19 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       s2.className = 'step-box';
       s3.className = 'step-box';
       s4.className = 'step-box';
+
+      if (s === 'no_loop_run') {
+        stateTag.innerText = 'IDLE';
+        stateTag.style.background = 'rgba(184, 91, 53, 0.15)';
+        stateTag.style.color = 'var(--terracotta)';
+        pulseDot.className = 'pulse-dot';
+        titleEl.innerText = 'Status: Ready to Build';
+        descEl.innerText = 'Click "Build with AGY" to dispatch verified masked brief to Antigravity via MCP.';
+        iterBadge.innerText = 'Attempt: 0 / 3';
+        return;
+      }
+
+      iterBadge.innerText = `Attempt: ${iter + 1} / ${maxIter}`;
 
       if (s === 'dispatched') {
         stateTag.innerText = 'DISPATCHED TO AGY';

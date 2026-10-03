@@ -42,6 +42,22 @@
 
 ---
 
+## Task: claim_demo-meeting-2026-10-02-003_5
+
+### 1. Intentions (Technical Objective)
+- Ask the platform team to run a capacity check
+
+### 2. Things to Implement (Structured Deliverables)
+- ENGINEER: Ask the platform team to run a capacity check
+
+### 3. Technical Context (Prerequisites & Constraints)
+
+### 4. Role-Specific Briefs
+#### ENGINEER — Assignee: Arjun
+- Deliverable: ENGINEER: Ask the platform team to run a capacity check
+
+---
+
 ### Privacy Engine Audit
 - Total Business Secrets Isolated & Dropped: **0**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

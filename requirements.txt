@@ -11,3 +11,6 @@ pytest>=8.0.0
 pytest-cov>=4.1.0
 ollama>=0.3.0
 python-multipart>=0.0.9
+sqlalchemy>=2.0.0
+mcp>=2.0.0
+beautifulsoup4>=4.12.0
