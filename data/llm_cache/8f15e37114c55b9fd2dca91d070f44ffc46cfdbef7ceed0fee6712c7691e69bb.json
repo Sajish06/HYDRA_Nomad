@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_tx_MEETING_DB3EC3_2",
+    "intentions": [
+      "Implement Google OAuth login and connect it to the existing customer account flow"
+    ],
+    "things_to_implement": [
+      "AUTHENTICATION: Implement Google OAuth login and connect it to the existing customer account flow"
+    ],
+    "technical_context": [],
+    "deadline": null,
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_tx_MEETING_DB3EC3_2",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEETING_DB3EC3"
+  }
+}

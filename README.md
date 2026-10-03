@@ -1,4 +1,4 @@
-# 🛡️ ReqCopilot Proof — Deterministic Local Claim Verification Engine
+# 🛡️ NOMAD — Deterministic Local Claim Verification Engine 
 
 > **Catching AI meeting summary hallucinations with deterministic, quote-grounded conversational evidence.**
 
@@ -17,93 +17,46 @@ ReqCopilot Proof takes claims extracted from meeting summaries or transcripts (d
 
 ---
 
-## 🏗️ Repository Layout
+## 🔒 Dual-Layer Privacy Masking Engine & Reversible Vault
 
+Nomad features an enterprise **Zero-Trust Privacy Masking Architecture** to guarantee that **no raw secrets, PII, or confidential commercial context ever leave your local environment**.
+
+```text
+ Raw Meeting Intelligence / Commitments
+                │
+                ▼
+🧠 Layer 1: Semantic Context Scrubbing (Ollama / Qwen)
+   - Extracts intent & quarantines sensitive commercial/deal context
+                │
+                ▼
+⚡ Layer 2: Deterministic Privacy Firewall (High-Speed Regex Rules)
+   - Credentials (API Keys, JWTs, Passwords, DB URIs)
+   - PII (Emails, Phones, SSNs, Credit Cards)
+   - Network Infrastructure (IP Addresses, Hostnames)
+   - Financial Data (Monetary amounts, deal percentages)
+                │
+                ▼
+🔑 Local Reversible Entity Vault (Encrypted Token Map)
+   - Maps raw values <──> Reversible Tokens ([SECRET_CREDENTIAL_1], [PII_1])
+   - Encrypted at rest using Fernet symmetric key (NOMAD_VAULT_KEY)
+                │
+                ▼
+🛡️ Pre-Dispatch Leak Inspector Gate
+   - Scans outbound briefs; fails closed (PrivacyLeakError) if leaks detected
+                │
+                ▼
+ Masked Brief Dispatched to Downstream AI Agents (Antigravity IDE)
 ```
-├── README.md
-├── requirements.txt
-├── .env.example
-├── data/
-│   ├── mock/                      # Fixture meetings (DEMO_001 to DEMO_005)
-│   ├── llm_cache/                 # SHA-256 cached LLM responses
-│   ├── indexes/                   # FAISS index files
-│   └── proof.db                   # SQLite database
-├── app/
-│   ├── main.py                    # FastAPI application entrypoint
-│   ├── config.py                  # Pydantic settings & env config
-│   ├── models.py                  # Canonical data models & enums
-│   ├── db.py                      # SQLite connection, schema & trace helpers
-│   ├── adapters/
-│   │   ├── base.py                # MeetingAdapter protocol
-│   │   ├── mock_adapter.py        # Mock JSON loader
-│   │   └── meetily_adapter.py     # Meetily Automation API adapter
-│   ├── ingest/
-│   │   ├── loader.py              # Ingest to SQLite & FTS5
-│   │   └── indexer.py             # Vector embeddings & FAISS indexer
-│   ├── claims/
-│   │   ├── from_summary.py        # Summary bullet intake & structuring
-│   │   └── from_transcript.py     # Sliding-window transcript extraction
-│   ├── retrieval/
-│   │   ├── hybrid.py              # Semantic (FAISS) + Lexical (FTS5) + RRF + Tail Scan
-│   │   └── embeddings.py          # SentenceTransformers wrapper
-│   ├── analysis/
-│   │   ├── cues.py                # Regex rule-based cue detector
-│   │   ├── stance.py              # Stance analysis, cue merge & quote validator
-│   │   ├── context.py             # Antecedent & pronoun resolution
-│   │   ├── chain.py               # Evidence chain builder
-│   │   └── slots.py               # Actor, action, object, deadline slot grounder
-│   ├── gate/
-│   │   └── gate.py                # Deterministic verification gate
-│   ├── llm/
-│   │   ├── client.py              # Ollama client with retry, schema validation & disk cache
-│   │   └── prompts.py             # System & user prompt templates
-│   ├── api/
-│   │   ├── routes_meetings.py     # Meeting indexing & task handoff routes
-│   │   ├── routes_claims.py       # Claim verification, evidence & confirmation
-│   │   └── routes_demo.py         # One-shot demo endpoints & health check
-│   └── masking/
-│       └── stub.py                # Stub data-masking module & brief generator
-├── ui/
-│   └── app.py                     # Streamlit evidence-card UI
-├── scripts/
-│   ├── warm_cache.py              # Pre-populates LLM cache for offline demo
-│   └── eval.py                    # Acceptance evaluation test runner
-└── tests/
-    ├── test_cues.py               # Rule-based stance cue tests
-    ├── test_gate.py               # Table-driven gate decision tests
-    ├── test_chain_quotes.py       # Exact quote grounding tests
-    ├── test_retrieval.py          # Hybrid retrieval & tail scan tests
-    ├── test_fixtures_e2e.py       # Acceptance suite on 5 fixture meetings
-    └── test_handoff.py            # Handoff fail-closed security tests
-```
+
+### Core Masking Components
+
+1. **Semantic Decomposer (`app/masking/semantic.py`)**: Parses meeting context using local LLMs to isolate sensitive commercial terms without breaking feature specifications.
+2. **Deterministic Firewall (`app/masking/firewall.py`)**: Executes sub-10ms pattern scrubbing to ensure zero missed credentials or PII.
+3. **Reversible Vault (`app/masking/vault.py`)**: Maintains session-isolated token-to-secret dictionaries encrypted at rest for safe local re-hydration.
+4. **Leak Inspector (`app/masking/validator.py`)**: Egress gate performing exact string verification prior to Model Context Protocol (MCP) dispatch.
 
 ---
 
-## 🚀 Getting Started
-
-### 1. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Environment Setup
-```bash
-cp .env.example .env
-```
-
-### 3. Run FastAPI Backend
-```bash
-uvicorn app.main:app --reload --port 8000
-```
-Interactive API docs will be available at `http://localhost:8000/docs`.
-
-### 4. Run Streamlit UI
-```bash
-streamlit run ui/app.py
-```
-Open `http://localhost:8501` in your browser.
-
----
 
 ## 🤖 Nomad Closed-Loop Autonomous Builder (Antigravity Integration)
 
@@ -127,52 +80,6 @@ verified + masked JSON
         +-- still failing after 3 -> stop, failed_max_iterations, ledger entry
 ```
 
-### Quickstart: Running the Closed-Loop Demo (PowerShell)
-
-Run the autonomous build demo with synthetic fake AGY behaviors:
-
-```powershell
-# Multi-turn revision demo: agent fails iteration 1, gets masked feedback, passes iteration 2
-python scripts/run_closed_loop_demo.py --behavior fix_on_second
-
-# Single-turn pass
-python scripts/run_closed_loop_demo.py --behavior good
-
-# Hard iteration cap: stops at iteration 3
-python scripts/run_closed_loop_demo.py --behavior never_passes
-
-# Real Desktop mode (writes to Desktop\test)
-python scripts/run_closed_loop_demo.py --behavior fix_on_second --use-real-desktop
-```
-
-### Running Closed-Loop Automated Tests
-
-```powershell
-# Unit test suite (Task selection, compiler, criteria catalog, evaluator, vault, ledger)
-pytest tests/test_closed_loop_unit.py -v
-
-# Mock Ollama HTTP API server tests
-pytest tests/test_ollama_mock.py -v
-
-# Real MCP server stdio protocol & stdout hygiene test
-pytest tests/test_mcp_protocol.py -v
-
-# All 8 fake AGY behaviors (good, fix_on_second, never_passes, lies, tamper, escape, leaky, abandon)
-pytest tests/test_fake_agy_behaviors.py -v
-```
-
-### Antigravity Registration & Workspace Utilities
-
-```powershell
-# Check registration in ~/.gemini/config/mcp_config.json and detect schema drift
-python scripts/check_agy_registration.py
-
-# Apply MCP registration with automated backup and diff preview
-python scripts/check_agy_registration.py --apply
-
-# Safely clean temporary test workspaces in Desktop\test
-python scripts/clean_workspace.py --all-test-runs
-```
 
 ### Environment Configuration
 

@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_tx_MEETING_DB3EC3_4",
+    "intentions": [
+      "Arjun Nair will improve the checkout styling, but we'll need specific design direction or examples to know what 'premium' means."
+    ],
+    "things_to_implement": [
+      "ENGINEER: Arjun Nair will improve the checkout styling, but we'll need specific design direction or examples to know what 'premium' means."
+    ],
+    "technical_context": [],
+    "deadline": null,
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_tx_MEETING_DB3EC3_4",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEETING_DB3EC3"
+  }
+}

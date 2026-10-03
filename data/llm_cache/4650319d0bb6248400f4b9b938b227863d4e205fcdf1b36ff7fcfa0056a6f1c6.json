@@ -1,0 +1,28 @@
+{
+  "claims": [
+    {
+      "type": "REQUIREMENT",
+      "text": "Those credentials should not be included in the development task. We'll use environment variables or the deployment secret store instead.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun Nair",
+      "source_idx": [
+        13
+      ]
+    },
+    {
+      "type": "REQUIREMENT",
+      "text": "We need the exact dashboard requirements before treating it as an implementation task.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun Nair",
+      "source_idx": [
+        15
+      ]
+    }
+  ]
+}

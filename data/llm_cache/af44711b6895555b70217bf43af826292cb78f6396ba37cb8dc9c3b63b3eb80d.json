@@ -1,0 +1,54 @@
+{
+  "claims": [
+    {
+      "type": "ACTION",
+      "text": "I'll add the delivery address section to the checkout page and make it visible before order confirmation.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun Nair",
+      "source_idx": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "I'll implement Google OAuth login and connect it to the existing customer account flow.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun Nair",
+      "source_idx": [
+        4
+      ]
+    },
+    {
+      "type": "REQUIREMENT",
+      "text": "Maybe we should make a separate priority-order workflow for Acme Logistics and automatically notify their account manager.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Riya Menon",
+      "source_idx": [
+        9,
+        10
+      ]
+    },
+    {
+      "type": "DECISION",
+      "text": "We can discuss a priority workflow, but I don't want to assume the exact rules until you confirm them.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "Arjun Nair",
+      "source_idx": [
+        11
+      ]
+    }
+  ]
+}

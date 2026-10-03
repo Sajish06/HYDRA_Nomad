@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_tx_MEETING_DB3EC3_1",
+    "intentions": [
+      "Add the delivery address section to the checkout page and make it visible"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Add the delivery address section to the checkout page and make it visible"
+    ],
+    "technical_context": [],
+    "deadline": "order confirmation",
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_tx_MEETING_DB3EC3_1",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MEETING_DB3EC3"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "claims": [
+    {
+      "type": "REQUIREMENT",
+      "text": "Maybe we should make a separate priority-order workflow for Acme Logistics and automatically notify their account manager.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "make the priority-order workflow for Acme Logistics and notify their account manager",
+      "source_idx": [
+        9
+      ]
+    },
+    {
+      "type": "ACTION",
+      "text": "We can discuss a priority workflow, but I don't want to assume the exact rules until you confirm them.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "discuss the priority workflow until you confirm the exact rules",
+      "source_idx": [
+        11
+      ]
+    },
+    {
+      "type": "REQUIREMENT",
+      "text": "We need the exact dashboard requirements before treating it as an implementation task.",
+      "actor": null,
+      "action": null,
+      "object": null,
+      "deadline": null,
+      "normalized": "need the exact dashboard requirements before treating it as an implementation task",
+      "source_idx": [
+        15
+      ]
+    }
+  ]
+}
