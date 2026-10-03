@@ -1,0 +1,21 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_2",
+    "intentions": [
+      "Add server-side validation for the customer-profile fields and cover the validation rules with API tests"
+    ],
+    "things_to_implement": [
+      "BACKEND: Add server-side validation for the customer-profile fields",
+      "BACKEND: Cover the validation rules with API tests"
+    ],
+    "technical_context": [],
+    "deadline": "October 12"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_2",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

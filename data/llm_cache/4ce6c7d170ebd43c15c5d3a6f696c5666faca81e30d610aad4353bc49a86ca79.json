@@ -1,0 +1,21 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_9",
+    "intentions": [
+      "Update the scheduled-report worker to retry failed jobs with bounded backoff and record the final job state"
+    ],
+    "things_to_implement": [
+      "ENGINEER (Rahul): Update the scheduled-report worker to retry failed jobs with bounded backoff and record the final job state",
+      "ENGINEER: Update the scheduled-report worker to retry failed jobs with bounded backoff and record the final job state"
+    ],
+    "technical_context": [],
+    "deadline": "October 26"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_9",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

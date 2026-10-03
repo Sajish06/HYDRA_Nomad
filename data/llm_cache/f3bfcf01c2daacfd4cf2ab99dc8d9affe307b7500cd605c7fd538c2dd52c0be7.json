@@ -1,0 +1,23 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_14",
+    "intentions": [
+      "Add a health endpoint that reports database, queue, and worker status for operations"
+    ],
+    "things_to_implement": [
+      "BACKEND: Add a health endpoint that reports database, queue, and worker status for operations"
+    ],
+    "technical_context": [
+      "Support 10,000 concurrent users",
+      "Use PostgreSQL and FastAPI"
+    ],
+    "deadline": "October 20"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_14",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

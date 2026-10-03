@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_meeting_12345_6",
+    "intentions": [
+      "Update the deployment configuration so the application uses the new health-check endpoint, and I'll have that ready"
+    ],
+    "things_to_implement": [
+      "BACKEND: Update the deployment configuration so the application uses the new health-check endpoint, and I'll have that ready"
+    ],
+    "technical_context": [],
+    "deadline": "October 20",
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_meeting_12345_6",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "meeting_12345"
+  }
+}

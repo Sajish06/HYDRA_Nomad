@@ -25,7 +25,7 @@ def extract_named_entities(text: str) -> List[str]:
     tokens = re.findall(r"\b[A-Z][a-zA-Z0-9_-]*\b", text)
     return [t for t in tokens if t.lower() not in STOPWORDS]
 
-def retrieve_candidates(meeting_id: str, claim: Claim) -> List[Dict[str, Any]]:
+def retrieve_candidates(meeting_id: str, claim: Claim, fast_mode: bool = False) -> List[Dict[str, Any]]:
     """Hybrid retrieval with RRF, window expansion, follow-up expansion, and tail scan."""
     with get_db() as conn:
         all_segments_rows = conn.execute(
@@ -39,11 +39,14 @@ def retrieve_candidates(meeting_id: str, claim: Claim) -> List[Dict[str, Any]]:
     seg_map = {row["idx"]: dict(row) for row in all_segments_rows}
     max_idx = max(seg_map.keys())
 
-    # 1. Semantic Retrieval
-    query_text = claim.normalized or claim.text
-    query_vec = embed_text(query_text)
-    semantic_hits = search_meeting_vectors(meeting_id, query_vec, top_k=settings.RETRIEVAL_TOP_K)
-    semantic_ranked_idx = [idx for idx, _ in semantic_hits]
+    # 1. Semantic Retrieval (skipped in Fast Demo Mode)
+    if not fast_mode:
+        query_text = claim.normalized or claim.text
+        query_vec = embed_text(query_text)
+        semantic_hits = search_meeting_vectors(meeting_id, query_vec, top_k=settings.RETRIEVAL_TOP_K)
+        semantic_ranked_idx = [idx for idx, _ in semantic_hits]
+    else:
+        semantic_ranked_idx = []
 
     # 2. Lexical Retrieval (FTS5)
     lexical_ranked_idx = []

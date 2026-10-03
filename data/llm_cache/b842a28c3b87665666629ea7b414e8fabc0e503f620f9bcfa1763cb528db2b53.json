@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_MTG_SIMPLE_001_1",
+    "intentions": [
+      "Implement the Hello World page and the counter"
+    ],
+    "things_to_implement": [
+      "ENGINEER: Implement the Hello World page and the counter"
+    ],
+    "technical_context": [],
+    "deadline": null,
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_MTG_SIMPLE_001_1",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MTG_SIMPLE_001"
+  }
+}

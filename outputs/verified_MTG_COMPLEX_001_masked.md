@@ -16,10 +16,8 @@
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
-**Deadline**: null
-
 ### 4. Role-Specific Briefs
-#### AUTHENTICATION — Assignee: Bob (Deadline: null)
+#### AUTHENTICATION — Assignee: Bob
 - Deliverable: AUTHENTICATION: Implement the login flow with server-side authentication and hashed passwords
 
 ---
@@ -27,18 +25,16 @@
 ## Task: claim_MTG_COMPLEX_001_2
 
 ### 1. Intentions (Technical Objective)
-- Restrict dashboard access to authenticated users
+- Also make sure unauthenticated users cannot directly access the dashboard
 
 ### 2. Things to Implement (Structured Deliverables)
-- AUTHENTICATION: Implement authentication middleware to restrict dashboard access
+- AUTHENTICATION: Also make sure unauthenticated users cannot directly access the dashboard
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
-**Deadline**: None
-
 ### 4. Role-Specific Briefs
-#### AUTHENTICATION — Assignee: Bob (Deadline: None)
-- Deliverable: AUTHENTICATION: Implement authentication middleware to restrict dashboard access
+#### AUTHENTICATION — Assignee: Bob
+- Deliverable: AUTHENTICATION: Also make sure unauthenticated users cannot directly access the dashboard
 
 ---
 

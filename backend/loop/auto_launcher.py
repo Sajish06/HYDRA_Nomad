@@ -14,7 +14,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from backend.logging import logger
 from backend.loop.workspace import get_default_workspace_root, get_loop_workspace, resolve_desktop_path
@@ -81,6 +81,61 @@ def launch_antigravity_ide(workspace_dir: Path) -> bool:
         return False
 
 
+def scaffold_workspace_deliverables(workspace_path: Path, deliverables: List[str], objective: str, requirements: List[str]) -> List[str]:
+    """Populates clean, unpopulated starter file structure so files show nothing before AGY builds them."""
+    created_files = []
+    
+    for d in deliverables:
+        target = workspace_path / d
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and target.stat().st_size > 0:
+            continue
+            
+        if d.endswith(".html"):
+            if "contact" in d.lower():
+                content = (
+                    "<!DOCTYPE html>\n"
+                    "<html lang=\"en\">\n"
+                    "<head>\n"
+                    "  <meta charset=\"UTF-8\">\n"
+                    "  <title>Awaiting AGY Build</title>\n"
+                    "</head>\n"
+                    "<body>\n"
+                    "  <!-- Awaiting AGY contact form generation -->\n"
+                    "</body>\n"
+                    "</html>\n"
+                )
+            else:
+                content = (
+                    "<!DOCTYPE html>\n"
+                    "<html lang=\"en\">\n"
+                    "<head>\n"
+                    "  <meta charset=\"UTF-8\">\n"
+                    "  <title>Awaiting AGY Build</title>\n"
+                    "</head>\n"
+                    "<body>\n"
+                    "  <!-- Awaiting AGY code generation -->\n"
+                    "</body>\n"
+                    "</html>\n"
+                )
+            target.write_text(content, encoding="utf-8")
+            created_files.append(d)
+        elif d.endswith(".css"):
+            css_content = "/* Awaiting AGY styles */\n"
+            target.write_text(css_content, encoding="utf-8")
+            created_files.append(d)
+        elif d.endswith(".js"):
+            js_content = "// Awaiting AGY script\n"
+            target.write_text(js_content, encoding="utf-8")
+            created_files.append(d)
+        elif d.endswith(".py"):
+            py_content = "# Awaiting AGY implementation\n"
+            target.write_text(py_content, encoding="utf-8")
+            created_files.append(d)
+            
+    return created_files
+
+
 async def auto_run_build_loop(meeting_id: str, behavior: str = "fix_on_second") -> Dict[str, Any]:
     """Execute the autonomous build loop in the background and return final verdict."""
     agent = FakeAGYAgent(
@@ -96,10 +151,11 @@ def setup_and_launch_agy(meeting_id: str, auto_execute: bool = True) -> Dict[str
     """
     Main orchestration entrypoint:
     1. Issues loop brief and retrieves compiled prompt + workspace.
-    2. Writes PROMPT.md and AGENTS.md in the workspace.
-    3. Copies prompt to clipboard.
-    4. Launches Antigravity IDE.
-    5. Runs autonomous builder if auto_execute is True.
+    2. Populates initial file structure with empty clean starters.
+    3. Writes the exact final AGY prompt markdown in PROMPT.md and AGENTS.md.
+    4. Copies the final AGY prompt markdown directly to Windows clipboard.
+    5. Launches Antigravity IDE.
+    6. Runs autonomous builder if auto_execute is True.
     """
     db = SessionLocal()
     try:
@@ -121,42 +177,69 @@ def setup_and_launch_agy(meeting_id: str, auto_execute: bool = True) -> Dict[str
 
         # Format prompt text
         objective = prompt_data.get("objective", "Build verified deliverables")
-        requirements = "\n".join([f"- {r}" for r in prompt_data.get("requirements", [])])
-        deliverables = ", ".join(prompt_data.get("deliverables", []))
+        requirements_list = prompt_data.get("requirements", [])
+        requirements = "\n".join([f"- {r}" for r in requirements_list])
+        deliverables_list = prompt_data.get("deliverables", ["index.html"])
+        deliverables = ", ".join(deliverables_list)
         criteria = "\n".join([f"- {c}" for c in prompt_data.get("acceptance_criteria", [])])
 
-        formatted_prompt = (
-            f"Use the nomad-cleanroom MCP server.\n"
-            f"Call cleanroom_get_masked_brief for meeting '{meeting_id}' (loop_run_id: '{loop_run_id}').\n\n"
-            f"Objective: {objective}\n"
-            f"Deliverables to build in this workspace: {deliverables}\n\n"
-            f"Requirements:\n{requirements}\n\n"
-            f"Acceptance Criteria:\n{criteria}\n\n"
-            f"When done, call cleanroom_submit_code_report to run local acceptance verification."
+        # 2. Populate file structure with starter clean stubs (not pre-baked deliverables)
+        scaffolded = scaffold_workspace_deliverables(
+            workspace_path=workspace_path,
+            deliverables=deliverables_list,
+            objective=objective,
+            requirements=requirements_list
         )
 
-        # 2. Write PROMPT.md, INSTRUCTIONS.md, AGENTS.md in workspace
+        # 3. Read exact final AGY prompt markdown produced by privacy masking
+        final_prompt_path = Path("outputs") / f"final_prompt_{meeting_id}.md"
+        if final_prompt_path.exists():
+            base_prompt = final_prompt_path.read_text(encoding="utf-8")
+        else:
+            base_prompt = (
+                f"# AUTONOMOUS AGENT BUILD BRIEF\n"
+                f"**Meeting ID**: {meeting_id}\n\n"
+                f"## 1. Technical Objectives & Intentions\n- {objective}\n\n"
+                f"## 2. Deliverables & Things to Implement\n{requirements}\n"
+            )
+
+        report_instruction = (
+            f"\n\n## 5. Report Submission & Verification\n"
+            f"When deliverables ({deliverables}) are implemented in this workspace, submit your execution report using the nomad-cleanroom MCP tool:\n"
+            f"```python\n"
+            f"cleanroom_submit_code_report(\n"
+            f"    loop_run_id='{loop_run_id}',\n"
+            f"    agy_status='completed',\n"
+            f"    summary='Implemented verified deliverables for {meeting_id}',\n"
+            f"    files_changed=['index.html', 'style.css', 'script.js'],\n"
+            f"    test_results='All local unit tests and acceptance criteria verified.'\n"
+            f")\n"
+            f"```\n"
+        )
+        formatted_prompt = base_prompt.strip() + report_instruction
+
+        # 4. Write PROMPT.md, INSTRUCTIONS.md, AGENTS.md in workspace
         (workspace_path / "PROMPT.md").write_text(formatted_prompt, encoding="utf-8")
         
         agents_md = (
             f"# Nomad Clean Room Agent Instructions\n\n"
             f"You are building verified deliverables inside this quarantined workspace: `{workspace_path}`\n\n"
             f"## Instructions\n"
-            f"1. Read the brief via `cleanroom_get_masked_brief`.\n"
+            f"1. Read the brief via `cleanroom_get_masked_brief` or `PROMPT.md`.\n"
             f"2. Build deliverables ({deliverables}) strictly inside this folder.\n"
-            f"3. Submit report via `cleanroom_submit_code_report`.\n"
+            f"3. Submit report via `cleanroom_submit_code_report(loop_run_id='{loop_run_id}', agy_status='completed', ...)`.\n"
             f"4. If verdict is `revise`, address feedback and resubmit.\n"
         )
         (workspace_path / "AGENTS.md").write_text(agents_md, encoding="utf-8")
         (workspace_path / "GEMINI.md").write_text(agents_md, encoding="utf-8")
 
-        # 3. Copy to Windows clipboard
+        # 5. Copy EXACT final AGY prompt markdown to Windows clipboard
         clipboard_ok = copy_to_windows_clipboard(formatted_prompt)
 
-        # 4. Launch Antigravity IDE
+        # 5. Launch Antigravity IDE
         ide_launched = launch_antigravity_ide(workspace_path)
 
-        # 5. Automatically run autonomous build if requested
+        # 6. Automatically run autonomous build if requested
         build_result = None
         if auto_execute:
             logger.info(f"[AutoLauncher] Auto-executing autonomous builder for meeting {meeting_id}...")

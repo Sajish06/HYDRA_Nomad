@@ -22,7 +22,7 @@ def test_pipeline_verify_and_mask_e2e():
 
     with open(transcript_path, "rb") as t_f, open(summary_path, "rb") as s_f:
         resp = client.post(
-            "/api/pipeline/verify-and-mask",
+            "/api/pipeline/verify-and-mask?fast_mode=true",
             files={
                 "transcript_file": ("transcript.json", t_f, "application/json"),
                 "summary_file": ("summary.json", s_f, "application/json")
@@ -34,3 +34,19 @@ def test_pipeline_verify_and_mask_e2e():
     assert data["status"] == "SUCCESS"
     assert "verified_tasks" in data
     assert len(data["verified_tasks"]) > 0
+
+
+def test_pipeline_verify_meetily():
+    resp = client.post(
+        "/api/pipeline/verify-meetily",
+        json={
+            "meeting_id": "meeting_12345",
+            "fast_mode": True,
+            "auto_launch": False
+        }
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert data["verified_tasks_count"] > 0
+    assert len(data["final_prompt_markdown"]) > 0

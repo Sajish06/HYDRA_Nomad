@@ -1,0 +1,8 @@
+{
+  "meeting_id": "demo-meeting-claim-local-001",
+  "meeting_title": "Meeting demo-meeting-claim-local-001",
+  "business_context": [],
+  "isolated_secrets_count": 0,
+  "isolated_secrets": [],
+  "vault_session_id": "demo-meeting-claim-local-001"
+}

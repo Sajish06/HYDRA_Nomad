@@ -114,6 +114,7 @@ class PromptCompiler:
         workspace_path: str,
         iteration: int = 1,
         previous_feedback: Optional[str] = None,
+        business_context: Optional[List[str]] = None,
     ) -> StructuredPrompt:
         """
         Compile masked build tasks into a StructuredPrompt.
@@ -130,6 +131,7 @@ class PromptCompiler:
                     workspace_path=workspace_path,
                     iteration=iteration,
                     previous_feedback=previous_feedback,
+                    business_context=business_context,
                 )
             except Exception as e:
                 logger.warning(f"[PromptCompiler] Ollama compilation failed or timed out: {e}. Falling back to deterministic template.")
@@ -141,6 +143,7 @@ class PromptCompiler:
                 workspace_path=workspace_path,
                 iteration=iteration,
                 previous_feedback=previous_feedback,
+                business_context=business_context,
             )
 
         # Tracing check: Ollama must not invent requirements.
@@ -158,6 +161,7 @@ class PromptCompiler:
         workspace_path: str,
         iteration: int = 1,
         previous_feedback: Optional[str] = None,
+        business_context: Optional[List[str]] = None,
     ) -> StructuredPrompt:
         """Deterministic template compiler that produces identical structured schema."""
         all_deliverables = []
@@ -223,6 +227,7 @@ class PromptCompiler:
         workspace_path: str,
         iteration: int,
         previous_feedback: Optional[str],
+        business_context: Optional[List[str]] = None,
     ) -> Optional[StructuredPrompt]:
         """Call Ollama /api/chat with structured JSON schema format."""
         # 1. Check if model available
@@ -253,14 +258,19 @@ class PromptCompiler:
         }
 
         user_msg = (
-            f"You are a technical specification compiler. Compile the following masked requirements into a structured brief.\n"
+            f"You are a technical specification compiler. Compile the following masked requirements into an authoritative brief.\n"
             f"Tasks:\n{tasks_summary}\n\n"
             f"Acceptance Criteria:\n{criteria_summary}\n\n"
             f"Workspace Path: {workspace_path}\n"
             f"Iteration: {iteration}\n"
         )
         if previous_feedback:
-            user_msg += f"\nPrevious Evaluation Feedback to Address:\n{previous_feedback}\n"
+            user_msg += f"\nPrevious Evaluation Feedback to Address (Fix these failures):\n{previous_feedback}\n"
+        if business_context:
+            user_msg += (
+                f"\nReference Business Context (Use ONLY to clarify technical context, NEVER leak private metrics/financials):\n"
+                + "\n".join([f"- {bc}" for bc in business_context]) + "\n"
+            )
 
         payload = {
             "model": model_to_use,

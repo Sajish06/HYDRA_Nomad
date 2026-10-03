@@ -342,7 +342,8 @@ def heuristic_classify_segment(seg: Dict[str, Any], claim: Claim, prev_seg: Opti
 def analyze_stances(
     claim: Claim,
     candidates: List[Dict[str, Any]],
-    participants: List[Dict[str, Any]]
+    participants: List[Dict[str, Any]],
+    fast_mode: bool = False
 ) -> Tuple[List[Dict[str, Any]], List[Reason]]:
     """Runs stance classification, quote validation, and merges with rule cues."""
     if not candidates:
@@ -353,22 +354,27 @@ def analyze_stances(
         {"idx": c["idx"], "speaker": c.get("speaker"), "time": c.get("time"), "text": c.get("text")}
         for c in candidates
     ]
-    user_prompt = f"Claim: {claim.model_dump_json()}\nParticipants: {participants}\nCandidate Segments:\n"
-    for s in prompt_segments:
-        user_prompt += f"[{s['idx']}] {s.get('speaker') or 'Speaker'} ({s.get('time') or ''}): {s.get('text')}\n"
 
-    try:
-        res = query_structured_llm(
-            prompt_name="stance_analysis",
-            prompt_version=PROMPT_VERSION,
-            system_prompt=STANCE_ANALYSIS_SYSTEM,
-            user_prompt=user_prompt,
-            response_model=StanceAnalysisResponse,
-            input_context={"claim_id": claim.claim_id, "candidates": prompt_segments}
-        )
-        llm_stances = res.stances
-    except Exception:
-        llm_stances = []
+    llm_stances = []
+    if not fast_mode:
+        user_prompt = f"Claim: {claim.model_dump_json()}\nParticipants: {participants}\nCandidate Segments:\n"
+        for s in prompt_segments:
+            user_prompt += f"[{s['idx']}] {s.get('speaker') or 'Speaker'} ({s.get('time') or ''}): {s.get('text')}\n"
+
+        try:
+            res = query_structured_llm(
+                prompt_name="stance_analysis",
+                prompt_version=PROMPT_VERSION,
+                system_prompt=STANCE_ANALYSIS_SYSTEM,
+                user_prompt=user_prompt,
+                response_model=StanceAnalysisResponse,
+                input_context={"claim_id": claim.claim_id, "candidates": prompt_segments}
+            )
+            llm_stances = res.stances
+        except Exception:
+            llm_stances = []
+
+    if not llm_stances:
         for i, c in enumerate(candidates):
             prev = cand_map.get(c["idx"] - 1)
             llm_stances.append(heuristic_classify_segment(c, claim, prev))

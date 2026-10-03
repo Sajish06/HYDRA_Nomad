@@ -78,24 +78,6 @@
 
 ---
 
-## Task: claim_demo-meeting-claim-local-001_5
-
-### 1. Intentions (Technical Objective)
-- Also add a dashboard endpoint for the operations team and return the required status fields
-
-### 2. Things to Implement (Structured Deliverables)
-- BACKEND: Also add a dashboard endpoint for the operations team and return the required status fields
-
-### 3. Technical Context (Prerequisites & Constraints)
-
-**Deadline**: October 22
-
-### 4. Role-Specific Briefs
-#### BACKEND — Assignee: Priya (Deadline: October 22)
-- Deliverable: BACKEND: Also add a dashboard endpoint for the operations team and return the required status fields
-
----
-
 ### Privacy Engine Audit
 - Total Business Secrets Isolated & Dropped: **0**
 - Downstream Leak Gate Status: **PASSED (Clean Technical Spec)**

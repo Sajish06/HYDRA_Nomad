@@ -83,13 +83,21 @@ class SemanticDecomposer:
     def process_commitment(
         self,
         commitment: VerifiedCommitment,
-        vault_session_id: str
+        vault_session_id: str,
+        fast_mode: bool = False
     ) -> Tuple[AgentTaskPayload, InternalAuditRecord]:
         """
         Decomposes commitment and returns TWO distinct artifacts:
         1. AgentTaskPayload: Clean, minimal technical specs with ZERO business secrets.
         2. InternalAuditRecord: Internal record of detected business secrets and audit trail.
         """
+        # Fast Demo Mode: High-speed deterministic NLP rule engine (~10ms)
+        if fast_mode:
+            agent_payload, audit_record = self._heuristic_decomposition(commitment, vault_session_id)
+            if self.use_cache:
+                self._write_cache(commitment, agent_payload, audit_record)
+            return agent_payload, audit_record
+
         if self.use_cache:
             cached_result = self._read_cache(commitment)
             if cached_result:
@@ -182,19 +190,17 @@ class SemanticDecomposer:
         system_instruction = (
             "You are a strict privacy-preserving technical compiler.\n"
             "Your job is to execute two MANDATORY and INDEPENDENT tasks from the provided meeting input:\n\n"
-            "JOB A — EXTRACT THE MINIMUM NECESSARY TECHNICAL TASK (Grounded in source-of-truth):\n"
-            "1. intentions: High-level technical goal (e.g. 'Restrict revenue metrics to ADMIN and FINANCE roles'). Describe WHAT needs to be achieved, NEVER WHY the company wants it.\n"
-            "2. things_to_implement: Concrete technical implementation tasks per role (e.g. 'BACKEND: Add authorization middleware to financial endpoints'). Do not copy raw dialogue. Do not include confidential business motivations.\n"
-            "3. technical_context: Pure technical constraints, capacity numbers, or architecture facts explicitly stated in the input (e.g. 'Support 10,000 concurrent users', 'Audit records retained for 180 days', 'Use PostgreSQL and FastAPI').\n"
-            "   ANTI-HALLUCINATION RULE: Every single item must be directly supported by the input. NEVER invent technologies, frameworks, roles, or constraints not mentioned (e.g. do NOT invent 'domain constraints' or 'RBAC' unless explicitly stated). If no technical context is present in the input, return an empty list [].\n"
-            "4. deadline: Stated technical delivery deadline, if any.\n\n"
+            "JOB A — EXTRACT TECHNICAL TASKS AND INTENTIONS (Grounded in source-of-truth):\n"
+            "1. intentions: High-level technical goal (e.g. 'Restrict revenue metrics to ADMIN and FINANCE roles'). Describe WHAT needs to be achieved, NEVER WHY the company wants it. NEVER mention customer counts, revenue amounts, percentages, partner names, or business motivations.\n"
+            "2. things_to_implement: Concrete technical implementation tasks per role (e.g. 'BACKEND: Add authorization middleware to financial endpoints', 'FRONTEND: Build table component'). Do not copy raw dialogue. Do not include confidential business motivations or deadlines.\n"
+            "3. business_context: Commercial, organizational, or strategic background mentioned in the discussion (e.g. 'Enterprise customer requirements', 'Market expansion context', 'Internal operational prioritization'). NOTE: This will be stored locally for reference and evaluation and will NEVER be released to external coding agents.\n\n"
             "JOB B — IDENTIFY AND ISOLATE ALL CONFIDENTIAL INFORMATION (Mandatory):\n"
             "You MUST actively search the entire input for information that must NOT reach the downstream coding agent.\n"
             "Populate 'isolated_business_secrets' with structured objects whenever confidential information exists. An empty list is acceptable ONLY if the entire input has been examined and zero sensitive information is present.\n"
             "Classify every sensitive item into one of the following taxonomy categories:\n"
             "- PERSONAL_DATA: Names, personal phone numbers, personal emails, personal addresses, customer PII.\n"
             "- GOVERNMENT_ID: Aadhaar, PAN card, GSTIN, Voter ID, Passport, Driver's License, SSN.\n"
-            "- FINANCIAL_DATA: Financial volumes, revenue, profit, margins, budgets, forecasts, ₹ amounts, customer bank account numbers, IFSC codes, UPI IDs.\n"
+            "- FINANCIAL_DATA: Financial volumes, revenue, profit, margins, budgets, forecasts, ₹ or $ amounts, customer bank account numbers, IFSC codes, UPI IDs.\n"
             "- CREDENTIAL / AUTHENTICATION_SECRET: Passwords, API keys, AWS keys, JWTs, private keys, database connection strings.\n"
             "- BUSINESS_STRATEGY / UNRELEASED_INFORMATION: Unannounced products/campaigns, market expansions (e.g. Middle East), M&A/acquisitions, competitor analysis.\n"
             "- COMMERCIAL_NEGOTIATION: Pricing negotiations, vendor-switching discussions, partner contracts, preferential transaction rates.\n"
@@ -203,21 +209,17 @@ class SemanticDecomposer:
             "- LEGAL_CONFIDENTIAL: Vendor lawsuits, ongoing litigation, regulatory disputes.\n"
             "- SECURITY_CONFIDENTIAL: Internal security incidents, vulnerability investigations, breach details.\n"
             "- INTERNAL_OPERATIONAL: Internal company politics, unreleased roadmaps, commercial secrets.\n\n"
-            "CRITICAL DISTINCTIONS:\n"
-            "- TECHNICAL NUMBERS vs BUSINESS NUMBERS:\n"
-            "  * KEEP: '10,000 concurrent users' (technical capacity), '500 requests per second' (system throughput), '180 days' (retention period).\n"
-            "  * ISOLATE: '8,450 customers' (business metric), '35% customer growth' (business forecast), '₹2.8 crore / ₹4 crore' (financial metric).\n"
-            "- DO NOT REQUIRE THE WORD 'CONFIDENTIAL': Detect confidentiality from semantic context alone.\n"
-            "- SEPARATE MOTIVATION FROM REQUIREMENT: If motivation is given ('expecting huge customer influx, so increase capacity'), keep only 'Increase system capacity' in technical tasks, and isolate the customer influx into isolated_business_secrets.\n\n"
+            "CRITICAL PRIVACY DISTINCTIONS:\n"
+            "- ZERO BUSINESS LEAKS: Never place commercial motivations, customer figures, or business reasoning into intentions or things_to_implement.\n"
+            "- MOTIVATION IS NOT REQUIREMENT: If dialogue says 'expanding into Middle East, so build multilingual dashboard', intentions must be ONLY 'Build multilingual dashboard', and the Middle East expansion MUST go to business_context and isolated_business_secrets.\n\n"
             "Output valid JSON conforming strictly to the schema:\n"
             "{\n"
             "  \"intentions\": [\"string\"],\n"
             "  \"things_to_implement\": [\"string\"],\n"
-            "  \"technical_context\": [\"string\"],\n"
+            "  \"business_context\": [\"string\"],\n"
             "  \"isolated_business_secrets\": [\n"
             "    {\"category\": \"string\", \"reason\": \"string\", \"value\": \"string\"}\n"
-            "  ],\n"
-            "  \"deadline\": \"string or null\"\n"
+            "  ]\n"
             "}"
         )
 
@@ -226,7 +228,7 @@ class SemanticDecomposer:
             "properties": {
                 "intentions": {"type": "array", "items": {"type": "string"}},
                 "things_to_implement": {"type": "array", "items": {"type": "string"}},
-                "technical_context": {"type": "array", "items": {"type": "string"}},
+                "business_context": {"type": "array", "items": {"type": "string"}},
                 "isolated_business_secrets": {
                     "type": "array",
                     "items": {
@@ -238,10 +240,9 @@ class SemanticDecomposer:
                         },
                         "required": ["category", "reason", "value"]
                     }
-                },
-                "deadline": {"type": "string"}
+                }
             },
-            "required": ["intentions", "things_to_implement", "technical_context", "isolated_business_secrets"]
+            "required": ["intentions", "things_to_implement", "business_context", "isolated_business_secrets"]
         }
 
         request_body = {
@@ -281,7 +282,7 @@ class SemanticDecomposer:
                     content = {}
             
             deadlines = [a.deadline for a in commitment.assignees if a.deadline]
-            deadline_val = deadlines[0] if deadlines else content.get("deadline")
+            deadline_val = deadlines[0] if deadlines else None
 
             things = content.get("things_to_implement", [])
             existing_roles = {t.split(":")[0].strip().upper() for t in things if ":" in t}
@@ -291,12 +292,15 @@ class SemanticDecomposer:
                     work = re.sub(r'^(?:I\'ll |We need to |Please |Make sure to )', '', work, flags=re.IGNORECASE)
                     things.append(f"{a.role.upper()}: {work}")
 
+            business_context = content.get("business_context", [])
+
             agent_payload = AgentTaskPayload(
                 task_id=commitment.task_id,
                 intentions=content.get("intentions", [commitment.raw_requirement]),
                 things_to_implement=things,
-                technical_context=content.get("technical_context", []),
-                deadline=deadline_val
+                technical_context=[],
+                deadline=deadline_val,
+                business_context=business_context
             )
 
             raw_secrets = content.get("isolated_business_secrets", [])
@@ -315,6 +319,7 @@ class SemanticDecomposer:
             audit_record = InternalAuditRecord(
                 task_id=commitment.task_id,
                 confidential_context_detected=len(secrets) > 0,
+                business_context=business_context,
                 isolated_business_secrets=secrets,
                 token_vault_session_id=vault_session_id
             )
@@ -436,17 +441,32 @@ class SemanticDecomposer:
 
         deadline = deadlines[0] if deadlines else None
 
+        # Extract commercial and business context for local storage
+        business_context = []
+        for quote in commitment.evidence_context_quotes:
+            quote_clean = quote.strip()
+            q_lower = quote_clean.lower()
+            if any(k in q_lower for k in [
+                "middle east", "competitor", "market", "customer base", "growth",
+                "revenue", "retail solutions", "vendor", "negotiat", "campaign",
+                "client", "strategic", "priority", "commercial", "enterprise"
+            ]):
+                business_context.append(quote_clean)
+        business_context = list(dict.fromkeys(business_context))
+
         agent_payload = AgentTaskPayload(
             task_id=commitment.task_id,
             intentions=intentions,
             things_to_implement=things_to_implement,
             technical_context=technical_context,
-            deadline=deadline
+            deadline=deadline,
+            business_context=business_context
         )
 
         audit_record = InternalAuditRecord(
             task_id=commitment.task_id,
             confidential_context_detected=len(isolated_secrets) > 0,
+            business_context=business_context,
             isolated_business_secrets=isolated_secrets,
             token_vault_session_id=vault_session_id
         )

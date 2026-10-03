@@ -1,0 +1,24 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_12",
+    "intentions": [
+      "Add CSV export to the audit-history endpoint and enforce the existing authorization check"
+    ],
+    "things_to_implement": [
+      "AUTHENTICATION: Add CSV export to the audit-history endpoint and enforce the existing authorization check"
+    ],
+    "technical_context": [
+      "Support 10,000 concurrent users",
+      "Audit records retained for 180 days",
+      "Use PostgreSQL and FastAPI"
+    ],
+    "deadline": "exports by October 22"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_12",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

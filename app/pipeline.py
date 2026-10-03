@@ -15,7 +15,7 @@ from app.analysis.chain import build_evidence_chain
 from app.analysis.slots import check_slots
 from app.gate.gate import evaluate_gate
 
-def run_verification_pipeline(claim: Claim) -> Verification:
+def run_verification_pipeline(claim: Claim, fast_mode: bool = False) -> Verification:
     """Executes the full ReqCopilot Proof verification pipeline on a claim."""
     meeting_id = claim.meeting_id
 
@@ -42,7 +42,7 @@ def run_verification_pipeline(claim: Claim) -> Verification:
         seg_dict = {r["idx"]: dict(r) for r in all_seg_rows}
 
     # 2. Retrieval
-    candidates = retrieve_candidates(meeting_id, claim)
+    candidates = retrieve_candidates(meeting_id, claim, fast_mode=fast_mode)
     log_trace(claim.claim_id, "retrieval", [{"idx": c["idx"], "relevance_hint": c["relevance_hint"], "via": c["via"]} for c in candidates])
 
     if not candidates:
@@ -61,7 +61,8 @@ def run_verification_pipeline(claim: Claim) -> Verification:
     merged_stances, disagreement_flags = analyze_stances(
         claim=claim,
         candidates=candidates,
-        participants=[p.model_dump() for p in participants]
+        participants=[p.model_dump() for p in participants],
+        fast_mode=fast_mode
     )
     log_trace(claim.claim_id, "stance_analysis", merged_stances)
 

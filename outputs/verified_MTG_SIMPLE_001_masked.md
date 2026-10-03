@@ -12,16 +12,12 @@
 - Implement the Hello World page and the counter
 
 ### 2. Things to Implement (Structured Deliverables)
-- FRONTEND: Create a simple HTML page displaying 'Hello World'
-- FRONTEND: Add a counter with an increment button
 - ENGINEER: Implement the Hello World page and the counter
 
 ### 3. Technical Context (Prerequisites & Constraints)
 
-**Deadline**: None
-
 ### 4. Role-Specific Briefs
-#### ENGINEER — Assignee: Bob (Deadline: None)
+#### ENGINEER — Assignee: Bob
 - Deliverable: ENGINEER: Implement the Hello World page and the counter
 
 ---

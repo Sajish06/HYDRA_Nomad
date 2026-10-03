@@ -76,7 +76,7 @@ def parse_bullet_heuristic(bullet: str, is_action: bool = False) -> ClaimDraft:
         normalized=norm.rstrip(".")
     )
 
-def extract_claims_from_summary(meeting: Meeting) -> List[Claim]:
+def extract_claims_from_summary(meeting: Meeting, fast_mode: bool = False) -> List[Claim]:
     """Generates structured Claim objects from meeting summary decisions and action items."""
     claims = []
     
@@ -91,19 +91,21 @@ def extract_claims_from_summary(meeting: Meeting) -> List[Claim]:
         if not bullet_text:
             continue
 
-        user_prompt = f"Meeting Summary Bullet: \"{bullet_text}\"\nBullet Category: {'Action Item' if is_action else 'Decision'}"
-        
-        try:
-            draft = query_structured_llm(
-                prompt_name="claim_structuring",
-                prompt_version=PROMPT_VERSION,
-                system_prompt=CLAIM_STRUCTURING_SYSTEM,
-                user_prompt=user_prompt,
-                response_model=ClaimDraft,
-                input_context={"bullet": bullet_text, "is_action": is_action}
-            )
-        except Exception:
+        if fast_mode:
             draft = parse_bullet_heuristic(bullet_text, is_action=is_action)
+        else:
+            user_prompt = f"Meeting Summary Bullet: \"{bullet_text}\"\nBullet Category: {'Action Item' if is_action else 'Decision'}"
+            try:
+                draft = query_structured_llm(
+                    prompt_name="claim_structuring",
+                    prompt_version=PROMPT_VERSION,
+                    system_prompt=CLAIM_STRUCTURING_SYSTEM,
+                    user_prompt=user_prompt,
+                    response_model=ClaimDraft,
+                    input_context={"bullet": bullet_text, "is_action": is_action}
+                )
+            except Exception:
+                draft = parse_bullet_heuristic(bullet_text, is_action=is_action)
 
         h_draft = parse_bullet_heuristic(bullet_text, is_action=is_action)
         if not draft.actor and h_draft.actor:

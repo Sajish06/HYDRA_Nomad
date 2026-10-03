@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_MTG_CALCULATOR_001_3",
+    "intentions": [
+      "Build the HTML and CSS interface and make sure the four operations work using JavaScript"
+    ],
+    "things_to_implement": [
+      "FRONTEND: Build the HTML and CSS interface and make sure the four operations work using JavaScript"
+    ],
+    "technical_context": [],
+    "deadline": null,
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_MTG_CALCULATOR_001_3",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "MTG_CALCULATOR_001"
+  }
+}

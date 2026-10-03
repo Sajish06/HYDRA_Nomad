@@ -1,0 +1,28 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_15",
+    "intentions": [
+      "Restrict the disclosure of sensitive information related to the login changes and the incident involving the executive account and the leaked support ticket to the engineering team."
+    ],
+    "things_to_implement": [
+      "ENGINEER (Arjun): Implement password-reset tokens with a 30-minute expiry and add the reset confirmation endpoint.",
+      "ENGINEER: Arjun agreed: For the login changes, the customer specifically complained after the incident involving the executive account and the leaked support ticket. We should not put those details into engineering prompts."
+    ],
+    "technical_context": [],
+    "deadline": "October 10"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_15",
+    "confidential_context_detected": true,
+    "isolated_business_secrets": [
+      {
+        "category": "INTERNAL_OPERATIONAL",
+        "reason": "The incident involving the executive account and the leaked support ticket is considered internal operational information.",
+        "source": "semantic_model",
+        "value": "Incident involving the executive account and the leaked support ticket"
+      }
+    ],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

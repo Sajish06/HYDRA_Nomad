@@ -1,0 +1,22 @@
+{
+  "agent_payload": {
+    "task_id": "claim_meeting_12345_5",
+    "intentions": [
+      "Add request validation to the public API endpoints and include tests for the validation rules"
+    ],
+    "things_to_implement": [
+      "BACKEND: Add request validation to the public API endpoints and include tests for the validation rules"
+    ],
+    "technical_context": [],
+    "deadline": "October 17",
+    "business_context": []
+  },
+  "audit_record": {
+    "task_id": "claim_meeting_12345_5",
+    "confidential_context_detected": false,
+    "business_context": [],
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "meeting_12345"
+  }
+}

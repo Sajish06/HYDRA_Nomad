@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": "Rahul",
+  "action": null,
+  "object": null,
+  "deadline": "October 20",
+  "normalized": "Rahul will Update deployment configuration"
+}

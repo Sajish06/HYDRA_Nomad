@@ -1,0 +1,20 @@
+{
+  "agent_payload": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_3",
+    "intentions": [
+      "Update the deployment pipeline so database migrations are checked before production release and add a failed-check stop condition"
+    ],
+    "things_to_implement": [
+      "BACKEND: Update the deployment pipeline so database migrations are checked"
+    ],
+    "technical_context": [],
+    "deadline": "October 14"
+  },
+  "audit_record": {
+    "task_id": "claim_privacy-task-eval-2026-10-03-001_3",
+    "confidential_context_detected": false,
+    "isolated_business_secrets": [],
+    "sanitized_pii_entities": [],
+    "token_vault_session_id": "privacy-task-eval-2026-10-03-001"
+  }
+}

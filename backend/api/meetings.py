@@ -45,6 +45,58 @@ async def list_meetings(repo: Repository = Depends(get_repo)):
     ]
 
 
+@router.get("/history/runs")
+async def list_loop_runs_history(repo: Repository = Depends(get_repo)):
+    """Retrieve all autonomous loop runs, meetings, and final execution reports stored in SQLite."""
+    from backend.storage.models import LoopRunModel, LoopIterationModel
+    
+    runs = repo.db.query(LoopRunModel).order_by(LoopRunModel.created_at.desc()).all()
+    history = []
+    
+    for r in runs:
+        m = repo.get_meeting_by_id(r.meeting_id)
+        m_title = m.title if m else f"Meeting {r.meeting_id}"
+        
+        # Get iterations
+        iterations = (
+            repo.db.query(LoopIterationModel)
+            .filter(LoopIterationModel.loop_run_id == r.id)
+            .order_by(LoopIterationModel.iteration.asc())
+            .all()
+        )
+        
+        final_iter = iterations[-1] if iterations else None
+        final_report = None
+        if final_iter:
+            eval_data = json.loads(final_iter.evaluation_json or "{}")
+            final_report = {
+                "iteration": final_iter.iteration,
+                "verdict": final_iter.verdict,
+                "summary": final_iter.report_summary or "",
+                "files_changed": eval_data.get("files_changed", []),
+                "passed_count": eval_data.get("passed_count", 0),
+                "failed_count": eval_data.get("failed_count", 0),
+                "test_results": "\n".join([f"{f.get('test')}: {f.get('message')}" for f in eval_data.get("failures", [])]),
+                "submitted_at": final_iter.created_at.isoformat() if final_iter.created_at else None,
+            }
+            
+        history.append({
+            "loop_run_id": r.id,
+            "meeting_id": r.meeting_id,
+            "meeting_title": m_title,
+            "status": r.status,
+            "iteration": r.iteration,
+            "max_iterations": r.max_iterations,
+            "workspace_path": r.workspace_path,
+            "iterations_count": len(iterations),
+            "final_report": final_report,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+        })
+        
+    return {"status": "SUCCESS", "count": len(history), "history": history}
+
+
 @router.get("/{id}", response_model=MeetingResponse)
 async def get_meeting(id: str, repo: Repository = Depends(get_repo)):
     """Get meeting metadata and summary. Raw transcript omitted unless EXPOSE_RAW_TRANSCRIPTS=true."""

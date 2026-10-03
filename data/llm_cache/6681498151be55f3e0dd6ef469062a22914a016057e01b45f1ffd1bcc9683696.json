@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "The client and developer discussed the frontend scope for a business website. The client wants a premium, trustworthy presentation focused on generating customer enquiries. The first version should cover the visual website experience and exclude online payments, customer accounts, and other later-stage business features."
+}

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": "October 14",
+  "normalized": "Implement password-reset flow and email verification handling"
+}

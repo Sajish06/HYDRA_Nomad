@@ -5,14 +5,17 @@ from pydantic import BaseModel, Field
 class Assignee(BaseModel):
     name: str
     role: str                       # e.g., "BACKEND", "FRONTEND", "QA"
-    assigned_work: str              # Specific deliverable
+    assigned_work: str = ""         # Specific deliverable
     deadline: Optional[str] = None  # e.g., "Friday"
 
 class VerifiedCommitment(BaseModel):
     task_id: str                   # e.g., "TASK-001"
-    raw_requirement: str           # Grounded requirement statement
+    raw_requirement: str = ""      # Grounded requirement statement
+    clean_requirement: Optional[str] = None
     assignees: List[Assignee] = []
     evidence_context_quotes: List[str] = [] # Supporting quotes from raw transcript
+    supporting_quotes: Optional[List[str]] = None
+    deadline: Optional[str] = None
 
 class MeetingHandoff(BaseModel):
     meeting_id: str
@@ -39,6 +42,10 @@ class AgentTaskPayload(BaseModel):
         description="Normalized technical prerequisites and constraints."
     )
     deadline: Optional[str] = None
+    business_context: List[str] = Field(
+        default_factory=list,
+        description="Business context kept locally for reference and evaluation, never dispatched to coding agent."
+    )
 
 
 class AgentRoleBrief(BaseModel):
@@ -77,6 +84,10 @@ class AuditEntry(BaseModel):
 class InternalAuditRecord(BaseModel):
     task_id: str
     confidential_context_detected: bool = False
+    business_context: List[str] = Field(
+        default_factory=list,
+        description="Non-leaked commercial, strategic, and operational context stored locally for history/evaluation."
+    )
     isolated_business_secrets: List[AuditEntry] = Field(
         default_factory=list,
         description="Business secrets (M&A, strategy, expansion) isolated and kept strictly internal with reasoning."
@@ -97,6 +108,8 @@ class ProcessingResult(BaseModel):
     audit_records: List[InternalAuditRecord]
     markdown_path: Optional[str] = None
     vault_path: Optional[str] = None
+    final_prompt_markdown: Optional[str] = None
+    final_prompt_json: Optional[Dict[str, Any]] = None
 
     def summary(self) -> Dict[str, Any]:
         return {

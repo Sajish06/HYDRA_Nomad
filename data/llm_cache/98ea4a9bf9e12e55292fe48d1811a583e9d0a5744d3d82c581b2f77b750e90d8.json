@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": null,
+  "normalized": "The meeting reviews and finalizes upcoming engineering work while separately discussing unresolved technical choices."
+}

@@ -1,0 +1,8 @@
+{
+  "type": "DECISION",
+  "actor": null,
+  "action": null,
+  "object": null,
+  "deadline": "October 20",
+  "normalized": "Update deployment configuration for health-check endpoint"
+}

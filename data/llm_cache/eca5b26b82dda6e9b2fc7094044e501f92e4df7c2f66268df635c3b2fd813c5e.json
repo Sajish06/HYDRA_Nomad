@@ -8,11 +8,13 @@
       "AUTHENTICATION: Implement the login flow with server-side authentication and hashed passwords"
     ],
     "technical_context": [],
-    "deadline": "null"
+    "deadline": null,
+    "business_context": []
   },
   "audit_record": {
     "task_id": "claim_MTG_COMPLEX_001_1",
     "confidential_context_detected": false,
+    "business_context": [],
     "isolated_business_secrets": [],
     "sanitized_pii_entities": [],
     "token_vault_session_id": "MTG_COMPLEX_001"

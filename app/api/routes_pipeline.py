@@ -1,5 +1,6 @@
 import re
 import json
+import asyncio
 import traceback
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -26,6 +27,7 @@ from app.masking.validator import LeakInspector
 
 router = APIRouter(prefix="/api/pipeline", tags=["Unified Pipeline"])
 
+
 def safe_decode_json(b: bytes) -> Any:
     for enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
         try:
@@ -33,6 +35,7 @@ def safe_decode_json(b: bytes) -> Any:
         except (UnicodeDecodeError, LookupError, json.JSONDecodeError):
             continue
     raise ValueError("File content is not valid JSON.")
+
 
 def extract_summary_items_from_json(s_json: Any) -> List[str]:
     """Recursively and comprehensively extracts summary/claims/topics from arbitrary summary JSON schemas."""
@@ -87,10 +90,12 @@ def extract_summary_items_from_json(s_json: Any) -> List[str]:
 
     return extracted
 
+
 @router.post("/verify-and-mask")
 async def verify_and_mask_pipeline(
     transcript_file: UploadFile = File(..., description="Compulsory meeting transcript JSON file"),
     summary_file: UploadFile = File(..., description="Compulsory meeting summary / claims JSON file"),
+    fast_mode: bool = Query(False, description="Enable Fast Demo Mode (deterministic NLP engine, skips LLM)"),
     auto_launch: bool = Query(False, description="Automatically launch Antigravity IDE and execute build")
 ) -> Dict[str, Any]:
     """
@@ -150,11 +155,16 @@ async def verify_and_mask_pipeline(
     else:
         raise HTTPException(status_code=400, detail={"error": {"code": "UNSUPPORTED_TRANSCRIPT_FORMAT", "message": "Transcript JSON must be an object or array of segments."}})
 
+    return await _process_meeting_core(meeting, fast_mode=fast_mode, auto_launch=auto_launch)
+
+
+async def _process_meeting_core(meeting: Meeting, fast_mode: bool = False, auto_launch: bool = False) -> Dict[str, Any]:
+    """Core logic to verify commitments, execute privacy masking, and optionally auto-launch build."""
     # 2. Execute Teammate 1 Verification Pipeline
     load_meeting_to_db(meeting, source="upload")
-    index_meeting(meeting.meeting_id)
+    index_meeting(meeting.meeting_id, fast_mode=fast_mode)
 
-    claims = extract_claims_from_summary(meeting)
+    claims = extract_claims_from_summary(meeting, fast_mode=fast_mode)
     if not claims:
         claims = extract_claims_from_transcript(meeting)
 
@@ -181,8 +191,14 @@ async def verify_and_mask_pipeline(
     ambiguous_tasks = []
     seen_raw_requirements = set()
 
-    for c in claims:
-        v = run_verification_pipeline(c)
+    # Parallel claim verification via asyncio.gather across threadpool
+    loop = asyncio.get_running_loop()
+    verification_results = await asyncio.gather(*[
+        loop.run_in_executor(None, lambda cl=c: run_verification_pipeline(cl, fast_mode=fast_mode))
+        for c in claims
+    ])
+
+    for c, v in zip(claims, verification_results):
         eff_status = get_effective_status(c.claim_id, v.status)
         is_verified = eff_status in ("VERIFIED", "USER_CONFIRMED")
         # A claim is verified only if its own claim-local evidence contains explicit commitment support without same-claim cancellation
@@ -194,9 +210,9 @@ async def verify_and_mask_pipeline(
             )
             is_investigation_only = any(
                 re.search(r"\b(investigat\w*|check whether|look into whether|explore whether|before we decide|don'?t think we'?ve selected|haven'?t selected|rather than implementation commitments?|not selected either)\b", e.quote or e.text or "", re.IGNORECASE)
-                for e in v.evidence_chain if e.relation in ("SUPPORTS", "CONTEXT", "CONTRADICTS")
+                for e in v.evidence_chain if e.relation == "SUPPORTS"
             ) and not any(
-                re.search(r"\b(?:i'?ll|i will|committed for|committed as well|part of the sprint)\b", e.quote or e.text or "", re.IGNORECASE)
+                re.search(r"\b(?:i'?ll|i will|committed for|committed as well|part of the sprint|another committed item|that's committed)\b", e.quote or e.text or "", re.IGNORECASE)
                 and not re.search(r"\b(investigat\w*|check whether|look into|explore|not sure)\b", e.quote or e.text or "", re.IGNORECASE)
                 for e in v.evidence_chain if e.relation == "SUPPORTS"
             )
@@ -247,34 +263,58 @@ async def verify_and_mask_pipeline(
                 eff_role = "ENGINEER"
 
             # Deduplicate semantically identical verified tasks by clean requirement text
-            norm_key = " ".join(eff_req.lower().split())
-            if norm_key not in seen_raw_requirements:
-                seen_raw_requirements.add(norm_key)
-                assignees = [Assignee(name=eff_actor, role=eff_role, assigned_work=eff_req, deadline=eff_deadline)]
+            req_key = eff_req.lower().strip()
+            if req_key not in seen_raw_requirements:
+                seen_raw_requirements.add(req_key)
                 verified_commitments.append(VerifiedCommitment(
                     task_id=c.claim_id,
                     raw_requirement=eff_req,
-                    assignees=assignees,
-                    evidence_context_quotes=quotes
+                    clean_requirement=eff_req,
+                    assignees=[Assignee(name=eff_actor, role=eff_role, assigned_work=eff_req, deadline=eff_deadline)],
+                    deadline=eff_deadline,
+                    evidence_context_quotes=quotes[:3] if quotes else [c.text],
+                    supporting_quotes=quotes[:3] if quotes else [c.text]
                 ))
         else:
-            reason_text = v.explanation or "Claim was held for manual human review or ambiguous dialogue context."
-            quotes = [e.quote for e in v.evidence_chain if e.quote] if v.evidence_chain else []
-            ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text) if v.evidence_chain else {}
+            reason_text = "Missing supporting commitment in transcript"
+            if v.evidence_chain:
+                # Format specific and readable gate reasons
+                reasons = []
+                for e in v.evidence_chain:
+                    q = e.quote or e.text or ""
+                    if re.search(r"\b(investigat\w*|look into|explore|check whether)\b", q, re.IGNORECASE):
+                        reasons.append(f"Conditional investigation: \"{q}\"")
+                    elif re.search(r"\b(haven'?t selected|not decided|not sure)\b", q, re.IGNORECASE):
+                        reasons.append(f"Undecided technology: \"{q}\"")
+                    elif e.stance in (Stance.REJECT, Stance.CANCEL, Stance.REVERSE) or e.relation == "CONTRADICTS":
+                        reasons.append(f"Contradicted in discussion: \"{q}\"")
+                
+                if reasons:
+                    reason_text = "; ".join(reasons[:2])
+                elif v.status == Status.AMBIGUOUS:
+                    reason_text = "Requires team confirmation / clarification (ambiguous stance)"
+                elif v.status == Status.UNSUPPORTED:
+                    reason_text = "No direct commitment found in meeting transcript"
             
-            # Find accurate actor from evidence chain speakers if slot extraction didn't find one
+            quotes = [e.quote for e in v.evidence_chain if e.quote]
+            ev_slots = extract_slots_from_evidence(v.evidence_chain, claim_text=c.text)
+
             candidate_actor = ev_slots.get("actor") or c.actor
-            if not candidate_actor or candidate_actor in ("Unassigned", "Team"):
-                if v.evidence_chain:
-                    for e in v.evidence_chain:
-                        spk = getattr(e, "speaker", None)
-                        if spk and not spk.lower().startswith("speaker") and not spk.lower().startswith("user") and spk.lower() != "maya":
-                            candidate_actor = spk
-                            break
-                    if not candidate_actor and v.evidence_chain:
-                        spk = getattr(v.evidence_chain[0], "speaker", None)
-                        if spk and not spk.lower().startswith("speaker") and not spk.lower().startswith("user"):
-                            candidate_actor = spk
+            if not candidate_actor or candidate_actor in ("Team", "Unassigned"):
+                c_words = set(re.findall(r"\w{4,}", c.text.lower()))
+                best_match = None
+                best_score = 0
+                for e in v.evidence_chain:
+                    spk = getattr(e, "speaker", None)
+                    q_txt = (getattr(e, "quote", "") or getattr(e, "text", "")).lower()
+                    if spk and spk not in ("Team", "Speaker"):
+                        match_count = sum(1 for w in c_words if w in q_txt)
+                        if match_count > best_score:
+                            best_score = match_count
+                            best_match = spk
+                if best_match:
+                    candidate_actor = best_match
+
             eff_actor = candidate_actor or "Unassigned"
             eff_deadline = ev_slots.get("deadline") or c.deadline
 
@@ -330,7 +370,8 @@ async def verify_and_mask_pipeline(
 
     masking_result = engine.process_verified_tasks(
         handoff_data=handoff_obj,
-        output_md_path=out_md_path
+        output_md_path=out_md_path,
+        fast_mode=fast_mode
     )
 
     # Pre-Dispatch Leak Gate verification
@@ -355,6 +396,7 @@ async def verify_and_mask_pipeline(
         formatted_tasks.append({
             "task_id": f"TASK-{idx+1:03d}",
             "actor": actor_name,
+            "assignee": actor_name,
             "intentions": p.intentions,
             "things_to_implement": p.things_to_implement,
             "technical_context": p.technical_context,
@@ -381,7 +423,6 @@ async def verify_and_mask_pipeline(
 
             if not _m.transcript_sha256:
                 _m.transcript_sha256 = f"pipeline_{meeting.meeting_id}"
-            _db.commit()
             if not _repo.get_latest_release_decision(_m.id):
                 _repo.save_release_decision(
                     run_id=f"pipeline_{meeting.meeting_id}",
@@ -401,8 +442,39 @@ async def verify_and_mask_pipeline(
                 )
         finally:
             _db.close()
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.getLogger("nomad.pipeline").warning(f"Failed to sync release decision to DB: {e}")
+
+
+    # Extract transcript-wide and claim-wide business context & secrets
+    all_isolated_secrets = []
+    quarantined_ctx = []
+
+    for a in masking_result.audit_records:
+        quarantined_ctx.extend(a.business_context)
+        for s in a.isolated_business_secrets:
+            all_isolated_secrets.append(s.model_dump() if hasattr(s, "model_dump") else s)
+        for pii in getattr(a, "sanitized_pii_entities", []):
+            all_isolated_secrets.append({
+                "category": "PII_OR_SECRET",
+                "reason": "Sensitive identifier masked by Deterministic Firewall",
+                "source": "deterministic_firewall",
+                "value": pii.get("raw", "") if isinstance(pii, dict) else str(pii),
+                "token": pii.get("token", "") if isinstance(pii, dict) else ""
+            })
+
+    # Also capture contextual discussion from all claims
+    for c in claims:
+        q_low = c.text.lower()
+        if any(k in q_low for k in [
+            "middle east", "competitor", "market", "customer", "growth", "revenue",
+            "vendor", "negotiat", "campaign", "pricing", "commercial", "strategy",
+            "priority", "partner", "confidential", "secret", "budget"
+        ]):
+            quarantined_ctx.append(c.text.strip())
+
+    quarantined_ctx = list(dict.fromkeys([ctx for ctx in quarantined_ctx if ctx]))
 
     agy_launch_info = None
     if auto_launch:
@@ -420,8 +492,67 @@ async def verify_and_mask_pipeline(
         "verified_tasks": formatted_tasks,
         "ambiguous_tasks_count": len(ambiguous_tasks),
         "ambiguous_tasks": ambiguous_tasks,
+        "final_prompt_markdown": masking_result.final_prompt_markdown,
+        "final_prompt_json": masking_result.final_prompt_json,
+        "business_context_quarantined": quarantined_ctx,
+        "isolated_secrets_count": len(all_isolated_secrets),
+        "isolated_secrets": all_isolated_secrets,
         "agy_launch": agy_launch_info
     }
+
+
+
+class MeetilyVerifyRequest(BaseModel):
+    meeting_id: str
+    gateway_url: str = "http://127.0.0.1:8420"
+    token: Optional[str] = None
+    fast_mode: bool = False
+    auto_launch: bool = False
+
+
+@router.get("/meetily/{meeting_id}")
+async def get_meetily_meeting_endpoint(
+    meeting_id: str,
+    gateway_url: str = Query("http://127.0.0.1:8420"),
+    token: Optional[str] = Query(None)
+):
+    """Inspect and fetch a Meetily meeting transcript and summary via REST API."""
+    from app.integrations.meetily import fetch_meetily_meeting
+    return await fetch_meetily_meeting(meeting_id=meeting_id, gateway_url=gateway_url, token=token)
+
+
+@router.post("/verify-meetily")
+async def verify_meetily_pipeline(
+    req: MeetilyVerifyRequest
+) -> Dict[str, Any]:
+    """
+    Directly query Meetily REST API for meeting transcript & summary,
+    parse them, and run end-to-end verification, masking, and optional AGY auto-launch.
+    """
+    from app.integrations.meetily import fetch_meetily_meeting
+    meetily_data = await fetch_meetily_meeting(meeting_id=req.meeting_id, gateway_url=req.gateway_url, token=req.token)
+    
+    adapter = MockAdapter()
+    t_json = meetily_data.get("transcript", {})
+    s_json = meetily_data.get("summary", {})
+    meta = meetily_data.get("metadata", {})
+    
+    s_items = extract_summary_items_from_json(s_json)
+    if not s_items and isinstance(t_json, dict):
+        s_items = extract_summary_items_from_json(t_json)
+    norm_s_items = [normalize_summary_item(it) for it in s_items if normalize_summary_item(it)]
+    
+    segments = t_json.get("segments", []) if isinstance(t_json, dict) else (t_json if isinstance(t_json, list) else [])
+    meeting_title = meta.get("title") or (t_json.get("title") if isinstance(t_json, dict) else None) or f"Meeting {req.meeting_id}"
+    
+    meeting = adapter.load({
+        "meeting_id": req.meeting_id,
+        "title": meeting_title,
+        "segments": segments,
+        "summary": {"decisions": norm_s_items, "action_items": []}
+    })
+    
+    return await _process_meeting_core(meeting, fast_mode=req.fast_mode, auto_launch=req.auto_launch)
 
 
 @router.post("/auto-launch-agy")
@@ -444,4 +575,42 @@ async def auto_launch_agy_endpoint(
     except Exception as e:
         raise HTTPException(status_code=400, detail={"message": f"Auto-launch failed: {str(e)}"})
 
+
+@router.get("/preview/{meeting_id}")
+@router.get("/preview/{meeting_id}/{filename:path}")
+async def preview_deliverable_endpoint(
+    meeting_id: str,
+    filename: str = "index.html"
+):
+    """Serve verified deliverables directly from the quarantined build workspace for instant browser preview."""
+    from fastapi.responses import FileResponse, HTMLResponse
+    from backend.loop.workspace import resolve_desktop_path, get_default_workspace_root
+    from backend.storage.database import SessionLocal
+    from backend.storage.models import LoopRunModel
+
+    workspace_dir = None
+    db = SessionLocal()
+    try:
+        run = db.query(LoopRunModel).filter(LoopRunModel.meeting_id == meeting_id).order_by(LoopRunModel.created_at.desc()).first()
+        if run and run.workspace_path and Path(run.workspace_path).exists():
+            workspace_dir = Path(run.workspace_path)
+    finally:
+        db.close()
+
+    if not workspace_dir or not workspace_dir.exists():
+        # Fallback search inside Desktop/test
+        test_root = get_default_workspace_root()
+        if test_root.exists():
+            candidates = sorted(test_root.glob("run_*"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if candidates:
+                workspace_dir = candidates[0]
+
+    if not workspace_dir or not workspace_dir.exists():
+        return HTMLResponse("<h3>Deliverable workspace not found. Please click 'Auto-Launch Antigravity' first.</h3>", status_code=404)
+
+    target_file = (workspace_dir / filename).resolve()
+    if not target_file.exists():
+        return HTMLResponse(f"<h3>File '{filename}' not found in workspace '{workspace_dir.name}'.</h3>", status_code=404)
+
+    return FileResponse(target_file)
 

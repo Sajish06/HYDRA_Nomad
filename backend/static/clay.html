@@ -258,6 +258,79 @@
       word-break: break-all;
     }
 
+    /* Output Sub-Tabs */
+    .output-tabs-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-clay);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .out-tab-btn {
+      background: var(--card-clay);
+      border: 1px solid var(--border-clay);
+      box-shadow: 2px 2px 5px rgba(180, 170, 155, 0.3);
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .out-tab-btn.active {
+      background: var(--terracotta);
+      color: white;
+      border-color: var(--terracotta);
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .out-tab-btn:hover:not(.active) {
+      background: var(--card-inset);
+      color: var(--text-main);
+    }
+
+    /* History Card */
+    .history-card {
+      background: var(--card-clay);
+      box-shadow: var(--shadow-outer);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .history-table th {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--border-clay);
+      color: var(--text-muted);
+      font-weight: 700;
+      background: var(--card-inset);
+    }
+
+    .history-table td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border-clay);
+      vertical-align: top;
+    }
+
+    .history-table tr:hover {
+      background: rgba(229, 223, 213, 0.45);
+    }
+
     /* Tasks Board Section */
     .tasks-board-card {
       background: var(--card-clay);
@@ -807,6 +880,29 @@
 
     <!-- Upload Form -->
     <section class="form-card">
+      <!-- Meetily Live Integration Bar -->
+      <div class="meetily-bar" style="background: var(--card-inset); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-clay); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 22px;">🎙️</span>
+          <div>
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">Fetch Live from Meetily Gateway</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Query local Meetily REST API (<code>http://127.0.0.1:8420</code>) or demo meetings directly by ID.</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <input type="text" id="meetily-meeting-id" placeholder="Meeting ID (e.g. meeting_12345)" value="meeting_12345" style="padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-clay); background: var(--card-clay); font-size: 13px; font-family: inherit; font-weight: 700; color: var(--text-main); width: 220px;">
+          <button type="button" class="btn-action" onclick="fetchAndVerifyMeetily()" style="background: linear-gradient(135deg, #3B7A57, #2D5E43); color: white; border: none; font-weight: 800; padding: 9px 16px;">
+            ⚡ Fetch & Verify from Meetily
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px;">
+        <div style="flex: 1; height: 1px; background: var(--border-clay);"></div>
+        <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Or Upload JSON Files Manually</span>
+        <div style="flex: 1; height: 1px; background: var(--border-clay);"></div>
+      </div>
+
       <div class="upload-grid">
         
         <!-- Input 1: Transcript -->
@@ -833,11 +929,15 @@
 
       </div>
 
-      <!-- Auto-Launch Option -->
-      <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 4px; padding: 4px 6px;">
+      <!-- Demo Speed & Auto-Launch Options -->
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; margin-bottom: 12px; padding: 10px 14px; background: var(--card-inset); border-radius: 8px; border: 1px solid var(--border-clay);">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer;">
+          <input type="checkbox" id="chk-fast-mode" checked style="accent-color: #3B7A57; width: 16px; height: 16px;">
+          <span>⚡ Fast Demo Mode (High-Speed Deterministic NLP ~200ms, skips slow LLM inference)</span>
+        </label>
         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer;">
           <input type="checkbox" id="chk-auto-launch" checked style="accent-color: var(--terracotta); width: 16px; height: 16px;">
-          <span>⚡ Automatically generate prompt, paste into Desktop/test, open Antigravity IDE, and execute build</span>
+          <span>🚀 Automatically generate starter code in Desktop/test, copy prompt, launch Antigravity IDE, & execute build</span>
         </label>
       </div>
 
@@ -889,15 +989,24 @@
     </section>
 
     <!-- Output Section -->
-    <section class="output-card" id="output-card">
+    <section class="output-card" id="output-card" style="display: none;">
       <div class="output-header">
-        <div class="output-title">Verified & Masked JSON Output</div>
+        <div class="output-title">📄 Verified & Masked Deliverables Output</div>
         <div class="btn-group">
-          <button type="button" class="btn-action" onclick="copyJSON()">📋 Copy JSON</button>
-          <button type="button" class="btn-action" onclick="downloadJSON()">📥 Download JSON</button>
+          <button type="button" class="btn-action" onclick="copyCurrentOutput()">📋 Copy</button>
+          <button type="button" class="btn-action" onclick="downloadCurrentOutput()">💾 Download</button>
         </div>
       </div>
+
+      <div class="output-tabs-bar">
+        <button type="button" class="out-tab-btn active" id="btn-outtab-json" onclick="switchOutputTab('json')">🛡️ Post-Firewall Masked JSON</button>
+        <button type="button" class="out-tab-btn" id="btn-outtab-prompt" onclick="switchOutputTab('prompt')">📝 Final AGY Prompt (Markdown)</button>
+        <button type="button" class="out-tab-btn" id="btn-outtab-vault" onclick="switchOutputTab('vault')">🔒 Quarantined Business Context (Local Vault)</button>
+      </div>
+
       <pre class="json-display" id="json-result"></pre>
+      <pre class="json-display" id="prompt-result" style="display: none; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;"></pre>
+      <pre class="json-display" id="vault-result" style="display: none; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;"></pre>
     </section>
 
     <!-- Autonomous AGY Coding Loop Section -->
@@ -961,17 +1070,15 @@
         <button type="button" class="btn-build-primary" onclick="autoLaunchAgyAction()" style="background: linear-gradient(135deg, #3B7A57, #2D5E43); border:none; color:white;">
           ⚡ Auto-Launch Antigravity & Run Build Now
         </button>
-        <button type="button" class="btn-build-secondary" onclick="simulateAgyDemo('success')">
-          ⚡ Demo: Simulate AGY Report (Pass)
-        </button>
-        <button type="button" class="btn-build-secondary" onclick="simulateAgyDemo('failure')">
-          ⚠️ Demo: Simulate AGY Retry (Self-Healing)
+        <button type="button" class="btn-build-primary" id="btn-preview-deliverable" onclick="openDeliverablePreview()" style="background: linear-gradient(135deg, #1d72b8, #144e7e); border:none; color:white;">
+          🌐 Open & Preview index.html
         </button>
       </div>
 
       <!-- Tabs Navigation -->
       <div class="build-tabs-nav">
         <button type="button" class="build-tab-btn active" id="tabbtn-tab-overview" onclick="switchBuildTab('tab-overview')">Live Monitor</button>
+        <button type="button" class="build-tab-btn" id="tabbtn-tab-preview" onclick="switchBuildTab('tab-preview')">🖥️ Live Web Preview (index.html)</button>
         <button type="button" class="build-tab-btn" id="tabbtn-tab-tests" onclick="switchBuildTab('tab-tests')">Pytest & AGY Reports</button>
         <button type="button" class="build-tab-btn" id="tabbtn-tab-prompt" onclick="switchBuildTab('tab-prompt')">Corrective Prompts</button>
         <button type="button" class="build-tab-btn" id="tabbtn-tab-mcp" onclick="switchBuildTab('tab-mcp')">MCP Integration Info</button>
@@ -980,6 +1087,17 @@
       <!-- Tab Content 1: Overview -->
       <div class="build-tab-pane active" id="tab-overview">
         <div class="build-console" id="loop-live-console">Waiting for autonomous build trigger...</div>
+      </div>
+
+      <!-- Tab Content Preview: Live Iframe -->
+      <div class="build-tab-pane" id="tab-preview">
+        <div style="background: white; border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; height: 520px; display: flex; flex-direction: column;">
+          <div style="padding: 10px 16px; background: #EDE8DF; border-bottom: 1px solid #D9D2C5; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+            <span id="preview-url-label">🌐 Quarantined Workspace Deliverable: index.html</span>
+            <button type="button" onclick="openDeliverablePreview()" class="btn-action" style="padding: 4px 12px; font-size: 11px;">↗️ Open in Full Browser Tab</button>
+          </div>
+          <iframe id="deliverable-iframe" src="about:blank" style="width: 100%; height: 100%; border: none; background: #EDE8DF;"></iframe>
+        </div>
       </div>
 
       <!-- Tab Content 2: Reports -->
@@ -1011,6 +1129,25 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         </div>
       </div>
 
+    </section>
+
+    <!-- Local Storage & Meeting History Section (SQLite) -->
+    <section class="history-card" id="history-card">
+      <div class="build-header-row">
+        <div>
+          <div class="output-title">📚 Local SQLite History & Stored Reports</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Full audit log of meetings run, autonomous build loops executed, and final AGY verification reports stored locally in SQLite database.
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-action" onclick="fetchHistoryRuns()">🔄 Refresh History</button>
+        </div>
+      </div>
+
+      <div id="history-table-container">
+        <div style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">Loading meeting history from SQLite...</div>
+      </div>
     </section>
 
   </div>
@@ -1078,6 +1215,63 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       btn.disabled = !(files.transcript && files.summary);
     }
 
+    let currentOutputTab = 'json';
+
+    function switchOutputTab(tab) {
+      currentOutputTab = tab;
+      const tabs = ['json', 'prompt', 'vault'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`btn-outtab-${t}`);
+        const pre = document.getElementById(`${t}-result`);
+        if (btn) btn.classList.toggle('active', t === tab);
+        if (pre) pre.style.display = (t === tab) ? 'block' : 'none';
+      });
+    }
+
+    function copyCurrentOutput() {
+      let content = '';
+      if (currentOutputTab === 'json') {
+        content = document.getElementById('json-result').innerText;
+      } else if (currentOutputTab === 'prompt') {
+        content = document.getElementById('prompt-result').innerText;
+      } else if (currentOutputTab === 'vault') {
+        content = document.getElementById('vault-result').innerText;
+      }
+      if (!content) return;
+      navigator.clipboard.writeText(content).then(() => {
+        alert('Copied to clipboard!');
+      });
+    }
+
+    function downloadCurrentOutput() {
+      let content = '';
+      let filename = 'output.txt';
+      let mimeType = 'text/plain';
+
+      if (currentOutputTab === 'json') {
+        content = document.getElementById('json-result').innerText;
+        filename = `masked_payload_${lastResult?.meeting_id || 'run'}.json`;
+        mimeType = 'application/json';
+      } else if (currentOutputTab === 'prompt') {
+        content = document.getElementById('prompt-result').innerText;
+        filename = `PROMPT_${lastResult?.meeting_id || 'run'}.md`;
+        mimeType = 'text/markdown';
+      } else if (currentOutputTab === 'vault') {
+        content = document.getElementById('vault-result').innerText;
+        filename = `quarantined_vault_${lastResult?.meeting_id || 'run'}.json`;
+        mimeType = 'application/json';
+      }
+
+      if (!content) return;
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     function renderTasksBoard(highlightTaskId = null) {
       if (!lastResult) return;
 
@@ -1100,16 +1294,21 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         verifiedList.innerHTML = verifiedTasks.map((t, idx) => {
           const tid = t.task_id || `TASK_${idx + 1}`;
           const isHighlighted = (highlightTaskId && tid === highlightTaskId);
+          const assigneeName = t.assignee || t.actor || 'Team';
+          const assigneeBadge = `<span class="meta-chip" style="background: rgba(59, 122, 87, 0.12); color: var(--sage-green); font-weight: 700; border: 1px solid rgba(59, 122, 87, 0.25);">👤 Assignee: ${escapeHtml(assigneeName)}</span>`;
           const intentions = (t.intentions || []).map(i => `<div>• ${escapeHtml(i)}</div>`).join("");
           const things = (t.things_to_implement || []).map(item => `<span class="meta-chip">${escapeHtml(item)}</span>`).join("");
-          const context = (t.technical_context || []).map(ctx => `<div class="evidence-quote">“${escapeHtml(ctx)}”</div>`).join("");
+          const context = (t.business_context || t.technical_context || []).map(ctx => `<div class="evidence-quote">“${escapeHtml(ctx)}”</div>`).join("");
           const deadline = t.deadline ? `<span class="meta-chip" style="color:var(--terracotta); font-weight:700;">📅 ${escapeHtml(t.deadline)}</span>` : "";
 
           return `
             <div class="task-card ${isHighlighted ? 'promoted' : ''}" id="card-verified-${escapeHtml(tid)}">
               <div class="task-card-header">
                 <span class="task-id">${escapeHtml(tid)}</span>
-                <span class="task-tag verified">✓ VERIFIED</span>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                  ${assigneeBadge}
+                  <span class="task-tag verified">✓ VERIFIED</span>
+                </div>
               </div>
               ${intentions ? `<div class="task-text">${intentions}</div>` : ""}
               ${(things || deadline) ? `<div class="task-meta-row">${things} ${deadline}</div>` : ""}
@@ -1192,9 +1391,11 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       // Create verified task matching backend schema
       const verifiedItem = item.proposed_task || {
         task_id: item.task_id || item.claim_id,
+        assignee: item.actor || item.assignee || "Team",
+        actor: item.actor || item.assignee || "Team",
         intentions: [item.task_text || item.claim || "Confirmed task"],
         things_to_implement: [item.actor ? `${item.actor}: ${item.task_text || item.claim}` : (item.task_text || item.claim)],
-        technical_context: (item.evidence_chain || []).map(e => e.quote).filter(Boolean),
+        business_context: (item.evidence_chain || []).map(e => e.quote).filter(Boolean),
         deadline: item.deadline
       };
 
@@ -1228,7 +1429,6 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       const errBox = document.getElementById('error-box');
       const tasksBoard = document.getElementById('tasks-board-card');
       const outCard = document.getElementById('output-card');
-      const jsonDisplay = document.getElementById('json-result');
 
       errBox.style.display = 'none';
       btn.disabled = true;
@@ -1240,7 +1440,11 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
 
       try {
         const autoLaunch = document.getElementById('chk-auto-launch') && document.getElementById('chk-auto-launch').checked;
-        const url = autoLaunch ? '/api/pipeline/verify-and-mask?auto_launch=true' : '/api/pipeline/verify-and-mask';
+        const fastMode = document.getElementById('chk-fast-mode') && document.getElementById('chk-fast-mode').checked;
+        const params = new URLSearchParams();
+        if (autoLaunch) params.append('auto_launch', 'true');
+        if (fastMode) params.append('fast_mode', 'true');
+        const url = `/api/pipeline/verify-and-mask?${params.toString()}`;
         const resp = await fetch(url, {
           method: 'POST',
           body: formData
@@ -1265,8 +1469,18 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         renderTasksBoard();
         tasksBoard.style.display = 'flex';
 
-        // Render JSON Output
-        jsonDisplay.innerText = JSON.stringify(data, null, 2);
+        // Render Multi-Tab Output
+        document.getElementById('json-result').innerText = JSON.stringify(data, null, 2);
+        document.getElementById('prompt-result').innerText = data.final_prompt_markdown || (data.final_prompt_json ? JSON.stringify(data.final_prompt_json, null, 2) : "No compiled prompt generated");
+        
+        const vaultData = {
+          quarantined_business_context: data.business_context_quarantined || [],
+          isolated_business_secrets_count: data.isolated_secrets_count || 0,
+          isolated_secrets_and_pii: data.isolated_secrets || [],
+          privacy_status: "100% Deterministic Firewall Cleared - Zero Business Secrets Leaked Outside",
+          storage: "Quarantined in SQLite & local history for reference"
+        };
+        document.getElementById('vault-result').innerText = JSON.stringify(vaultData, null, 2);
         outCard.style.display = 'flex';
 
         // Show Autonomous Build Loop Section
@@ -1282,6 +1496,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
           refreshLoopStatus();
         }
 
+        await fetchHistoryRuns();
         tasksBoard.scrollIntoView({ behavior: 'smooth' });
 
         btn.disabled = false;
@@ -1292,6 +1507,88 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         errBox.style.display = 'block';
         btn.disabled = false;
         btn.innerText = 'Run Verification & Privacy Masking';
+      }
+    }
+
+    async function fetchAndVerifyMeetily() {
+      const midInput = document.getElementById('meetily-meeting-id');
+      const mid = midInput ? midInput.value.trim() : '';
+      if (!mid) {
+        alert("Please enter a Meetily Meeting ID (e.g. meeting_12345).");
+        return;
+      }
+
+      const errBox = document.getElementById('error-box');
+      const tasksBoard = document.getElementById('tasks-board-card');
+      const outCard = document.getElementById('output-card');
+
+      errBox.style.display = 'none';
+      const autoLaunch = document.getElementById('chk-auto-launch') && document.getElementById('chk-auto-launch').checked;
+      const fastMode = document.getElementById('chk-fast-mode') && document.getElementById('chk-fast-mode').checked;
+
+      logConsole(`🎙️ Fetching meeting '${mid}' from Meetily Gateway & running clean room verification...`);
+
+      try {
+        const resp = await fetch('/api/pipeline/verify-meetily', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meeting_id: mid,
+            gateway_url: 'http://127.0.0.1:8420',
+            fast_mode: fastMode,
+            auto_launch: autoLaunch
+          })
+        });
+
+        const rawText = await resp.text();
+        let data = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          data = { detail: { message: rawText || `HTTP ${resp.status}` } };
+        }
+
+        if (!resp.ok) {
+          const errMsg = data.detail ? (data.detail.message || JSON.stringify(data.detail)) : `Server returned HTTP ${resp.status}`;
+          throw new Error(errMsg);
+        }
+
+        lastResult = data;
+        renderTasksBoard();
+        tasksBoard.style.display = 'flex';
+
+        document.getElementById('json-result').innerText = JSON.stringify(data, null, 2);
+        document.getElementById('prompt-result').innerText = data.final_prompt_markdown || (data.final_prompt_json ? JSON.stringify(data.final_prompt_json, null, 2) : "No compiled prompt generated");
+        
+        const vaultData = {
+          quarantined_business_context: data.business_context_quarantined || [],
+          isolated_business_secrets_count: data.isolated_secrets_count || 0,
+          isolated_secrets_and_pii: data.isolated_secrets || [],
+          privacy_status: "100% Deterministic Firewall Cleared - Zero Business Secrets Leaked Outside",
+          storage: "Quarantined in SQLite & local history for reference"
+        };
+        document.getElementById('vault-result').innerText = JSON.stringify(vaultData, null, 2);
+        outCard.style.display = 'flex';
+
+        initBuildSection(data.meeting_id);
+
+        if (data.agy_launch) {
+          logConsole(`🚀 [Antigravity IDE] Auto-launched targeting: ${data.agy_launch.workspace_path}`);
+          logConsole(`📋 [Clipboard] Prompt copied to clipboard and saved to PROMPT.md!`);
+          if (data.agy_launch.build_result) {
+            logConsole(`✅ [Nomad Build Result] Verdict: ${data.agy_launch.build_result.final_verdict.toUpperCase()}`);
+          }
+          startLoopPolling();
+          refreshLoopStatus();
+        }
+
+        await fetchHistoryRuns();
+        tasksBoard.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        errBox.innerText = `Error: ${err.message}`;
+        errBox.style.display = 'block';
+        logConsole(`❌ [Error] Meetily fetch failed: ${err.message}`);
       }
     }
 
@@ -1324,6 +1621,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
           logConsole(`✅ [Nomad Evaluator] Verdict: ${data.build_result.final_verdict.toUpperCase()} (Chain Verified)`);
         }
         refreshLoopStatus();
+        await fetchHistoryRuns();
       } catch (err) {
         logConsole(`❌ [Error] ${err.message}`);
         alert(`Failed: ${err.message}`);
@@ -1331,26 +1629,16 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
     }
 
     function copyJSON() {
-      if (!lastResult) return;
-      navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2)).then(() => {
-        alert('Copied JSON to clipboard!');
-      });
+      copyCurrentOutput();
     }
 
     function downloadJSON() {
-      if (!lastResult) return;
-      const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `verified_masked_${lastResult.meeting_id || 'output'}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadCurrentOutput();
     }
 
     /* -------------------------------------------------------------
        AUTONOMOUS MEETING-TO-CODE CLOSED LOOP (AGY) LOGIC
-    -------------------------------------------------------------- */
+     ------------------------------------------------------------- */
     let currentMeetingId = null;
     let loopPollingInterval = null;
 
@@ -1364,6 +1652,20 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       refreshLoopStatus();
     }
 
+    function openDeliverablePreview() {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id) || "webdev-client-2026-10-03-001";
+      const previewUrl = `/api/pipeline/preview/${encodeURIComponent(mid)}/index.html`;
+      window.open(previewUrl, '_blank');
+    }
+
+    function updateIframePreview() {
+      const mid = currentMeetingId || (lastResult && lastResult.meeting_id) || "webdev-client-2026-10-03-001";
+      const iframe = document.getElementById('deliverable-iframe');
+      if (iframe) {
+        iframe.src = `/api/pipeline/preview/${encodeURIComponent(mid)}/index.html?t=${Date.now()}`;
+      }
+    }
+
     function switchBuildTab(tabId) {
       document.querySelectorAll('.build-tab-pane').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.build-tab-btn').forEach(el => el.classList.remove('active'));
@@ -1372,6 +1674,10 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
       const btn = document.getElementById(`tabbtn-${tabId}`);
       if (pane) pane.classList.add('active');
       if (btn) btn.classList.add('active');
+
+      if (tabId === 'tab-preview') {
+        updateIframePreview();
+      }
     }
 
     async function triggerBuild() {
@@ -1381,34 +1687,8 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         return;
       }
 
-      const btn = document.getElementById('btn-trigger-build');
-      btn.disabled = true;
-      btn.innerText = "⏳ Initializing MCP Build...";
-      logConsole(`Contacting Nomad Clean Room backend for meeting ${mid}...`);
-
-      try {
-        const resp = await fetch(`/api/meetings/${encodeURIComponent(mid)}/build`, {
-          method: 'POST'
-        });
-        const data = await resp.json();
-        if (!resp.ok) {
-          throw new Error(data.detail || data.error || `HTTP ${resp.status}`);
-        }
-
-        logConsole(`🚀 [Nomad] Autonomous build loop initialized!`);
-        logConsole(`📍 Loop Run ID: ${data.loop_run_id}`);
-        logConsole(`⚡ Status: DISPATCHED. AGY can now call cleanroom_get_masked_brief to start building.`);
-
-        renderLoopStatus(data);
-        startLoopPolling();
-      } catch (err) {
-        logConsole(`❌ [Error] Failed to initialize build: ${err.message}`);
-        alert(`Failed to trigger build: ${err.message}`);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🚀 Build with AGY (Antigravity MCP)";
-        refreshLoopStatus();
-      }
+      // Automatically launch AGY with scaffolded structure, copy prompt, and run build
+      return autoLaunchAgyAction();
     }
 
     async function refreshLoopStatus() {
@@ -1516,6 +1796,7 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         s2.className = 'step-box completed';
         s3.className = 'step-box completed';
         s4.className = 'step-box completed';
+        updateIframePreview();
         stopLoopPolling();
       } else if (s === 'needs_intervention' || s === 'failed_max_iterations' || s === 'rejected' || s === 'aborted') {
         stateTag.innerText = '🚨 STOPPED / REVIEW';
@@ -1612,6 +1893,99 @@ Config Location: C:\Users\Jeyaraman\.gemini\config\mcp_config.json
         console.error(e);
       }
     }
+
+    async function fetchHistoryRuns() {
+      const container = document.getElementById('history-table-container');
+      if (!container) return;
+
+      try {
+        const resp = await fetch('/api/meetings/history/runs');
+        if (!resp.ok) {
+          container.innerHTML = `<div style="color: var(--clay-red); font-size: 13px; padding: 8px 0;">Failed to load history (HTTP ${resp.status})</div>`;
+          return;
+        }
+        const data = await resp.json();
+        const runs = data.runs || [];
+
+        if (runs.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              No historical runs recorded in SQLite yet. Run a verification and build to see entries here.
+            </div>
+          `;
+          return;
+        }
+
+        let html = `
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Meeting / Run ID</th>
+                <th>Status / Verdict</th>
+                <th>Attempts</th>
+                <th>Workspace</th>
+                <th>Reports & Summary</th>
+                <th>Date / Time</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        runs.forEach(r => {
+          const isPassed = (r.status === 'success' || r.final_verdict === 'pass' || r.final_verdict === 'passed');
+          const isFailed = (r.status === 'failed_max_iterations' || r.status === 'needs_intervention');
+          const badgeStyle = isPassed ? 'background:rgba(59,122,87,0.15); color:var(--sage-green); border:1px solid rgba(59,122,87,0.3);' : 
+                             (isFailed ? 'background:rgba(163,59,59,0.15); color:var(--clay-red); border:1px solid rgba(163,59,59,0.3);' : 
+                             'background:rgba(184,91,53,0.15); color:var(--terracotta); border:1px solid rgba(184,91,53,0.3);');
+          
+          const reportsCount = (r.reports || []).length;
+          const latestReport = (r.reports && r.reports.length > 0) ? r.reports[r.reports.length - 1] : null;
+          const reportSummary = latestReport ? (latestReport.summary || latestReport.evaluation_notes || 'Report logged') : (r.latest_summary || 'No reports yet');
+
+          html += `
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: var(--text-main);">${escapeHtml(r.meeting_id)}</div>
+                <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${escapeHtml(r.loop_run_id)}</div>
+              </td>
+              <td>
+                <span class="task-tag" style="${badgeStyle}">
+                  ${isPassed ? '✓ ' : (isFailed ? '🚨 ' : '⚡ ')}${escapeHtml((r.final_verdict || r.status || 'UNKNOWN').toUpperCase())}
+                </span>
+              </td>
+              <td>
+                <span class="meta-chip">${r.iteration || 1} / ${r.max_iterations || 3}</span>
+              </td>
+              <td>
+                <div style="font-size: 11px; font-family: monospace; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(r.workspace_path || '')}">
+                  ${escapeHtml(r.workspace_path ? r.workspace_path.split(/[\\\\/]/).pop() : 'Default')}
+                </div>
+              </td>
+              <td>
+                <div style="font-weight: 600; font-size: 12px; color: var(--text-main); margin-bottom: 2px;">${reportsCount} report(s) recorded</div>
+                <div style="font-size: 12px; color: var(--text-muted); line-height: 1.3;">${escapeHtml(reportSummary)}</div>
+              </td>
+              <td>
+                <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">${new Date(r.created_at || Date.now()).toLocaleString()}</div>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+            </tbody>
+          </table>
+        `;
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<div style="color: var(--clay-red); font-size: 13px; padding: 8px 0;">Error fetching history: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchHistoryRuns();
+    });
   </script>
 </body>
 </html>

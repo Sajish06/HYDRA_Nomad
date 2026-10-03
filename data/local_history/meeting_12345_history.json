@@ -1,0 +1,8 @@
+{
+  "meeting_id": "meeting_12345",
+  "meeting_title": "Project Nexus \u2014 Core Architecture & Infrastructure Review",
+  "business_context": [],
+  "isolated_secrets_count": 0,
+  "isolated_secrets": [],
+  "vault_session_id": "meeting_12345"
+}

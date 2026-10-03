@@ -13,8 +13,11 @@ def get_indexes_dir() -> Path:
     p.mkdir(parents=True, exist_ok=True)
     return p
 
-def index_meeting(meeting_id: str) -> int:
+def index_meeting(meeting_id: str, fast_mode: bool = False) -> int:
     """Indexes meeting segments for FAISS vector search and returns count."""
+    if fast_mode:
+        return 0
+
     with get_db() as conn:
         rows = conn.execute(
             "SELECT idx, speaker, text FROM segments WHERE meeting_id = ? ORDER BY idx ASC",

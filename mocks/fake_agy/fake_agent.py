@@ -86,9 +86,10 @@ class FakeAGYAgent:
                 last_report = None
 
                 deliverables = brief_data.get("prompt", {}).get("deliverables", [])
+                prompt_obj = brief_data.get("prompt", {})
                 while current_iter <= 3:
-                    # Write files according to selected behavior
-                    files_changed = self._apply_behavior_files(workspace_path, current_iter, deliverables)
+                    # Write files according to selected behavior and actual meeting prompt
+                    files_changed = self._apply_behavior_files(workspace_path, current_iter, deliverables, prompt_obj=prompt_obj)
 
                     # Build AGY report parameters
                     summary = f"AGY build attempt for iteration {current_iter}"
@@ -151,73 +152,256 @@ class FakeAGYAgent:
                     "history": self.history,
                 }
 
-    def _apply_behavior_files(self, workspace: Path, iteration: int, deliverables: List[str] = None) -> List[str]:
-        """Write files to workspace based on behavior and iteration number."""
+    def _apply_behavior_files(
+        self,
+        workspace: Path,
+        iteration: int,
+        deliverables: List[str] = None,
+        prompt_obj: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
+        """Write files to workspace dynamically based on meeting objective, requirements, and behavior."""
         files = []
+        p_obj = prompt_obj or {}
+        raw_objective = p_obj.get("objective") or "Verified Deliverable"
+        requirements = p_obj.get("requirements", [])
 
-        if self.behavior == "good":
-            # Compliant HTML files
+        # Clean title & brand based on actual meeting context
+        is_hello_world = "hello world" in raw_objective.lower() or any("hello world" in r.lower() for r in requirements)
+        has_counter = "counter" in raw_objective.lower() or any("counter" in r.lower() for r in requirements)
+
+        if is_hello_world and has_counter:
+            brand_name = "👋 Hello World & Counter"
+            page_title = "Hello World & Interactive Counter - Verified Deliverable"
+            hero_title = "Hello World!"
+            hero_subtitle = "Autonomous deliverable implementing verified meeting commitments: Hello World page and live counter."
+        elif is_hello_world:
+            brand_name = "👋 Hello World"
+            page_title = "Hello World Portal - Verified Deliverable"
+            hero_title = "Hello World!"
+            hero_subtitle = "Autonomous deliverable implementing verified meeting commitments with clean room isolation."
+        else:
+            brand_name = "🛡️ Verified Deliverables"
+            page_title = f"{raw_objective} - Verified Deliverable"
+            hero_title = raw_objective
+            hero_subtitle = "Autonomous deliverable compiled from verified meeting commitments with 0 PII leakage."
+
+        # Build dynamic requirement cards
+        card_items = []
+        for r in requirements:
+            card_items.append(
+                f"      <div class=\"card\">\n"
+                f"        <h3>⚡ Verified Requirement</h3>\n"
+                f"        <p>{r}</p>\n"
+                f"      </div>"
+            )
+        if not card_items:
+            card_items.append(
+                "      <div class=\"card\">\n"
+                "        <h3>🔒 Clean Room Security</h3>\n"
+                "        <p>Zero unmasked secrets exported from the enterprise vault.</p>\n"
+                "      </div>"
+            )
+        cards_html = "\n".join(card_items)
+
+        # Counter component snippet if counter requested
+        counter_snippet = ""
+        if has_counter:
+            counter_snippet = (
+                "    <section class=\"card\" style=\"text-align: center; margin: 30px auto; max-width: 480px;\">\n"
+                "      <h2 style=\"color: var(--primary); margin-top: 0;\">Interactive Counter</h2>\n"
+                "      <p style=\"color: #5C5248;\">Live JavaScript state counter verified by acceptance criteria.</p>\n"
+                "      <div style=\"font-size: 56px; font-weight: 800; color: var(--primary); margin: 20px 0;\" id=\"counter-value\">0</div>\n"
+                "      <div style=\"display: flex; gap: 12px; justify-content: center;\">\n"
+                "        <button type=\"button\" class=\"btn-cta\" onclick=\"changeCounter(-1)\" style=\"padding: 10px 24px; font-size: 16px;\">- Decrement</button>\n"
+                "        <button type=\"button\" class=\"btn-cta\" onclick=\"resetCounter()\" style=\"background: #5C5248; padding: 10px 18px; font-size: 16px;\">Reset</button>\n"
+                "        <button type=\"button\" class=\"btn-cta\" onclick=\"changeCounter(1)\" style=\"padding: 10px 24px; font-size: 16px;\">+ Increment</button>\n"
+                "      </div>\n"
+                "    </section>\n"
+                "    <script>\n"
+                "      let count = 0;\n"
+                "      function changeCounter(delta) {\n"
+                "        count += delta;\n"
+                "        document.getElementById('counter-value').innerText = count;\n"
+                "      }\n"
+                "      function resetCounter() {\n"
+                "        count = 0;\n"
+                "        document.getElementById('counter-value').innerText = count;\n"
+                "      }\n"
+                "    </script>\n"
+            )
+
+        if self.behavior == "good" or (self.behavior == "fix_on_second" and iteration >= 2):
+            # Compliant, fully styled modern web deliverables matching meeting context
+            style_css = workspace / "style.css"
+            style_css.write_text(
+                ":root {\n"
+                "  --primary: #B85B35;\n"
+                "  --secondary: #3B7A57;\n"
+                "  --bg: #EDE8DF;\n"
+                "  --card: #F7F4EE;\n"
+                "  --text: #2D2824;\n"
+                "}\n"
+                "body {\n"
+                "  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n"
+                "  margin: 0; padding: 0; background: var(--bg); color: var(--text);\n"
+                "  line-height: 1.6;\n"
+                "}\n"
+                "header {\n"
+                "  background: var(--card); border-bottom: 2px solid #D9D2C5; padding: 20px 40px;\n"
+                "  display: flex; justify-content: space-between; align-items: center;\n"
+                "}\n"
+                "nav a {\n"
+                "  margin-left: 20px; text-decoration: none; color: var(--primary); font-weight: 700;\n"
+                "}\n"
+                ".hero {\n"
+                "  padding: 60px 40px; text-align: center; background: linear-gradient(180deg, var(--card) 0%, var(--bg) 100%);\n"
+                "}\n"
+                ".hero h1 { font-size: 40px; color: var(--primary); margin-bottom: 12px; }\n"
+                ".hero p { font-size: 18px; color: #5C5248; max-width: 650px; margin: 0 auto 24px auto; }\n"
+                ".cards-grid {\n"
+                "  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;\n"
+                "  max-width: 1000px; margin: 40px auto; padding: 0 20px;\n"
+                "}\n"
+                ".card {\n"
+                "  background: var(--card); border: 1px solid #D9D2C5; border-radius: 12px; padding: 24px;\n"
+                "  box-shadow: 4px 4px 12px rgba(0,0,0,0.04);\n"
+                "}\n"
+                ".card h3 { color: var(--secondary); margin-top: 0; }\n"
+                "footer {\n"
+                "  text-align: center; padding: 30px; font-size: 14px; color: #7D7267;\n"
+                "  border-top: 1px solid #D9D2C5; margin-top: 40px;\n"
+                "}\n"
+                ".btn-cta {\n"
+                "  display: inline-block; background: var(--primary); color: #fff; padding: 12px 28px;\n"
+                "  border-radius: 8px; text-decoration: none; font-weight: 700; border: none; cursor: pointer;\n"
+                "}\n",
+                encoding="utf-8"
+            )
+            files.append("style.css")
+
+            script_js = workspace / "script.js"
+            script_js.write_text(
+                "// Autonomous Clean Room Client Script\n"
+                "let count = 0;\n\n"
+                "function changeCounter(delta) {\n"
+                "  count += delta;\n"
+                "  const el = document.getElementById('counter-value');\n"
+                "  if (el) el.innerText = count;\n"
+                "}\n\n"
+                "function resetCounter() {\n"
+                "  count = 0;\n"
+                "  const el = document.getElementById('counter-value');\n"
+                "  if (el) el.innerText = count;\n"
+                "}\n\n"
+                "document.addEventListener('DOMContentLoaded', () => {\n"
+                "  console.log('Clean room deliverables initialized successfully.');\n"
+                "});\n",
+                encoding="utf-8"
+            )
+            files.append("script.js")
+
             idx = workspace / "index.html"
             idx.write_text(
-                "<!DOCTYPE html>\n<html><head><title>Acme Widgets Portal</title></head><body>"
-                "<h1>Welcome to Acme Widgets</h1>"
-                "<section><h2>About Widget Optimization</h2><p>High performance widgets.</p></section>"
-                "<ul><li>Speed</li><li>Reliability</li><li>Security</li></ul>"
-                "<footer><p>Contact Us Locally</p></footer></body></html>",
+                "<!DOCTYPE html>\n"
+                "<html lang=\"en\">\n"
+                "<head>\n"
+                "  <meta charset=\"UTF-8\">\n"
+                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+                f"  <title>{page_title}</title>\n"
+                "  <link rel=\"stylesheet\" href=\"style.css\">\n"
+                "</head>\n"
+                "<body>\n"
+                "  <header>\n"
+                f"    <div style=\"font-size: 20px; font-weight: 800; color: #B85B35;\">{brand_name}</div>\n"
+                "    <nav>\n"
+                "      <a href=\"index.html\">Home</a>\n"
+                "      <a href=\"contact.html\">Contact</a>\n"
+                "    </nav>\n"
+                "  </header>\n"
+                "  <main>\n"
+                "    <section class=\"hero\">\n"
+                f"      <h1>{hero_title}</h1>\n"
+                f"      <p>{hero_subtitle}</p>\n"
+                "      <a href=\"contact.html\" class=\"btn-cta\">Get in Touch &rarr;</a>\n"
+                "    </section>\n"
+                f"{counter_snippet}\n"
+                "    <section class=\"cards-grid\">\n"
+                f"{cards_html}\n"
+                "    </section>\n"
+                "  </main>\n"
+                "  <footer>\n"
+                "    <p>&copy; 2026 Quarantined Clean Room Build. All rights reserved.</p>\n"
+                "  </footer>\n"
+                "  <script src=\"script.js\"></script>\n"
+                "</body>\n"
+                "</html>\n",
                 encoding="utf-8",
             )
             files.append("index.html")
 
             cnt = workspace / "contact.html"
             cnt.write_text(
-                "<!DOCTYPE html>\n<html><head><title>Contact Acme Widgets</title></head><body>"
-                "<h1>Contact Us</h1>"
-                "<form action='#' method='post'>"
-                "<label for='fname'>Name:</label><input id='fname' type='text' name='name'>"
-                "<label for='femail'>Email:</label><input id='femail' type='email' name='email'>"
-                "<label for='fmsg'>Message:</label><input id='fmsg' type='text' name='message'>"
-                "<button type='submit'>Send</button>"
-                "</form></body></html>",
+                "<!DOCTYPE html>\n"
+                "<html lang=\"en\">\n"
+                "<head>\n"
+                "  <meta charset=\"UTF-8\">\n"
+                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+                f"  <title>Contact - {brand_name}</title>\n"
+                "  <link rel=\"stylesheet\" href=\"style.css\">\n"
+                "</head>\n"
+                "<body>\n"
+                "  <header>\n"
+                f"    <div style=\"font-size: 20px; font-weight: 800; color: #B85B35;\">{brand_name}</div>\n"
+                "    <nav>\n"
+                "      <a href=\"index.html\">&larr; Back to Home</a>\n"
+                "    </nav>\n"
+                "  </header>\n"
+                "  <main style=\"max-width: 600px; margin: 40px auto; padding: 0 20px;\">\n"
+                "    <div class=\"card\">\n"
+                "      <h2>Contact & Feedback</h2>\n"
+                "      <form action=\"#\" method=\"post\">\n"
+                "        <p>\n"
+                "          <label for=\"name\" style=\"display: block; font-weight: 700; margin-bottom: 4px;\">Full Name:</label>\n"
+                "          <input id=\"name\" type=\"text\" name=\"name\" style=\"width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #D9D2C5; box-sizing: border-box;\" required>\n"
+                "        </p>\n"
+                "        <p>\n"
+                "          <label for=\"email\" style=\"display: block; font-weight: 700; margin-bottom: 4px;\">Email Address:</label>\n"
+                "          <input id=\"email\" type=\"email\" name=\"email\" style=\"width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #D9D2C5; box-sizing: border-box;\" required>\n"
+                "        </p>\n"
+                "        <p>\n"
+                "          <label for=\"message\" style=\"display: block; font-weight: 700; margin-bottom: 4px;\">Message:</label>\n"
+                "          <textarea id=\"message\" name=\"message\" rows=\"4\" style=\"width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #D9D2C5; box-sizing: border-box;\"></textarea>\n"
+                "        </p>\n"
+                "        <button type=\"submit\" class=\"btn-cta\" style=\"border: none; cursor: pointer; width: 100%;\">Submit Message</button>\n"
+                "      </form>\n"
+                "    </div>\n"
+                "  </main>\n"
+                "  <footer>\n"
+                "    <p>&copy; 2026 Quarantined Clean Room Build.</p>\n"
+                "  </footer>\n"
+                "</body>\n"
+                "</html>\n",
                 encoding="utf-8",
             )
             files.append("contact.html")
 
-        elif self.behavior == "fix_on_second":
-            if iteration == 1:
-                # Deliberate defects: missing <title> in index.html, unlabeled input in contact.html
-                idx = workspace / "index.html"
-                idx.write_text(
-                    "<!DOCTYPE html>\n<html><head></head><body><h1>Acme Widgets</h1></body></html>",
-                    encoding="utf-8",
-                )
-                files.append("index.html")
+        elif self.behavior == "fix_on_second" and iteration == 1:
+            # Deliberate defects: missing <title> in index.html, unlabeled input in contact.html
+            idx = workspace / "index.html"
+            idx.write_text(
+                f"<!DOCTYPE html>\n<html><head></head><body><h1>{hero_title}</h1><p>Draft work without title.</p></body></html>",
+                encoding="utf-8",
+            )
+            files.append("index.html")
 
-                cnt = workspace / "contact.html"
-                cnt.write_text(
-                    "<!DOCTYPE html>\n<html><head><title>Contact</title></head><body>"
-                    "<form><input type='text' name='unlabeled_input'><button type='submit'>Go</button></form>"
-                    "</body></html>",
-                    encoding="utf-8",
-                )
-                files.append("contact.html")
-            else:
-                # Iteration 2: Fix the defects using the feedback
-                idx = workspace / "index.html"
-                idx.write_text(
-                    "<!DOCTYPE html>\n<html><head><title>Fixed Acme Widgets</title></head><body>"
-                    "<h1>Acme Widgets</h1><p>About section.</p><footer>Footer</footer></body></html>",
-                    encoding="utf-8",
-                )
-                files.append("index.html")
-
-                cnt = workspace / "contact.html"
-                cnt.write_text(
-                    "<!DOCTYPE html>\n<html><head><title>Contact Us</title></head><body>"
-                    "<form><label for='in1'>Name:</label><input id='in1' type='text' name='name'>"
-                    "<button type='submit'>Submit</button></form></body></html>",
-                    encoding="utf-8",
-                )
-                files.append("contact.html")
+            cnt = workspace / "contact.html"
+            cnt.write_text(
+                "<!DOCTYPE html>\n<html><head><title>Contact</title></head><body>"
+                "<form><input type='text' name='unlabeled_input'><button type='submit'>Go</button></form>"
+                "</body></html>",
+                encoding="utf-8",
+            )
+            files.append("contact.html")
 
         elif self.behavior == "never_passes":
             # Always write empty/broken files
